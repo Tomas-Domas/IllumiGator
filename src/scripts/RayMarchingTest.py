@@ -2,30 +2,12 @@ import arcade
 import random
 import numpy
 
+from src.scripts.Shapes import Rectangle, Lens, draw_line_from_vectors
+
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 SCREEN_TITLE = "Ray Marching Demo"
-
-COLORS = [arcade.color.LION, arcade.color.BLUE, arcade.color.RED, arcade.color.GREEN,
-          arcade.color.PURPLE, arcade.color.PINK, arcade.color.AMBER, arcade.color.ORANGE]
 BACKGROUND_COLOR = arcade.color.JET
-
-
-class Rectangle:
-    def __init__(self, x, y, w, h):
-        self.position = numpy.array([x, y])
-        self.size = numpy.array([w, h])
-        self.color = random.choice(COLORS)
-
-    def draw(self):
-        # Draw the rectangle
-        arcade.draw_rectangle_filled(self.position[0], self.position[1], self.size[0], self.size[1], self.color)
-
-    def sdf(self, point):
-        distanceDifference = numpy.abs(point - self.position) - (self.size/2)
-        outsideDistance = numpy.linalg.norm( numpy.maximum(distanceDifference, numpy.zeros(2)) )
-        insideDistance = min(max(distanceDifference[0], distanceDifference[1]), 0)
-        return outsideDistance + insideDistance
 
 
 class LightRay:
@@ -42,28 +24,26 @@ class MyGame(arcade.Window):
     def __init__(self, width, height, title):
         super().__init__(width, height, title)
         self.background_color = BACKGROUND_COLOR
-        self.elements = [
-            Rectangle(random.randint(30, SCREEN_WIDTH - 30), random.randint(30, SCREEN_HEIGHT - 30),
-                      random.randint(10, 100), random.randint(10, 100))
-            for _ in range(1)
-        ]
+        self.level_elements = []
 
-        NUM_OF_RAYS = 1
-        self.light_rays = self.elements = [
-            Rectangle(random.randint(30, SCREEN_WIDTH-30), random.randint(30, SCREEN_HEIGHT-30), random.randint(10,100), random.randint(10, 100))
-            for _ in range(NUM_OF_RAYS)
-        ]
+        # for _ in range(1):    #ADD A NUMBER OF RANDOM RECTANGLES
+        #     position = numpy.array([random.randint(30, SCREEN_WIDTH - 30), random.randint(30, SCREEN_HEIGHT - 30)])
+        #     dimensions = numpy.array([random.randint(10, 100), random.randint(10, 100)])
+        #     self.level_elements.append(Rectangle(position, dimensions, 0))
 
+        self.level_elements.append(Lens( numpy.array([100, 100]), numpy.array([300, 300]), 100 ))
 
     # def on_update(self, delta_time):
 
     def on_mouse_motion(self, x, y, dx, dy):
-        print(self.elements[0].sdf(numpy.array([x, y])))
+        lens = self.level_elements[0]
+        draw_line_from_vectors(lens.origin, lens.origin - numpy.array([x, y]), arcade.color.WHITE)
+        print(lens.sdf(numpy.array([x, y])))
 
     def on_draw(self):
         self.clear()
-        for elem in self.elements:
-            elem.draw()
+        for element in self.level_elements:
+            element.draw()
 
 
 def main():

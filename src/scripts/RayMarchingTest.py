@@ -29,9 +29,9 @@ class Rectangle:
 
 
 class LightRay:
-    def __init__(self, origin, direction):
+    def __init__(self, origin, direction, length):
         self.origin = origin
-        self.end = origin + 10*direction
+        self.end = origin + length*direction
         self.direction = direction
 
     def draw(self):

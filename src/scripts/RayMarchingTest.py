@@ -2,7 +2,7 @@ import arcade
 import random
 import numpy
 
-from src.scripts.Shapes import Rectangle, Lens, draw_line_from_vectors
+from src.scripts.Shapes import Rectangle, Lens
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -37,7 +37,6 @@ class MyGame(arcade.Window):
 
     def on_mouse_motion(self, x, y, dx, dy):
         lens = self.level_elements[0]
-        draw_line_from_vectors(lens.origin, lens.origin - numpy.array([x, y]), arcade.color.WHITE)
         print(lens.sdf(numpy.array([x, y])))
 
     def on_draw(self):

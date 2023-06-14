@@ -6,11 +6,11 @@ COLORS = [arcade.color.LION, arcade.color.BLUE, arcade.color.RED, arcade.color.G
           arcade.color.PURPLE, arcade.color.PINK, arcade.color.AMBER, arcade.color.ORANGE]
 
 class Rectangle:
-    def __init__(self, position, size, rotation_angle=0):
+    def __init__(self, position, size, rotation_angle=0, color=random.choice(COLORS)):
         self.position = position
         self.size = size
         self.rotation_angle = rotation_angle
-        self.color = random.choice(COLORS)
+        self.color = color
 
     def draw(self):
         # Draw the rectangle
@@ -24,20 +24,33 @@ class Rectangle:
 
 
 class Lens:
-    def __init__(self, origin, endpoint, radius_of_curvature=10, rotation_angle=0):
+    def __init__(self, origin, endpoint, radius_of_curvature=10, rotation_angle=0, color=random.choice(COLORS)):
         self.origin = origin
         self.end = endpoint
+        self.length = numpy.linalg.norm(self.end - self.origin)
         self.radius = radius_of_curvature
-        self.color = random.choice(COLORS)
+        self.color = color
 
     def draw(self):
-        draw_line_from_vectors(self.origin, self.end, self.color)
+        arcade.draw_line(self.origin[0], self.origin[1], self.end[0], self.end[1], self.color)
 
     def sdf(self, point):
-        origin_to_point_3D = numpy.concatenate((point - self.origin, [0]))
-        origin_to_end_3D = numpy.concatenate((self.end - self.origin, [0]))
-        cross = numpy.cross(origin_to_point_3D, origin_to_end_3D)
-        return True if cross[2] > 0 else False
+        origin_to_point_3D = point - self.origin
+        origin_to_end_3D = self.end - self.origin
+        projection = numpy.dot(origin_to_point_3D, origin_to_end_3D)/self.length
 
-def draw_line_from_vectors(v1, v2, color):
-    arcade.draw_line(v1[0], v1[1], v2[0], v2[1], color)
+        if projection < 0:
+            return numpy.linalg.norm(point-self.origin)
+        elif projection > self.length:
+            return numpy.linalg.norm(point-self.end)
+        else:
+            return 0
+
+
+
+
+# def what_side_am_I_on(self, point):
+#     origin_to_point_3D = numpy.concatenate((point - self.origin, [0]))
+#     origin_to_end_3D = numpy.concatenate((self.end - self.origin, [0]))
+#     cross = numpy.cross(origin_to_point_3D, origin_to_end_3D)
+#     return 1 if cross[2] > 0 else -1

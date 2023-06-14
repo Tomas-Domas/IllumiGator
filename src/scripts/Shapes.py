@@ -51,6 +51,13 @@ class Lens:
             return 0
 
 
+class LightRay:
+    def __init__(self, origin, direction, length):
+        self.origin = origin
+        self.direction = direction
+        self.end = origin + length * direction
 
+    def draw(self):
+        arcade.draw_line(self.origin[0], self.origin[1], self.end[0], self.end[1], arcade.color.WHITE)
 
 # def what_side_am_I_on(self, point):

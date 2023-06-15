@@ -1,5 +1,5 @@
 import arcade
-from menus import draw_ingame_menu, draw_title_menu
+from menus import draw_title_menu, InGameMenu
 from util import util
 import Shapes
 import numpy
@@ -11,10 +11,12 @@ class GameObject(arcade.Window):
         self.set_mouse_visible(False)
         arcade.set_background_color(arcade.color.SKY_BLUE)
         self.elem_list = None
+        self.game_menu = None
     
     def setup(self):
         self.game_state = 'menu'
         self.elem_list = [Shapes.Rectangle(numpy.array([2.5, util.WINDOW_HEIGHT // 2]), numpy.array([5, util.WINDOW_HEIGHT]))]
+        self.game_menu = InGameMenu(0)
 
     def on_draw(self):
         self.clear()
@@ -26,7 +28,7 @@ class GameObject(arcade.Window):
             for elem in self.elem_list:
                 elem.draw()
             if self.game_state == 'paused':
-                draw_ingame_menu()
+                self.game_menu.draw()
     
     def on_key_press(self, key, key_modifiers):
         if self.game_state == 'menu':
@@ -42,6 +44,15 @@ class GameObject(arcade.Window):
         elif self.game_state == 'paused':
             if key == arcade.key.ESCAPE:
                 self.game_state = 'game'
+            if key == arcade.key.DOWN:
+                self.game_menu.increment_selection()
+            if key == arcade.key.UP:
+                self.game_menu.decrement_selection()
+            if key == arcade.key.ENTER:
+                if self.game_menu.selection == 0:
+                    self.game_state = 'game'
+                elif self.game_menu.selection == 1:
+                    self.game_state = 'menu'
 
 def main():
     window = GameObject()

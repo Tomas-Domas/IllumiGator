@@ -1,7 +1,7 @@
 import random
 import arcade
 import numpy
-from src.scripts.Shapes import Rectangle, LightRay
+from src.scripts.Shapes import Rectangle, LightSource
 
 # Arcade Constants
 SCREEN_WIDTH = 1000
@@ -10,13 +10,7 @@ SCREEN_TITLE = "Ray Marching Demo"
 BACKGROUND_COLOR = arcade.color.JET
 
 # Random Generation Constants
-NUM_RECTANGLES = 8
-NUM_LIGHT_RAYS = 200
-
-# Ray Marching Constants
-MAXSTEPS = 30
-MAXDISTANCE = 1000
-EPSILON = 1
+NUM_RECTANGLES = 10
 
 class MyGame(arcade.Window):
     def __init__(self, width, height, title):
@@ -26,20 +20,15 @@ class MyGame(arcade.Window):
         self.mouse_y = SCREEN_HEIGHT/2
         self.background_color = BACKGROUND_COLOR
         self.level_elements = []
-        self.light_rays = []
+        self.light_sources = []
 
         for _ in range(NUM_RECTANGLES):    #ADD A NUMBER OF RANDOM RECTANGLES
             position = numpy.array([random.randint(30, SCREEN_WIDTH - 30), random.randint(30, SCREEN_HEIGHT - 30)])
             dimensions = numpy.array([random.randint(50, 200), random.randint(50, 200)])
             self.level_elements.append(Rectangle(position, dimensions, 0))
 
-        for l in range(NUM_LIGHT_RAYS): #ADD A NUMBER OF LIGHT RAYS
-            angle = l * 2 * numpy.pi/NUM_LIGHT_RAYS
-            position = numpy.array([SCREEN_WIDTH/2, SCREEN_HEIGHT/2])
-            direction = numpy.array([numpy.cos(angle), numpy.sin(angle)])
-            length = self.ray_march(position, direction)
+        self.light_sources.append(LightSource(numpy.zeros(2), numpy.array([0, 1])))
 
-            self.light_rays.append(LightRay(position, direction, length))
 
     # def on_update(self, delta_time):
 
@@ -47,39 +36,14 @@ class MyGame(arcade.Window):
         self.clear()
         for element in self.level_elements:
             element.draw()
-        for ray in self.light_rays:
-            position = numpy.array([float(self.mouse_x), float(self.mouse_y)])
-            direction = ray.direction
-            length = self.ray_march(position, direction)
-
-            ray.origin = position
-            ray.length = length
-            ray.end = position + length * direction
-            ray.draw()
+        for source in self.light_sources:
+            source.move_to(self.mouse_x, self.mouse_y)
+            source.march_rays(self.level_elements)
+            source.draw()
 
     def on_mouse_motion(self, x, y, dx, dy):
         self.mouse_x = x
         self.mouse_y = y
-
-
-    def ray_march(self, origin, direction):
-        startPoint = origin.copy()
-        distanceTotal = 0
-        for s in range(MAXSTEPS):
-            min_dist = self.level_elements[0].sdf(startPoint)
-            for element in self.level_elements:
-                element_distance = element.sdf(startPoint)
-                if min_dist > element_distance:
-                    min_dist = element_distance
-            distanceTotal += min_dist
-            startPoint += direction * min_dist
-
-            if min_dist < EPSILON:
-                return distanceTotal
-            elif distanceTotal > MAXDISTANCE:
-                break
-
-        return MAXDISTANCE
 
 
 def main():

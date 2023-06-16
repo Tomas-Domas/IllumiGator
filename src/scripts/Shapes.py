@@ -6,7 +6,7 @@ COLORS = [arcade.color.LION, arcade.color.BLUE, arcade.color.RED, arcade.color.G
           arcade.color.PURPLE, arcade.color.PINK, arcade.color.AMBER, arcade.color.ORANGE]
 
 # Light Source Constants
-NUM_LIGHT_RAYS = 100
+NUM_LIGHT_RAYS = 75
 
 # Ray Marching Constants
 MAXSTEPS = 100
@@ -88,14 +88,17 @@ class LightRay:
         arcade.draw_line(self.origin[0], self.origin[1], self.end[0], self.end[1], arcade.color.WHITE)
 
 class LightSource:
-    def __init__(self, position, direction):
+    def __init__(self, position, direction, angular_spread):
         self.position = position
         self.direction = direction
         self.light_rays = []
+        self.angular_spread = angular_spread
 
-        for l in range(NUM_LIGHT_RAYS):
-            angle = l * 2 * numpy.pi/NUM_LIGHT_RAYS
-            ray_direction = numpy.array([numpy.cos(angle), numpy.sin(angle)])
+        angle = numpy.arctan2(direction[1], direction[0])
+
+        for l in range(NUM_LIGHT_RAYS): #TODO: Switch to "spotlight" using self.direction instead of point source
+            ray_angle = (l/NUM_LIGHT_RAYS)*(angle-angular_spread/2) + (1 - l/NUM_LIGHT_RAYS)*(angle+angular_spread/2)
+            ray_direction = numpy.array([numpy.cos(ray_angle), numpy.sin(ray_angle)])
             self.light_rays.append(LightRay(self.position, ray_direction))
 
     def march_rays(self, level_elements):

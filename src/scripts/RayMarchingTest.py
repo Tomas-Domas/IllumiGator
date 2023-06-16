@@ -10,7 +10,7 @@ SCREEN_TITLE = "Ray Marching Demo"
 BACKGROUND_COLOR = arcade.color.JET
 
 # Random Generation Constants
-NUM_RECTANGLES = 10
+NUM_RECTANGLES = 8
 
 class MyGame(arcade.Window):
     def __init__(self, width, height, title):
@@ -27,10 +27,11 @@ class MyGame(arcade.Window):
             dimensions = numpy.array([random.randint(50, 200), random.randint(50, 200)])
             self.level_elements.append(Rectangle(position, dimensions, 0))
 
-        self.light_sources.append(LightSource(numpy.zeros(2), numpy.array([0, 1])))
+        self.light_sources.append(LightSource(numpy.zeros(2), numpy.array([0.6, 0.8]), numpy.pi/2))
 
 
     # def on_update(self, delta_time):
+
 
     def on_draw(self):
         self.clear()
@@ -40,6 +41,7 @@ class MyGame(arcade.Window):
             source.move_to(self.mouse_x, self.mouse_y)
             source.march_rays(self.level_elements)
             source.draw()
+
 
     def on_mouse_motion(self, x, y, dx, dy):
         self.mouse_x = x

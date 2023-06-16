@@ -12,15 +12,33 @@ class GameObject(arcade.Window):
         arcade.set_background_color(arcade.color.SKY_BLUE)
         self.elem_list = None
         self.game_menu = None
+        self.tile_map = None
+        # self.scene = None
     
     def setup(self):
         self.game_state = 'menu'
         self.elem_list = [Shapes.Rectangle(numpy.array([2.5, util.WINDOW_HEIGHT // 2]), numpy.array([5, util.WINDOW_HEIGHT]))]
         self.game_menu = InGameMenu(0)
 
+        # map_name = 'test-map.json'
+
+        # layer_options = {
+        #     "Platforms": {
+        #         "use_spatial_hash": True,
+        #     },
+        # }
+
+        # # Read in the tiled map
+        # self.tile_map = arcade.load_tilemap(map_name, 1, layer_options)
+
+        # # Initialize Scene with TileMap
+        # self.scene = arcade.Scene.from_tilemap(self.tile_map)
+
+        # if self.tile_map.background_color:
+        #     arcade.set_background_color(self.tile_map.background_color)
+
     def on_draw(self):
         self.clear()
-        print(self.game_state)
 
         if self.game_state == 'menu':
             draw_title_menu()

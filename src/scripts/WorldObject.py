@@ -13,7 +13,7 @@ class WorldObject(ABC):
     def draw(self):
         pass
     # @abstractmethod
-    # def distance_to_point(self, point: numpy.array):
+    # def distance_to_point(self, point: numpy.array):  # TODO: change to get_intersection_point()
     #     pass
 
 
@@ -36,14 +36,13 @@ class Line(WorldObject):
         y4 = ray.origin[1] + ray.direction[1]
 
         denominator = (x1-x2) * (y3-y4)  -  (y1-y2) * (x3-x4)
-        if denominator == 0: #Line and ray are parallel
+        if denominator == 0:  # Line and ray are parallel
             return None
         t =  ((x1-x3) * (y3-y4)  -  (y1-y3) * (x3-x4)) / denominator
         u = -((x1-x2) * (y1-y3)  -  (y1-y2) * (x1-x3)) / denominator
 
         if 0 < t < 1 and u > 0:
-            return numpy.array([ x1 + t * (x2-x1),
-                                 y1 + t * (y2-y1) ])
+            return numpy.array([ x1 + t * (x2-x1),   y1 + t * (y2-y1) ])
         return None
 
     def draw(self):
@@ -61,7 +60,7 @@ class Rectangle(WorldObject):
     def draw(self):
         arcade.draw_rectangle_filled(self.position[0], self.position[1], self.size[0], self.size[1], self.color)
 
-    def distance_to_point(self, point: numpy.array): #TODO: change to get_intersection_point()
+    def distance_to_point(self, point: numpy.array) -> float:  # TODO: change to get_intersection_point()
         distanceDifference = numpy.abs(point - self.position) - (self.size/2)
         outsideDistance = numpy.linalg.norm( numpy.maximum(distanceDifference, numpy.zeros(2)) )
         insideDistance = min(max(distanceDifference[0], distanceDifference[1]), 0)

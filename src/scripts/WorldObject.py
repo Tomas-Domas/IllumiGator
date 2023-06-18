@@ -1,11 +1,11 @@
 import random
 import numpy
 import arcade
-import Light
 from abc import ABC, abstractmethod
 
 COLORS = [arcade.color.LION, arcade.color.BLUE, arcade.color.RED, arcade.color.GREEN,
           arcade.color.PURPLE, arcade.color.PINK, arcade.color.AMBER, arcade.color.ORANGE]
+
 
 
 class WorldObject(ABC):
@@ -23,7 +23,7 @@ class Line(WorldObject):
         self.point1 = point1
         self.point2 = point2
 
-    def get_intersection_point(self, ray: Light.LightRay) -> numpy.array:
+    def get_intersection_point(self, ray) -> numpy.array:
         # Don't @ me...    https://en.wikipedia.org/wiki/Line-line_intersection#Given_two_points_on_each_line_segment
         x1 = self.point1[0]
         y1 = self.point1[1]
@@ -47,6 +47,20 @@ class Line(WorldObject):
 
     def draw(self):
         arcade.draw_line(self.point1[0], self.point1[1], self.point2[0], self.point2[1], arcade.color.GOLD)
+
+
+class Mirror(Line):
+    def __init__(self, point1: numpy.array, point2: numpy.array):
+        super().__init__(point1, point2)
+        # compute the normal of the mirror based on its rotation angle
+        normal_unscaled = numpy.array([-(point2[1]-point1[1]), point2[0]-point1[0]])
+        self.normal = normal_unscaled / numpy.linalg.norm(normal_unscaled)
+
+    def draw(self):
+        arcade.draw_line(self.point1[0], self.point1[1], self.point2[0], self.point2[1], arcade.color.SILVER)
+
+    def get_reflected_direction(self, direction):
+        return direction - (2 * numpy.dot(direction, self.normal) * self.normal)
 
 
 class Rectangle(WorldObject):

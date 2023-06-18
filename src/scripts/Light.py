@@ -2,7 +2,7 @@ import arcade
 import numpy
 
 # Light Source Constants
-NUM_LIGHT_RAYS = 75
+NUM_LIGHT_RAYS = 1
 
 # Ray Casting Constants
 MAX_STEPS: int = 100
@@ -13,7 +13,7 @@ class LightRay:
     def __init__(self, origin, direction):
         self.origin = origin
         self.direction = direction
-        self.end = origin.copy()
+        self.end = origin + direction*50
         self.child_ray = None
 
     def ray_march(self, level_elements):
@@ -49,7 +49,7 @@ class LightSource:
 
         angle = numpy.arctan2(direction[1], direction[0])
 
-        for l in range(NUM_LIGHT_RAYS): #TODO: Switch to "spotlight" using self.direction instead of point source
+        for l in range(NUM_LIGHT_RAYS):
             ray_angle = (l/NUM_LIGHT_RAYS)*(angle-angular_spread/2) + (1 - l/NUM_LIGHT_RAYS)*(angle+angular_spread/2)
             ray_direction = numpy.array([numpy.cos(ray_angle), numpy.sin(ray_angle)])
             self.light_rays.append(LightRay(self.position, ray_direction))
@@ -58,14 +58,15 @@ class LightSource:
         for ray in self.light_rays:
             ray.ray_march(level_elements)
 
-    def move_to(self, x, y):
-        self.position[0] = x
-        self.position[1] = y
+    def move_to(self, new_position):
+        self.position[0] = new_position[0]
+        self.position[1] = new_position[1]
         for ray in self.light_rays:
-            ray.origin[0] = x
-            ray.origin[1] = y
+            ray.origin[0] = new_position[0]
+            ray.origin[1] = new_position[1]
+            ray.end = ray.origin + ray.direction*1000
 
     def draw(self):
         for ray in self.light_rays:
             ray.draw()
-        arcade.draw_circle_filled(self.position[0], self.position[1], 30, arcade.color.BLACK)
+        arcade.draw_circle_filled(self.position[0], self.position[1], 20, arcade.color.BLACK)

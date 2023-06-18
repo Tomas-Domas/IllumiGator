@@ -1,7 +1,7 @@
 import arcade
 from menus import draw_title_menu, InGameMenu
 from util import util
-import Shapes
+import WorldObject
 import numpy
 
 class GameObject(arcade.Window):
@@ -17,7 +17,7 @@ class GameObject(arcade.Window):
     
     def setup(self):
         self.game_state = 'menu'
-        self.elem_list = [Shapes.Rectangle(numpy.array([2.5, util.WINDOW_HEIGHT // 2]), numpy.array([5, util.WINDOW_HEIGHT]))]
+        self.elem_list = [WorldObject.Rectangle(numpy.array([2.5, util.WINDOW_HEIGHT // 2]), numpy.array([5, util.WINDOW_HEIGHT]))]
         self.game_menu = InGameMenu(0)
 
         # map_name = 'test-map.json'

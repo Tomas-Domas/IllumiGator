@@ -1,7 +1,7 @@
 import random
 import arcade
 import numpy
-from src.scripts.Shapes import Rectangle, LightSource
+from Shapes import Rectangle, LightSource, Mirror
 
 # Arcade Constants
 SCREEN_WIDTH = 1000
@@ -10,7 +10,7 @@ SCREEN_TITLE = "Ray Marching Demo"
 BACKGROUND_COLOR = arcade.color.JET
 
 # Random Generation Constants
-NUM_RECTANGLES = 8
+NUM_RECTANGLES = 0
 
 class MyGame(arcade.Window):
     def __init__(self, width, height, title):
@@ -28,7 +28,7 @@ class MyGame(arcade.Window):
             self.level_elements.append(Rectangle(position, dimensions, 0))
 
         self.light_sources.append(LightSource(numpy.zeros(2), numpy.array([0.6, 0.8]), numpy.pi/2))
-
+        self.level_elements.append(Mirror(numpy.array([500, 100]), numpy.array([200, 10]), 0))
 
     # def on_update(self, delta_time):
 

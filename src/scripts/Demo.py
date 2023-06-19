@@ -23,15 +23,18 @@ class MyGame(arcade.Window):
         self.world_objects = []
         self.light_sources = []
 
-        for n in range(NUM_OBJECTS):  # add a bunch of random lines
-            position = numpy.array([random.randint(30, SCREEN_WIDTH - 30), random.randint(30, SCREEN_HEIGHT - 30)])
-            dimensions = numpy.array([random.randint(-200, 200), random.randint(-200, 200)])
-            if n <= 5:
-                self.world_objects.append(WorldObject.Mirror(position, position + dimensions))
-            else:
-                self.world_objects.append(WorldObject.Line(position, position + dimensions))
+        # for n in range(NUM_OBJECTS):  # add a bunch of random lines
+        #     position = numpy.array([random.randint(30, SCREEN_WIDTH - 30), random.randint(30, SCREEN_HEIGHT - 30)])
+        #     dimensions = numpy.array([random.randint(-200, 200), random.randint(-200, 200)])
+        #     if n <= 5:
+        #         self.world_objects.append(WorldObject.Mirror(position, position + dimensions))
+        #     else:
+        #         self.world_objects.append(WorldObject.Line(position, position + dimensions))
 
-        self.light_sources.append(Light.LightSource(numpy.zeros(2), numpy.array([1, 0]), numpy.pi * 2))
+        for _ in range(0, 17):
+            self.world_objects.append(WorldObject.Rectangle(numpy.array([20 + _*60, 200]), numpy.array([20, 50]), _*numpy.pi/16))
+
+        self.light_sources.append(Light.LightSource(numpy.zeros(2), numpy.array([1, 0]), numpy.pi/4))
 
     def on_draw(self):
         self.clear()

@@ -1,0 +1,43 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "test-map.json",
+    "expandedProjectPaths": [
+        "venv/Lib",
+        "venv/Lib/site-packages",
+        ".",
+        "venv"
+    ],
+    "fileStates": {
+        "test-map.json": {
+            "scale": 2.5590625,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 160.0195384051777,
+                "y": 159.62877030162414
+            }
+        },
+        "tmw_desert_spacing.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 2
+        }
+    },
+    "last.exportedFilePath": "C:/Performant Prog/IllumiGator",
+    "last.imagePath": "C:/Program Files/Tiled/examples",
+    "map.height": 10,
+    "map.lastUsedExportFilter": "JSON map files (*.tmj *.json)",
+    "map.lastUsedFormat": "json",
+    "map.width": 10,
+    "openFiles": [
+        "test-map.json",
+        "tmw_desert_spacing.tsx"
+    ],
+    "project": "test.tiled-project",
+    "recentFiles": [
+        "tmw_desert_spacing.tsx",
+        "test-map.json"
+    ],
+    "tileset.lastUsedFormat": "tsx"
+}

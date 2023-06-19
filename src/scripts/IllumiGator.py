@@ -4,6 +4,17 @@ from util import util
 import WorldObject
 import numpy
 
+class Level():
+    # TODO: Replace rectangle with generic polygon
+    def __init__(self, elem_list: list[WorldObject.Rectangle], name = 'default'):
+        self.elem_list = elem_list
+        self.name = name
+    
+    def draw(self):
+        for elem in self.elem_list:
+            elem.draw()
+
+
 class GameObject(arcade.Window):
     def __init__(self):
         super().__init__(util.WINDOW_WIDTH, util.WINDOW_HEIGHT, util.WINDOW_TITLE)
@@ -18,7 +29,7 @@ class GameObject(arcade.Window):
     def setup(self):
         self.game_state = 'menu'
         self.elem_list = [WorldObject.Rectangle(numpy.array([2.5, util.WINDOW_HEIGHT // 2]), numpy.array([5, util.WINDOW_HEIGHT]))]
-        self.game_menu = InGameMenu(0)
+        self.game_menu = InGameMenu()
 
         # map_name = 'test-map.json'
 
@@ -77,5 +88,5 @@ def main():
     window.setup()
     arcade.run()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

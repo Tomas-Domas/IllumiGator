@@ -10,7 +10,7 @@ def draw_title_menu():
     arcade.draw_text("Press ESCAPE to quit", x_midpoint, y_midpoint - 100, arcade.color.WHITE, 24, anchor_x="center")
 
 class InGameMenu():
-    def __init__(self, selection):
+    def __init__(self, selection=0):
         self._selection = selection
         self.options = ('RESUME', 'QUIT TO MENU')
     

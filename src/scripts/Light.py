@@ -1,14 +1,14 @@
 import arcade
 import numpy
 from WorldObject import Mirror
-from util.util import distance_squared
+import util.util as util
 
 # Light Source Constants
-NUM_LIGHT_RAYS = 1
+NUM_LIGHT_RAYS = 50
 
 # Ray Casting Constants
 MAX_DISTANCE: float = 1000
-MAX_GENERATIONS: int = 5
+MAX_GENERATIONS: int = 10
 
 class LightRay:
     def __init__(self, origin, direction):
@@ -20,15 +20,15 @@ class LightRay:
 
 
     def cast_ray(self, world_objects: list, generation: int = 0):
-        min_dist_squared = 100000000  # arbitrary large number :)
+        min_dist_squared = util.STARTING_DISTANCE_VALUE
         collision_object = None
         for wo in world_objects:
             intersection_point = wo.get_intersection_point(self)
             if intersection_point is None:
                 continue
 
-            intersection_dist_squared = distance_squared(self.origin, intersection_point)
-            if min_dist_squared > intersection_dist_squared:
+            intersection_dist_squared = util.distance_squared(self.origin, intersection_point)
+            if intersection_dist_squared < min_dist_squared:
                 min_dist_squared = intersection_dist_squared
                 collision_object = wo
 
@@ -38,11 +38,10 @@ class LightRay:
             return
 
         self.end = self.origin + self.direction * numpy.sqrt(min_dist_squared)
-        arcade.draw_circle_filled(self.end[0], self.end[1], 4, arcade.color.GOLD)
 
         if isinstance(collision_object, Mirror) and generation < MAX_GENERATIONS:  # if the ray hit a mirror, create child and cast it
             reflected_direction = collision_object.get_reflected_direction(self.direction)
-            self.child_ray = LightRay(self.end + reflected_direction, reflected_direction)
+            self.child_ray = LightRay(self.end + reflected_direction*0.1, reflected_direction)
             self.child_ray.cast_ray(world_objects, generation=generation+1)
         else:
             self.child_ray = None

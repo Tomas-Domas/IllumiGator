@@ -4,9 +4,8 @@ from util import util
 import WorldObject
 import numpy
 
-class Level():
-    # TODO: Replace rectangle with generic polygon
-    def __init__(self, elem_list: list[WorldObject.Rectangle], name = 'default'):
+class Level:
+    def __init__(self, elem_list: list[WorldObject.WorldObject], name='default'):
         self.elem_list = elem_list
         self.name = name
     

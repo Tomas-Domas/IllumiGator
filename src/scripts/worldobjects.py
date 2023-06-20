@@ -1,9 +1,14 @@
+import arcade
 import numpy
 import random
 import util.util as util
 import geometry
 
-class Wall:
+
+class WorldObject:
+    sprite: arcade.Sprite
+
+class Wall(WorldObject):
     def __init__(self, center_position: numpy.array, side_lengths: numpy.array,
                  rotation_angle: float = 0, color: tuple[int, int, int] = random.choice(util.COLORS)):
         self.center = center_position
@@ -46,4 +51,3 @@ class Wall:
                 nearest_intersection_object = intersection_object
 
         return nearest_intersection_point, nearest_intersection_object
-

@@ -1,10 +1,10 @@
 import arcade
 import numpy
-import WorldObject
+import geometry
 import util.util as util
 
 # Light Source Constants
-NUM_LIGHT_RAYS = 100
+NUM_LIGHT_RAYS = 10
 
 # Ray Casting Constants
 MAX_DISTANCE: float = 1000
@@ -19,9 +19,9 @@ class LightRay:
         self.generation = generation
 
 
-    def cast_ray(self, world_objects: list[WorldObject]):
+    def cast_ray(self, world_objects: list[geometry.Geometry]):
         nearest_distance_squared = util.STARTING_DISTANCE_VALUE
-        nearest_intersection_object = None
+        nearest_intersection_object: geometry.Geometry = None
         for wo in world_objects:
             intersection_point, intersection_object = wo.get_intersection(self)
             if intersection_point is None:
@@ -39,7 +39,7 @@ class LightRay:
 
         self.end = self.origin + self.direction * numpy.sqrt(nearest_distance_squared)
 
-        if isinstance(nearest_intersection_object, WorldObject.Mirror) and self.generation < MAX_GENERATIONS:  # if the ray hit a mirror, create child and cast it
+        if nearest_intersection_object.is_reflective and self.generation < MAX_GENERATIONS:  # if the ray hit a mirror, create child and cast it
             self.generate_child_ray(nearest_intersection_object.get_reflected_direction(self.direction))
             self.child_ray.cast_ray(world_objects)
         else:
@@ -86,7 +86,6 @@ class LightSource:
         for ray in self.light_rays:
             ray.origin[0] = new_position[0]
             ray.origin[1] = new_position[1]
-            ray.end = ray.origin + ray.direction*1000
 
 
     def draw(self):

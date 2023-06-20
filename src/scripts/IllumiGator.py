@@ -13,6 +13,29 @@ class Level:
         for elem in self.elem_list:
             elem.draw()
 
+class Character:
+    def __init__(self, sprite_path, scale_factor=1, image_width=128, image_height=128, center_x=util.WINDOW_WIDTH // 2, center_y=util.WINDOW_HEIGHT // 2, velocity=10):
+        self.character_sprite = arcade.Sprite(sprite_path, scale_factor, image_width=image_width, image_height=image_height, center_x=center_x, center_y=center_y )
+        self.velocity = velocity
+
+    def draw(self):
+        self.character_sprite.draw()
+
+    @property
+    def center_x(self):
+        return self.center_x
+    
+    @center_x.setter
+    def center_x(self, center_x):
+        self.center_x = center_x
+    
+    @property 
+    def center_y(self):
+        return self.center_y
+
+    @center_y.setter
+    def center_y(self, center_y):
+        self.center_y = center_y
 
 class GameObject(arcade.Window):
     def __init__(self):
@@ -23,31 +46,13 @@ class GameObject(arcade.Window):
         self.elem_list = None
         self.game_menu = None
         self.tile_map = None
-        self.character_sprite = None
-        # self.scene = None
+        self.character = None
     
     def setup(self):
         self.game_state = 'menu'
         self.elem_list = [WorldObject.Rectangle(numpy.array([2.5, util.WINDOW_HEIGHT // 2]), numpy.array([5, util.WINDOW_HEIGHT]))]
         self.game_menu = InGameMenu()
-        self.character_sprite = arcade.Sprite('sprite.png', 1, image_width=128, image_height=128, center_x=util.WINDOW_WIDTH // 2, center_y=util.WINDOW_HEIGHT // 2)
-
-        # map_name = 'test-map.json'
-
-        # layer_options = {
-        #     "Platforms": {
-        #         "use_spatial_hash": True,
-        #     },
-        # }
-
-        # # Read in the tiled map
-        # self.tile_map = arcade.load_tilemap(map_name, 1, layer_options)
-
-        # # Initialize Scene with TileMap
-        # self.scene = arcade.Scene.from_tilemap(self.tile_map)
-
-        # if self.tile_map.background_color:
-        #     arcade.set_background_color(self.tile_map.background_color)
+        self.character = Character('sprite.png')
 
     def on_draw(self):
         self.clear()
@@ -57,7 +62,7 @@ class GameObject(arcade.Window):
         elif self.game_state == 'game' or self.game_state == 'paused':
             for elem in self.elem_list:
                 elem.draw()
-            self.character_sprite.draw()
+            self.character.draw()
             if self.game_state == 'paused':
                 self.game_menu.draw()
     

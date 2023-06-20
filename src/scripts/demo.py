@@ -36,7 +36,7 @@ class MyGame(arcade.Window):
 
         self.world_objects.append(geometry.Circle(numpy.array([200, 200]), 50))
 
-        self.light_sources.append(light.LightSource(numpy.zeros(2), numpy.array([0, -1]), numpy.pi/4))
+        self.light_sources.append(light.LightSource(numpy.zeros(2), numpy.array([0, -1]), numpy.pi*2))
 
     def on_draw(self):
         self.clear()

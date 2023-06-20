@@ -67,12 +67,39 @@ class Circle(Geometry):
         self.is_refractive = is_refractive
 
     def get_intersection(self, ray) -> tuple[numpy.array, Geometry]:
-        # Don't @ me...    https://en.wikipedia.org/wiki/Line–sphere_intersection#Calculation_using_vectors_in_3D
-        nabla = numpy.square(ray.direction @ (ray.origin - self.center)) - (numpy.square(numpy.linalg.norm((ray.origin - self.center))) - self.radius*self.radius)
+        # Don't @ me...    https://en.wikipedia.org/wiki/Line-sphere_intersection#Calculation_using_vectors_in_3D
+        temp_calculation = ray.direction @ (ray.origin - self.center)
+        nabla = numpy.square(temp_calculation) - (numpy.square(numpy.linalg.norm((ray.origin - self.center))) - self.radius*self.radius)
         if nabla < 0:
             return None, self
-        intersection_distance = - (ray.direction @ (ray.origin - self.center)) - numpy.sqrt(nabla)
-        return ray.origin + ray.direction * intersection_distance, self
+
+        nabla_sqrt = numpy.sqrt(nabla)
+        intersection_distance1 = - temp_calculation - nabla_sqrt
+        intersection_distance2 = - temp_calculation + nabla_sqrt
+
+        if intersection_distance1 > 0 and intersection_distance2 > 0:
+            return ray.origin + ray.direction * min(intersection_distance1, intersection_distance2), self
+        elif intersection_distance1 > 0 or intersection_distance2 > 0:
+            return ray.origin + ray.direction * max(intersection_distance1, intersection_distance2), self
+        else:
+            return None, self
+
 
     def draw(self):
         arcade.draw_circle_outline(self.center[0], self.center[1], self.radius, arcade.color.MAGENTA)
+
+
+# class Arc(Geometry):
+#     def __init__(self, center: numpy.array, radius: float, start_angle: float, end_angle: float, is_reflective: bool = False, is_refractive: bool = False):
+#         self.center = center
+#         self.radius = radius
+#         self.start_angle = start_angle
+#         self.end_angle = end_angle
+#         self.is_reflective = is_reflective
+#         self.is_refractive = is_refractive
+#
+#     def get_intersection(self, ray) -> tuple[numpy.array, Geometry]:
+#         pass
+#
+#     def draw(self):
+#         arcade.draw_arc_outline(self.center[0], self.center[1], self.radius, self.radius, arcade.color.MAGENTA, self.start_angle, self.end_angle)

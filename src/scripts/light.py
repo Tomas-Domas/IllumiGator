@@ -4,7 +4,7 @@ import geometry
 import util.util as util
 
 # Light Source Constants
-NUM_LIGHT_RAYS = 10
+NUM_LIGHT_RAYS = 500
 
 # Ray Casting Constants
 MAX_DISTANCE: float = 1000

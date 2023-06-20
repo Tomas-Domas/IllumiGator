@@ -13,6 +13,45 @@ class Level:
         for elem in self.elem_list:
             elem.draw()
 
+class Character:
+    def __init__(self, sprite_path, scale_factor=1, image_width=128, image_height=128, center_x=util.WINDOW_WIDTH // 2, center_y=util.WINDOW_HEIGHT // 2, velocity=10):
+        self.character_sprite = arcade.Sprite(sprite_path, scale_factor, image_width=image_width, image_height=image_height, center_x=center_x, center_y=center_y )
+        self.velocity = velocity
+        self.left = False
+        self.right = False
+        self.up = False
+        self.down = False
+
+        self.interactive_line = None
+
+    def draw(self):
+        self.character_sprite.draw()
+
+    def update(self):
+        if self.left and not self.right:
+            self.character_sprite.center_x -= self.velocity
+        elif self.right and not self.left:
+            self.character_sprite.center_x += self.velocity
+        if self.up and not self.down:
+            self.character_sprite.center_y += self.velocity
+        elif self.down and not self.up:
+            self.character_sprite.center_y -= self.velocity
+
+    def rotate_line(self, direction):
+        if self.interactive_line is None:
+            return
+
+        rotation_amount = numpy.deg2rad(1) * direction
+        point1, point2 = self.interactive_line.point1, self.interactive_line.point2
+        center = (point1 + point2) / 2
+
+        # rotate the points around the center of the mirror
+        rotated_point1 = util.rotate_around_center(point1, rotation_amount, center)
+        rotated_point2 = util.rotate_around_center(point2, rotation_amount, center)
+
+        # update the mirror's points
+        self.interactive_line.point1 = rotated_point1
+        self.interactive_line.point2 = rotated_point2
 
 class GameObject(arcade.Window):
     def __init__(self):
@@ -20,34 +59,17 @@ class GameObject(arcade.Window):
         self.background = None
         self.set_mouse_visible(False)
         arcade.set_background_color(arcade.color.SKY_BLUE)
-        self.elem_list = None
         self.game_menu = None
         self.tile_map = None
-        self.character_sprite = None
-        # self.scene = None
+        self.character = None
     
     def setup(self):
         self.game_state = 'menu'
-        self.elem_list = [WorldObject.Rectangle(numpy.array([2.5, util.WINDOW_HEIGHT // 2]), numpy.array([5, util.WINDOW_HEIGHT]))]
         self.game_menu = InGameMenu()
-        self.character_sprite = arcade.Sprite('sprite.png', 1, image_width=128, image_height=128, center_x=util.WINDOW_WIDTH // 2, center_y=util.WINDOW_HEIGHT // 2)
+        self.character = Character('sprite.png')
 
-        # map_name = 'test-map.json'
-
-        # layer_options = {
-        #     "Platforms": {
-        #         "use_spatial_hash": True,
-        #     },
-        # }
-
-        # # Read in the tiled map
-        # self.tile_map = arcade.load_tilemap(map_name, 1, layer_options)
-
-        # # Initialize Scene with TileMap
-        # self.scene = arcade.Scene.from_tilemap(self.tile_map)
-
-        # if self.tile_map.background_color:
-        #     arcade.set_background_color(self.tile_map.background_color)
+    def update(self, delta_time):
+        self.character.update()
 
     def on_draw(self):
         self.clear()
@@ -55,9 +77,7 @@ class GameObject(arcade.Window):
         if self.game_state == 'menu':
             draw_title_menu()
         elif self.game_state == 'game' or self.game_state == 'paused':
-            for elem in self.elem_list:
-                elem.draw()
-            self.character_sprite.draw()
+            self.character.draw()
             if self.game_state == 'paused':
                 self.game_menu.draw()
     
@@ -71,6 +91,14 @@ class GameObject(arcade.Window):
         elif self.game_state == 'game':
             if key == arcade.key.ESCAPE:
                 self.game_state = 'paused'
+            if key == arcade.key.W or key == arcade.key.UP:
+                self.character.up = True
+            if key == arcade.key.A or key == arcade.key.LEFT:
+                self.character.left = True
+            if key == arcade.key.S or key == arcade.key.RIGHT:
+                self.character.down = True
+            if key == arcade.key.D or key == arcade.key.DOWN:
+                self.character.right = True
 
         elif self.game_state == 'paused':
             if key == arcade.key.ESCAPE:
@@ -84,6 +112,17 @@ class GameObject(arcade.Window):
                     self.game_state = 'game'
                 elif self.game_menu.selection == 1:
                     self.game_state = 'menu'
+
+    def on_key_release(self, key, key_modifiers):
+        if key == arcade.key.W or key == arcade.key.UP:
+            self.character.up = False
+        if key == arcade.key.A or key == arcade.key.LEFT:
+            self.character.left = False
+        if key == arcade.key.D or key == arcade.key.RIGHT:
+            self.character.right = False
+        if key == arcade.key.S or key == arcade.key.DOWN:
+            self.character.down = False
+        self.character.update()
 
 def main():
     window = GameObject()

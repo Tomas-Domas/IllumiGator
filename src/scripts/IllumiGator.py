@@ -23,12 +23,14 @@ class GameObject(arcade.Window):
         self.elem_list = None
         self.game_menu = None
         self.tile_map = None
+        self.character_sprite = None
         # self.scene = None
     
     def setup(self):
         self.game_state = 'menu'
         self.elem_list = [WorldObject.Rectangle(numpy.array([2.5, util.WINDOW_HEIGHT // 2]), numpy.array([5, util.WINDOW_HEIGHT]))]
         self.game_menu = InGameMenu()
+        self.character_sprite = arcade.Sprite('sprite.png', 1, image_width=128, image_height=128, center_x=util.WINDOW_WIDTH // 2, center_y=util.WINDOW_HEIGHT // 2)
 
         # map_name = 'test-map.json'
 
@@ -55,6 +57,7 @@ class GameObject(arcade.Window):
         elif self.game_state == 'game' or self.game_state == 'paused':
             for elem in self.elem_list:
                 elem.draw()
+            self.character_sprite.draw()
             if self.game_state == 'paused':
                 self.game_menu.draw()
     

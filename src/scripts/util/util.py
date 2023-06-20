@@ -20,7 +20,8 @@ COLORS = [arcade.color.AQUAMARINE, arcade.color.BLUE, arcade.color.CHERRY, arcad
 
 
 # Script Constants
-STARTING_DISTANCE_VALUE = (WINDOW_WIDTH+WINDOW_HEIGHT)**2  # Very large number to start min_distance calculations at
+MAX_RAY_DISTANCE = numpy.sqrt(WINDOW_WIDTH ** 2 + WINDOW_HEIGHT ** 2) # maximum distance a ray can travel before going off-screen
+STARTING_DISTANCE_VALUE = WINDOW_WIDTH**2 + WINDOW_HEIGHT**2  # WINDOW_DIAGONAL_LENGTH**2. Large number for starting out min distance calculations
 
 
 # Functions

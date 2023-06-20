@@ -1,58 +1,63 @@
 import arcade
 import numpy
-from WorldObject import Mirror
+import WorldObject
 import util.util as util
 
 # Light Source Constants
-NUM_LIGHT_RAYS = 50
+NUM_LIGHT_RAYS = 100
 
 # Ray Casting Constants
 MAX_DISTANCE: float = 1000
 MAX_GENERATIONS: int = 10
 
 class LightRay:
-    def __init__(self, origin, direction):
+    def __init__(self, origin, direction, generation=0):
         self.origin = origin
         self.direction = direction
         self.end = None
         self.child_ray = None
+        self.generation = generation
 
 
-
-    def cast_ray(self, world_objects: list, generation: int = 0):
-        min_dist_squared = util.STARTING_DISTANCE_VALUE
-        collision_object = None
+    def cast_ray(self, world_objects: list[WorldObject]):
+        nearest_distance_squared = util.STARTING_DISTANCE_VALUE
+        nearest_intersection_object = None
         for wo in world_objects:
-            intersection_point = wo.get_intersection_point(self)
+            intersection_point, intersection_object = wo.get_intersection(self)
             if intersection_point is None:
                 continue
 
             intersection_dist_squared = util.distance_squared(self.origin, intersection_point)
-            if intersection_dist_squared < min_dist_squared:
-                min_dist_squared = intersection_dist_squared
-                collision_object = wo
+            if intersection_dist_squared < nearest_distance_squared:
+                nearest_distance_squared = intersection_dist_squared
+                nearest_intersection_object = intersection_object
 
-        if collision_object is None:
-            self.end = self.origin + self.direction * 1000
+        if nearest_intersection_object is None:
+            self.end = self.origin + self.direction * util.MAX_RAY_DISTANCE
             self.child_ray = None
             return
 
-        self.end = self.origin + self.direction * numpy.sqrt(min_dist_squared)
+        self.end = self.origin + self.direction * numpy.sqrt(nearest_distance_squared)
 
-        if isinstance(collision_object, Mirror) and generation < MAX_GENERATIONS:  # if the ray hit a mirror, create child and cast it
-            reflected_direction = collision_object.get_reflected_direction(self.direction)
-            self.child_ray = LightRay(self.end + reflected_direction*0.1, reflected_direction)
-            self.child_ray.cast_ray(world_objects, generation=generation+1)
+        if isinstance(nearest_intersection_object, WorldObject.Mirror) and self.generation < MAX_GENERATIONS:  # if the ray hit a mirror, create child and cast it
+            self.generate_child_ray(nearest_intersection_object.get_reflected_direction(self.direction))
+            self.child_ray.cast_ray(world_objects)
         else:
             self.child_ray = None
 
+
+    def generate_child_ray(self, direction):
+        if self.child_ray is None:
+            self.child_ray = LightRay(self.end + direction * 0.1, direction, generation=self.generation+1)
+        else:
+            self.child_ray.origin = self.end + direction * 0.1
+            self.child_ray.direction = direction
 
 
     def draw(self):
         arcade.draw_line(self.origin[0], self.origin[1], self.end[0], self.end[1], arcade.color.WHITE)
         if self.child_ray is not None:
             self.child_ray.draw()
-
 
 
 class LightSource:
@@ -69,10 +74,10 @@ class LightSource:
             ray_direction = numpy.array([numpy.cos(ray_angle), numpy.sin(ray_angle)])
             self.light_rays.append(LightRay(self.position, ray_direction))
 
+
     def cast_rays(self, world_objects):
         for ray in self.light_rays:
             ray.cast_ray(world_objects)
-
 
 
     def move_to(self, new_position):
@@ -82,6 +87,7 @@ class LightSource:
             ray.origin[0] = new_position[0]
             ray.origin[1] = new_position[1]
             ray.end = ray.origin + ray.direction*1000
+
 
     def draw(self):
         for ray in self.light_rays:

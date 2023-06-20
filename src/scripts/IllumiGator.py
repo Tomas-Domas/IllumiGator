@@ -22,6 +22,8 @@ class Character:
         self.up = False
         self.down = False
 
+        self.interactive_line = None
+
     def draw(self):
         self.character_sprite.draw()
 
@@ -34,6 +36,22 @@ class Character:
             self.character_sprite.center_y += self.velocity
         elif self.down and not self.up:
             self.character_sprite.center_y -= self.velocity
+
+    def rotate_line(self, direction):
+        if self.interactive_line is None:
+            return
+
+        rotation_amount = numpy.deg2rad(1) * direction
+        point1, point2 = self.interactive_line.point1, self.interactive_line.point2
+        center = (point1 + point2) / 2
+
+        # rotate the points around the center of the mirror
+        rotated_point1 = util.rotate_around_center(point1, rotation_amount, center)
+        rotated_point2 = util.rotate_around_center(point2, rotation_amount, center)
+
+        # update the mirror's points
+        self.interactive_line.point1 = rotated_point1
+        self.interactive_line.point2 = rotated_point2
 
 class GameObject(arcade.Window):
     def __init__(self):
@@ -48,7 +66,7 @@ class GameObject(arcade.Window):
     def setup(self):
         self.game_state = 'menu'
         self.game_menu = InGameMenu()
-        self.character = Character('C:\\Users\\amber\PycharmProjects\IllumiGator\sprite.png')
+        self.character = Character('sprite.png')
 
     def update(self, delta_time):
         self.character.update()

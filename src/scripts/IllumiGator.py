@@ -41,16 +41,14 @@ class GameObject(arcade.Window):
         self.background = None
         self.set_mouse_visible(False)
         arcade.set_background_color(arcade.color.SKY_BLUE)
-        self.elem_list = None
         self.game_menu = None
         self.tile_map = None
         self.character = None
     
     def setup(self):
         self.game_state = 'menu'
-        self.elem_list = [WorldObject.Rectangle(numpy.array([2.5, util.WINDOW_HEIGHT // 2]), numpy.array([5, util.WINDOW_HEIGHT]))]
         self.game_menu = InGameMenu()
-        self.character = Character('sprite.png')
+        self.character = Character('C:\\Users\\amber\PycharmProjects\IllumiGator\sprite.png')
 
     def update(self, delta_time):
         self.character.update()
@@ -61,8 +59,6 @@ class GameObject(arcade.Window):
         if self.game_state == 'menu':
             draw_title_menu()
         elif self.game_state == 'game' or self.game_state == 'paused':
-            for elem in self.elem_list:
-                elem.draw()
             self.character.draw()
             if self.game_state == 'paused':
                 self.game_menu.draw()
@@ -77,13 +73,13 @@ class GameObject(arcade.Window):
         elif self.game_state == 'game':
             if key == arcade.key.ESCAPE:
                 self.game_state = 'paused'
-            if key == arcade.key.W:
+            if key == arcade.key.W or key == arcade.key.UP:
                 self.character.up = True
-            if key == arcade.key.A:
+            if key == arcade.key.A or key == arcade.key.LEFT:
                 self.character.left = True
-            if key == arcade.key.S:
+            if key == arcade.key.S or key == arcade.key.RIGHT:
                 self.character.down = True
-            if key == arcade.key.D:
+            if key == arcade.key.D or key == arcade.key.DOWN:
                 self.character.right = True
 
         elif self.game_state == 'paused':
@@ -100,13 +96,13 @@ class GameObject(arcade.Window):
                     self.game_state = 'menu'
 
     def on_key_release(self, key, key_modifiers):
-        if key == arcade.key.W:
+        if key == arcade.key.W or key == arcade.key.UP:
             self.character.up = False
-        if key == arcade.key.A:
+        if key == arcade.key.A or key == arcade.key.LEFT:
             self.character.left = False
-        if key == arcade.key.D:
+        if key == arcade.key.D or key == arcade.key.RIGHT:
             self.character.right = False
-        if key == arcade.key.S:
+        if key == arcade.key.S or key == arcade.key.DOWN:
             self.character.down = False
         self.character.update()
 

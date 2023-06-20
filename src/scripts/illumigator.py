@@ -1,11 +1,11 @@
 import arcade
 from menus import draw_title_menu, InGameMenu
 from util import util
-import geometry
+import worldobjects
 import numpy
 
 class Level:
-    def __init__(self, elem_list: list[WorldObject.Geometry], name='default'):
+    def __init__(self, elem_list: list[worldobjects.WorldObject], name='default'):
         self.elem_list = elem_list
         self.name = name
     

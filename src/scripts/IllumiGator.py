@@ -17,25 +17,23 @@ class Character:
     def __init__(self, sprite_path, scale_factor=1, image_width=128, image_height=128, center_x=util.WINDOW_WIDTH // 2, center_y=util.WINDOW_HEIGHT // 2, velocity=10):
         self.character_sprite = arcade.Sprite(sprite_path, scale_factor, image_width=image_width, image_height=image_height, center_x=center_x, center_y=center_y )
         self.velocity = velocity
+        self.left = False
+        self.right = False
+        self.up = False
+        self.down = False
 
     def draw(self):
         self.character_sprite.draw()
 
-    @property
-    def center_x(self):
-        return self.center_x
-    
-    @center_x.setter
-    def center_x(self, center_x):
-        self.center_x = center_x
-    
-    @property 
-    def center_y(self):
-        return self.center_y
-
-    @center_y.setter
-    def center_y(self, center_y):
-        self.center_y = center_y
+    def update(self):
+        if self.left and not self.right:
+            self.character_sprite.center_x -= self.velocity
+        elif self.right and not self.left:
+            self.character_sprite.center_x += self.velocity
+        if self.up and not self.down:
+            self.character_sprite.center_y += self.velocity
+        elif self.down and not self.up:
+            self.character_sprite.center_y -= self.velocity
 
 class GameObject(arcade.Window):
     def __init__(self):
@@ -76,6 +74,15 @@ class GameObject(arcade.Window):
         elif self.game_state == 'game':
             if key == arcade.key.ESCAPE:
                 self.game_state = 'paused'
+            if key == arcade.key.W:
+                self.character.up = True
+            if key == arcade.key.A:
+                self.character.left = True
+            if key == arcade.key.S:
+                self.character.down = True
+            if key == arcade.key.D:
+                self.character.right = True
+            self.character.update()
 
         elif self.game_state == 'paused':
             if key == arcade.key.ESCAPE:
@@ -89,6 +96,17 @@ class GameObject(arcade.Window):
                     self.game_state = 'game'
                 elif self.game_menu.selection == 1:
                     self.game_state = 'menu'
+
+    def on_key_release(self, key, key_modifiers):
+        if key == arcade.key.W:
+            self.character.up = False
+        if key == arcade.key.A:
+            self.character.left = False
+        if key == arcade.key.D:
+            self.character.right = False
+        if key == arcade.key.S:
+            self.character.down = False
+        self.character.update()
 
 def main():
     window = GameObject()

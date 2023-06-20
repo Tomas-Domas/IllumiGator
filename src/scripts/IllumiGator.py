@@ -52,6 +52,9 @@ class GameObject(arcade.Window):
         self.game_menu = InGameMenu()
         self.character = Character('sprite.png')
 
+    def update(self, delta_time):
+        self.character.update()
+
     def on_draw(self):
         self.clear()
 
@@ -82,7 +85,6 @@ class GameObject(arcade.Window):
                 self.character.down = True
             if key == arcade.key.D:
                 self.character.right = True
-            self.character.update()
 
         elif self.game_state == 'paused':
             if key == arcade.key.ESCAPE:

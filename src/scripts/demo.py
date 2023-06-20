@@ -1,8 +1,8 @@
 import random
 import arcade
 import numpy
-import WorldObject
-import Light
+import geometry
+import light
 
 # Arcade Constants
 SCREEN_WIDTH = 1000
@@ -34,9 +34,9 @@ class MyGame(arcade.Window):
         # for _ in range(0, 17):
         #     self.world_objects.append(WorldObject.Rectangle(numpy.array([40 + _*50, 200]), numpy.array([20, 50]), _*numpy.pi/16))
 
-        self.world_objects.append(WorldObject.Circle(numpy.array([200, 200]), 50))
+        self.world_objects.append(geometry.Circle(numpy.array([200, 200]), 50))
 
-        self.light_sources.append(Light.LightSource(numpy.zeros(2), numpy.array([0, -1]), numpy.pi/4))
+        self.light_sources.append(light.LightSource(numpy.zeros(2), numpy.array([0, -1]), numpy.pi/4))
 
     def on_draw(self):
         self.clear()

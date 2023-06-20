@@ -46,6 +46,23 @@ class Line(WorldObject):
         arcade.draw_line(self.point1[0], self.point1[1], self.point2[0], self.point2[1], arcade.color.GOLD)
 
 
+class Circle(WorldObject):
+    def __init__(self, center: numpy.array, radius: float):
+        self.center = center
+        self.radius = radius
+
+    def get_intersection(self, ray) -> tuple[numpy.array, WorldObject]:
+        # Don't @ me...    https://en.wikipedia.org/wiki/Line–sphere_intersection#Calculation_using_vectors_in_3D
+        nabla = numpy.square(ray.direction @ (ray.origin - self.center)) - (numpy.square(numpy.linalg.norm((ray.origin - self.center))) - self.radius*self.radius)
+        if nabla < 0:
+            return None, self
+        intersection_distance = - (ray.direction @ (ray.origin - self.center)) - numpy.sqrt(nabla)
+        return ray.origin + ray.direction * intersection_distance, self
+
+    def draw(self):
+        arcade.draw_circle_outline(self.center[0], self.center[1], self.radius, self.color)
+
+
 class Mirror(Line):
     def __init__(self, point1: numpy.array, point2: numpy.array):
         super().__init__(point1, point2)

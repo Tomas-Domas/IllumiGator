@@ -1,7 +1,6 @@
 import worldobjects
 import arcade
 import numpy
-import geometry
 import light
 
 # Arcade Constants
@@ -20,11 +19,10 @@ class MyGame(arcade.Window):
 
         self.mouse_position = numpy.array([SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2])
         self.background_color = BACKGROUND_COLOR
+
         self.level_objects = []
         self.level_light_sources = []
-
         self.load_level1()
-
 
 
     def on_draw(self):
@@ -48,10 +46,16 @@ class MyGame(arcade.Window):
 
     def load_level1(self):
 
-        for _ in range(0, 17):
-            self.level_objects.append(worldobjects.Wall(numpy.array([40 + _ * 50, 200]), numpy.array([20, 50]), _ * numpy.pi / 16))
 
-        self.level_light_sources.append(worldobjects.LightSource(numpy.zeros(2), numpy.array([0, -1]), numpy.pi * 2))
+        self.level_objects.append(
+            #                 center position          width & height          rotation
+            worldobjects.Wall(numpy.array([200, 200]), numpy.array([200, 50]), numpy.pi/8)
+        )
+
+        self.level_light_sources.append(
+            #                        position                  rotation               spread of beam
+            light.RadialLightSource(numpy.array([300, 500]),  numpy.array([0, -1]),  numpy.pi/4)
+        )
 
 
 

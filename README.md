@@ -4,4 +4,9 @@
 ## Google Drive Resources
 https://drive.google.com/drive/folders/1HQ1lIxgZJNANgWnts3bsWUUTnnfJrKXW?usp=sharing
 
-(contains time sheet and project ideas)
+(contains timesheet and project ideas)
+
+## Dependencies
+arcade
+numpy
+screeninfo

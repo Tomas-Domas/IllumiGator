@@ -1,5 +1,5 @@
+import math
 import arcade
-import numpy
 import util.util as util
 
 # Ray Casting Constants
@@ -7,7 +7,7 @@ MAX_DISTANCE: float = 1000
 MAX_GENERATIONS: int = 5
 
 # Light Source Constants
-NUM_LIGHT_RAYS = 300
+NUM_LIGHT_RAYS = 200
 
 
 class LightRay:
@@ -37,7 +37,7 @@ class LightRay:
             self.child_ray = None
             return
 
-        self.end = self.origin + self.direction * numpy.sqrt(nearest_distance_squared)
+        self.end = self.origin + self.direction * math.sqrt(nearest_distance_squared)
 
         if nearest_intersection_geometry.is_reflective and self.generation < MAX_GENERATIONS:  # if the ray hit a mirror, create child and cast it
             self.generate_child_ray(nearest_intersection_geometry.get_reflected_direction(self))

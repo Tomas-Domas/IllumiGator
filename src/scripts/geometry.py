@@ -1,4 +1,3 @@
-import math
 import numpy
 import arcade
 from abc import ABC, abstractmethod
@@ -37,8 +36,8 @@ class Line(Geometry):
 
         x3 = ray.origin[0]
         y3 = ray.origin[1]
-        x4 = ray.origin[0] + ray.direction[0]
-        y4 = ray.origin[1] + ray.direction[1]
+        x4 = ray.origin[0] + ray.angle[0]
+        y4 = ray.origin[1] + ray.angle[1]
 
         denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
         if denominator == 0:  # Line and ray are parallel
@@ -68,7 +67,7 @@ class Circle(Geometry):
 
     def get_intersection(self, ray) -> tuple[numpy.array, Geometry]:  # TODO: optimize if necessary
         # Don't @ me...    https://en.wikipedia.org/wiki/Line-sphere_intersection#Calculation_using_vectors_in_3D
-        temp_calculation = ray.direction @ (ray.origin - self.center)
+        temp_calculation = ray.angle @ (ray.origin - self.center)
         nabla = numpy.square(temp_calculation) - (numpy.square(numpy.linalg.norm((ray.origin - self.center))) - self.radius*self.radius)
         if nabla < 0:
             return None, self
@@ -78,9 +77,9 @@ class Circle(Geometry):
         intersection_distance2 = - temp_calculation + nabla_sqrt
 
         if intersection_distance1 > 0 and intersection_distance2 > 0:
-            return ray.origin + ray.direction * min(intersection_distance1, intersection_distance2), self
+            return ray.origin + ray.angle * min(intersection_distance1, intersection_distance2), self
         elif intersection_distance1 > 0 or intersection_distance2 > 0:
-            return ray.origin + ray.direction * max(intersection_distance1, intersection_distance2), self
+            return ray.origin + ray.angle * max(intersection_distance1, intersection_distance2), self
         else:
             return None, self
 

@@ -1,3 +1,4 @@
+import math
 import numpy
 import arcade
 from screeninfo import get_monitors, ScreenInfoError
@@ -20,13 +21,14 @@ COLORS = [arcade.color.AQUAMARINE, arcade.color.BLUE, arcade.color.CHERRY, arcad
 
 
 # Script Constants
-MAX_RAY_DISTANCE = numpy.sqrt(WINDOW_WIDTH ** 2 + WINDOW_HEIGHT ** 2) # maximum distance a ray can travel before going off-screen
+MAX_RAY_DISTANCE = math.sqrt(WINDOW_WIDTH ** 2 + WINDOW_HEIGHT ** 2) # maximum distance a ray can travel before going off-screen
 STARTING_DISTANCE_VALUE = WINDOW_WIDTH**2 + WINDOW_HEIGHT**2  # WINDOW_DIAGONAL_LENGTH**2. Large number for starting out min distance calculations
 
 
 # Functions
 def distance_squared(point1: numpy.array, point2: numpy.array) -> float:
-    return (point1[0]-point2[0])*(point1[0]-point2[0]) + (point1[1]-point2[1])*(point1[1]-point2[1])
+    dx, dy = point1[0]-point2[0], point1[1]-point2[1]
+    return dx*dx + dy*dy
 
 def convert_angle_for_arcade(angle_rads: float) -> float:
     return -angle_rads * 180 / numpy.pi
@@ -34,7 +36,7 @@ def convert_angle_for_arcade(angle_rads: float) -> float:
 def rotate_around_center(point, angle, center):
     relative_point = point - center
     rotated_point = numpy.array([
-        relative_point[0]*numpy.cos(angle) - relative_point[1]*numpy.sin(angle),
-        relative_point[0]*numpy.sin(angle) + relative_point[1]*numpy.cos(angle)
+        relative_point[0]*math.cos(angle) - relative_point[1]*math.sin(angle),
+        relative_point[0]*math.sin(angle) + relative_point[1]*math.cos(angle)
     ])
     return rotated_point + center

@@ -1,3 +1,4 @@
+import math
 import numpy
 import arcade
 from abc import ABC, abstractmethod
@@ -73,14 +74,15 @@ class Circle(Geometry):
 
     def get_intersection(self, ray) -> numpy.array:  # TODO: optimize if necessary
         # Don't @ me...    https://en.wikipedia.org/wiki/Line-sphere_intersection#Calculation_using_vectors_in_3D
-        temp_calculation = ray.direction @ (ray.origin - self.center)
-        nabla = numpy.square(temp_calculation) - (numpy.square(numpy.linalg.norm((ray.origin - self.center))) - self.radius*self.radius)
+        temp_calculation1 = ray.direction @ (ray.origin - self.center)
+        temp_calculation2 = numpy.linalg.norm((ray.origin - self.center))
+        nabla = (temp_calculation1*temp_calculation1) - ((temp_calculation2*temp_calculation2) - self.radius*self.radius)
         if nabla < 0:
             return None
 
-        nabla_sqrt = numpy.sqrt(nabla)
-        intersection_distance1 = - temp_calculation - nabla_sqrt
-        intersection_distance2 = - temp_calculation + nabla_sqrt
+        nabla_sqrt = math.sqrt(nabla)
+        intersection_distance1 = - temp_calculation1 - nabla_sqrt
+        intersection_distance2 = - temp_calculation1 + nabla_sqrt
 
         if intersection_distance1 > 0 and intersection_distance2 > 0:
             return ray.origin + ray.direction * min(intersection_distance1, intersection_distance2)
@@ -109,27 +111,24 @@ class Circle(Geometry):
 #         self.is_reflective = is_reflective
 #         self.is_refractive = is_refractive
 #
-#     def get_intersection(self, ray) -> tuple[numpy.array, Geometry]:
+#         def get_intersection(self, ray) -> numpy.array:  # TODO: optimize if necessary
 #         # Don't @ me...    https://en.wikipedia.org/wiki/Line-sphere_intersection#Calculation_using_vectors_in_3D
-#
-#         # TODO: Angle checking shenanigans
-#
-#         temp_calculation = ray.direction @ (ray.origin - self.center)
-#         nabla = numpy.square(temp_calculation) - (
-#                     numpy.square(numpy.linalg.norm((ray.origin - self.center))) - self.radius * self.radius)
+#         temp_calculation1 = ray.direction @ (ray.origin - self.center)
+#         temp_calculation2 = numpy.linalg.norm((ray.origin - self.center))
+#         nabla = (temp_calculation1*temp_calculation1) - ((temp_calculation2*temp_calculation2) - self.radius*self.radius)
 #         if nabla < 0:
-#             return None, self
+#             return None
 #
-#         nabla_sqrt = numpy.sqrt(nabla)
-#         intersection_distance1 = - temp_calculation - nabla_sqrt
-#         intersection_distance2 = - temp_calculation + nabla_sqrt
+#         nabla_sqrt = math.sqrt(nabla)
+#         intersection_distance1 = - temp_calculation1 - nabla_sqrt
+#         intersection_distance2 = - temp_calculation1 + nabla_sqrt
 #
 #         if intersection_distance1 > 0 and intersection_distance2 > 0:
-#             return ray.origin + ray.direction * min(intersection_distance1, intersection_distance2), self
+#             return ray.origin + ray.direction * min(intersection_distance1, intersection_distance2)
 #         elif intersection_distance1 > 0 or intersection_distance2 > 0:
-#             return ray.origin + ray.direction * max(intersection_distance1, intersection_distance2), self
+#             return ray.origin + ray.direction * max(intersection_distance1, intersection_distance2)
 #         else:
-#             return None, self
+#             return None
 #
 #     def draw(self):
 #         arcade.draw_arc_outline(self.center[0], self.center[1], self.radius, self.radius, arcade.color.MAGENTA, self.start_angle, self.end_angle)

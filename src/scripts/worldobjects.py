@@ -1,3 +1,5 @@
+import math
+
 import arcade
 import numpy
 import random
@@ -33,10 +35,10 @@ class Wall(WorldObject):
         self.side_lengths = side_lengths
 
         axis1 = side_lengths[0] * 0.5 * numpy.array([
-            numpy.cos(rotation_angle), numpy.sin(rotation_angle)
+            math.cos(rotation_angle), math.sin(rotation_angle)
         ])
         axis2 = side_lengths[1] * 0.5 * numpy.array([
-            -numpy.sin(rotation_angle), numpy.cos(rotation_angle)
+            -math.sin(rotation_angle), math.cos(rotation_angle)
         ])
         self.geometry_segments = [
             geometry.Line(center_position - axis1 - axis2,   center_position - axis1 + axis2),
@@ -64,7 +66,7 @@ class RadialLightSource:
 
         for n in range(light.NUM_LIGHT_RAYS):
             ray_angle = (n/light.NUM_LIGHT_RAYS) * (rotation - angular_spread / 2) + (1 - n / light.NUM_LIGHT_RAYS) * (rotation + angular_spread / 2)
-            ray_direction = numpy.array([numpy.cos(ray_angle), numpy.sin(ray_angle)])
+            ray_direction = numpy.array([math.cos(ray_angle), math.sin(ray_angle)])
             self.light_rays.append(light.LightRay(self.position, ray_direction))
 
 

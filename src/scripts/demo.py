@@ -9,9 +9,6 @@ SCREEN_HEIGHT = 600
 SCREEN_TITLE = "Ray Marching Demo"
 BACKGROUND_COLOR = arcade.color.JET
 
-# Random Generation Constants
-NUM_OBJECTS = 10
-
 
 class MyGame(arcade.Window):
     def __init__(self, width, height, title):
@@ -46,15 +43,14 @@ class MyGame(arcade.Window):
 
     def load_level1(self):
 
-
         self.level_objects.append(
             #                 center position          width & height          rotation
-            worldobjects.Wall(numpy.array([200, 200]), numpy.array([200, 50]), numpy.pi/8)
+            worldobjects.Mirror(numpy.array([500, 300]), numpy.array([100, 200]), numpy.pi/4),
         )
 
         self.level_light_sources.append(
-            #                        position                  rotation               spread of beam
-            light.RadialLightSource(numpy.array([300, 500]),  numpy.array([0, -1]),  numpy.pi/4)
+            #                        position                 rotation     spread of beam
+            worldobjects.RadialLightSource(numpy.array([300, 500]),  numpy.pi,  numpy.pi*2)
         )
 
 

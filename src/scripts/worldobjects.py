@@ -1,24 +1,35 @@
 import arcade
 import numpy
 import random
+import light
 import util.util as util
 import geometry
 
 
 class WorldObject:
-    sprite: arcade.Sprite
+    sprite: arcade.Sprite                       # TODO: load sprites and display them
     geometry_segments: list[geometry.Geometry]
+
+    position: numpy.array
+    rotation_angle: float
+    color: tuple[int, int, int]
+    is_interactable: bool                       # TODO: use for player pushing calculations
+
+    def __init__(self, position, rotation_angle, color=random.choice(util.COLORS), is_interactable=False):
+        self.position = position
+        self.rotation_angle = rotation_angle
+        self.color = color
+        self.is_interactable = is_interactable
 
     def draw(self):
         for segment in self.geometry_segments:
             segment.draw()
 
+
+
 class Wall(WorldObject):
-    def __init__(self, center_position: numpy.array, side_lengths: numpy.array,
-                 rotation_angle: float = 0, color: tuple[int, int, int] = random.choice(util.COLORS)):
-        self.center = center_position
-        self.rotation_angle = rotation_angle
-        self.color = color
+    def __init__(self, center_position: numpy.array, side_lengths: numpy.array, rotation_angle: float = 0, color=random.choice(util.COLORS)):
+        super().__init__(center_position, rotation_angle, color)
         self.side_lengths = side_lengths
 
         axis1 = side_lengths[0] * 0.5 * numpy.array([
@@ -34,19 +45,43 @@ class Wall(WorldObject):
             geometry.Line(center_position + axis1 - axis2,   center_position - axis1 - axis2),
         ]
 
-    def get_intersection(self, ray) -> tuple[numpy.array, geometry.Geometry]:
-        nearest_distance_squared = util.STARTING_DISTANCE_VALUE
-        nearest_intersection_object = None
-        nearest_intersection_point = None
-        for edge in self.geometry_segments:
-            intersection_point, intersection_object = edge.get_intersection(ray)
-            if intersection_point is None:
-                continue
 
-            intersection_dist_squared = util.distance_squared(ray.origin, intersection_point)
-            if intersection_dist_squared < nearest_distance_squared:
-                nearest_distance_squared = intersection_dist_squared
-                nearest_intersection_point = intersection_point
-                nearest_intersection_object = intersection_object
 
-        return nearest_intersection_point, nearest_intersection_object
+class Mirror(Wall):
+    def __init__(self, center_position: numpy.array, side_lengths: numpy.array, rotation_angle: float = 0, color=random.choice(util.COLORS)):
+        super().__init__(center_position, side_lengths, rotation_angle=rotation_angle, color=color)
+
+        self.geometry_segments[2].is_reflective = True
+
+
+
+class RadialLightSource:
+    def __init__(self, position, rotation, angular_spread):
+        self.position = position
+        self.angle = rotation
+        self.light_rays = []
+        self.angular_spread = angular_spread
+
+        for n in range(light.NUM_LIGHT_RAYS):
+            ray_angle = (n/light.NUM_LIGHT_RAYS) * (rotation - angular_spread / 2) + (1 - n / light.NUM_LIGHT_RAYS) * (rotation + angular_spread / 2)
+            ray_direction = numpy.array([numpy.cos(ray_angle), numpy.sin(ray_angle)])
+            self.light_rays.append(light.LightRay(self.position, ray_direction))
+
+
+    def cast_rays(self, world_objects):
+        for ray in self.light_rays:
+            ray.cast_ray(world_objects)
+
+
+    def move_to(self, new_position):
+        self.position[0] = new_position[0]
+        self.position[1] = new_position[1]
+        for ray in self.light_rays:
+            ray.origin[0] = new_position[0]
+            ray.origin[1] = new_position[1]
+
+
+    def draw(self):
+        for ray in self.light_rays:
+            ray.draw()
+        arcade.draw_circle_filled(self.position[0], self.position[1], 10, arcade.color.BLACK)

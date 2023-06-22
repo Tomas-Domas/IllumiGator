@@ -58,11 +58,13 @@ class Character:
             distance_x = abs(self.character_sprite.center_x - mirror.position[0])
             distance_y = abs(self.character_sprite.center_y - mirror.position[1])
             distance = distance_x + distance_y
-            print(distance)
-            if distance < closest_distance and distance < 200:
+            if distance < closest_distance:
                 self.closest_interactable = mirror
-            else:
-                self.closest_interactable = None
+                closest_distance = distance
+
+        if self.closest_interactable is None or closest_distance > 100:
+            return
+
         if self.counter_clockwise and self.closest_interactable and not self.clockwise:
             self.closest_interactable.move(numpy.zeros(2), 0.02)
         elif self.clockwise and self.closest_interactable and not self.counter_clockwise:

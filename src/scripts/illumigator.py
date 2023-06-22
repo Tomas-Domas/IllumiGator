@@ -85,8 +85,8 @@ class Level:
 
         self.level_border = [
             #                 center position                      width & height        rotation
-            worldobjects.Wall(numpy.array([8, WINDOW_HEIGHT / 2]), numpy.array([80, 1]), numpy.pi / 2),
-            worldobjects.Wall(numpy.array([WINDOW_WIDTH - 8, WINDOW_HEIGHT / 2]), numpy.array([80, 1]), numpy.pi / 2),
+            worldobjects.Wall(numpy.array([8, WINDOW_HEIGHT / 2]), numpy.array([1, 45]), 0),
+            worldobjects.Wall(numpy.array([WINDOW_WIDTH - 8, WINDOW_HEIGHT / 2]), numpy.array([1, 45]), 0),
             worldobjects.Wall(numpy.array([WINDOW_WIDTH / 2, WINDOW_HEIGHT - 8]), numpy.array([80, 1]), 0),
             worldobjects.Wall(numpy.array([WINDOW_WIDTH / 2, 8]), numpy.array([80, 1]), 0),
         ]
@@ -130,6 +130,7 @@ class Level:
             if character.character_sprite.collides_with_list(light_receiver.sprite_list):
                 return True
 
+
 class GameObject(arcade.Window):
     def __init__(self):
         super().__init__(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)
@@ -156,7 +157,7 @@ class GameObject(arcade.Window):
                                   [(WINDOW_WIDTH / 2) + 50, WINDOW_HEIGHT - 100, 0],
                                   [WINDOW_WIDTH / 2, WINDOW_HEIGHT / 4, numpy.pi / 2],
                                   [((WINDOW_WIDTH / 4) * 3) + 20, WINDOW_HEIGHT / 5, 0]]
-        wall_coordinate_list = [[800, 150, 20, 1, numpy.pi / 2]]
+        wall_coordinate_list = [[800, 176, 1, 20, 0]]
         light_receiver_coordinate_list = [[650, 450, 0]]
 
         self.current_level = Level(wall_coordinate_list, mirror_coordinate_list, light_receiver_coordinate_list)

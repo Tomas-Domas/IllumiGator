@@ -9,21 +9,23 @@ import geometry
 
 
 class WorldObject:
-    sprite_list: arcade.SpriteList
-    geometry_segments: list[geometry.Geometry]
 
     position: numpy.array
     rotation_angle: float
-    color: tuple[int, int, int]
     is_interactable: bool  # TODO: use for player pushing calculations
+    geometry_segments: list[geometry.Geometry]
+
+    sprite_list: arcade.SpriteList
+    color: tuple[int, int, int]
 
     def __init__(self, position, rotation_angle, color=random.choice(COLORS), is_interactable=False):
         self.position = position
         self.rotation_angle = rotation_angle
-        self.color = color
-
         self.is_interactable = is_interactable
+        self.geometry_segments = []
+
         self.sprite_list = arcade.SpriteList()
+        self.color = color
 
     def draw(self):
         for sprite in self.sprite_list:
@@ -32,7 +34,8 @@ class WorldObject:
             segment.draw()
 
     def move(self, move_distance: numpy.array, rotate_angle: float = 0):
-        self.position += move_distance
+        self.position = self.position + move_distance
+        self.rotation_angle = self.rotation_angle + rotate_angle
         for segment in self.geometry_segments:
             segment.move(self.position, move_distance, rotate_angle=rotate_angle)
         for sprite in self.sprite_list:
@@ -136,17 +139,17 @@ class RadialLightSource(WorldObject):
         self.light_rays = [light.LightRay(numpy.array([0, 0]), numpy.array([0, 0])) for _ in
                            range(light.NUM_LIGHT_RAYS)]
         self.angular_spread = angular_spread
-        self.calculate_light_ray_positions(position, rotation_angle, angular_spread)
+        self.calculate_light_ray_positions()
 
     def cast_rays(self, world_objects):
         for ray in self.light_rays:
             ray.cast_ray(world_objects)
 
-    def calculate_light_ray_positions(self, move_distance, rotate_angle=0, new_angular_spread=None):
-        self.rotation_angle += rotate_angle
-        self.angular_spread = self.angular_spread if new_angular_spread is None else new_angular_spread
-        self.position = self.position + move_distance
+    def move(self, move_distance: numpy.array, rotate_angle: float = 0):
+        super().move(move_distance, rotate_angle)
+        self.calculate_light_ray_positions()
 
+    def calculate_light_ray_positions(self):
         num_rays = len(self.light_rays)
         for n in range(num_rays):
             ray_angle = (n / num_rays) * (self.rotation_angle - self.angular_spread / 2) + (1 - n / num_rays) * (
@@ -159,3 +162,4 @@ class RadialLightSource(WorldObject):
         for ray in self.light_rays:
             ray.draw()
         arcade.draw_circle_filled(self.position[0], self.position[1], 15, arcade.color.BLACK)
+        arcade.draw_line(self.position[0], self.position[1], self.position[0]+50*math.cos(self.rotation_angle), self.position[1]+50*math.sin(self.rotation_angle), arcade.color.BLUE)

@@ -7,7 +7,7 @@ MAX_DISTANCE: float = 1000
 MAX_GENERATIONS: int = 5
 
 # Light Source Constants
-NUM_LIGHT_RAYS = 200
+NUM_LIGHT_RAYS = 50
 
 
 class LightRay:

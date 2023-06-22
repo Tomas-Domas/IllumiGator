@@ -96,11 +96,7 @@ class GameObject(arcade.Window):
         self.wall = None
         self.mirror = None
 
-    def setup(self):
-        self.game_state = 'menu'
-        self.game_menu = InGameMenu()
-        self.character = Character('C:\\Users\\amber\PycharmProjects\IllumiGator\\assets\character1.png')
-
+    
     def update(self, delta_time):
         self.character.update()
 

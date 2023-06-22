@@ -2,12 +2,6 @@ import math
 import arcade
 import util.util as util
 
-# Ray Casting Constants
-MAX_DISTANCE: float = 1000
-MAX_GENERATIONS: int = 5
-
-# Light Source Constants
-NUM_LIGHT_RAYS = 50
 
 
 class LightRay:
@@ -27,6 +21,9 @@ class LightRay:
                 if intersection_point is None:
                     continue
 
+                if wo.is_receiver:  # Charge receiver when a light ray intercepts it
+                    wo.charge += util.LIGHT_INCREMENT
+
                 intersection_dist_squared = util.distance_squared(self.origin, intersection_point)
                 if intersection_dist_squared < nearest_distance_squared:
                     nearest_distance_squared = intersection_dist_squared
@@ -39,7 +36,7 @@ class LightRay:
 
         self.end = self.origin + self.direction * math.sqrt(nearest_distance_squared)
 
-        if nearest_intersection_geometry.is_reflective and self.generation < MAX_GENERATIONS:  # if the ray hit a mirror, create child and cast it
+        if nearest_intersection_geometry.is_reflective and self.generation < util.MAX_GENERATIONS:  # if the ray hit a mirror, create child and cast it
             self.generate_child_ray(nearest_intersection_geometry.get_reflected_direction(self))
             self.child_ray.cast_ray(world_objects)
         else:

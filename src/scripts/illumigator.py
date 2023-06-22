@@ -68,36 +68,52 @@ class Character:
 
 
 class Level:
-    def __init__(self, wall_coordinate_list: list[list], mirror_coordinate_list: list[list] = (),
+    def __init__(self, wall_coordinate_list: list[list],
+                 mirror_coordinate_list: list[list],
+                 light_receiver_coordinate_list: list[list],
                  name='default'):
+
         self.background = None
         self.name = name
         self.wall_list = []
         self.mirror_list = []
+        self.light_receiver_list = []
+
         self.level_border = [
             #                 center position                      width & height        rotation
-            worldobjects.Wall(numpy.array([8, WINDOW_HEIGHT/2]),              numpy.array([80, 1]), numpy.pi / 2),
-            worldobjects.Wall(numpy.array([WINDOW_WIDTH-8, WINDOW_HEIGHT/2]), numpy.array([80, 1]), numpy.pi / 2),
-            worldobjects.Wall(numpy.array([WINDOW_WIDTH/2, WINDOW_HEIGHT-8]), numpy.array([80, 1]), 0),
-            worldobjects.Wall(numpy.array([WINDOW_WIDTH/2, 8]),               numpy.array([80, 1]), 0),
+            worldobjects.Wall(numpy.array([8, WINDOW_HEIGHT / 2]), numpy.array([80, 1]), numpy.pi / 2),
+            worldobjects.Wall(numpy.array([WINDOW_WIDTH - 8, WINDOW_HEIGHT / 2]), numpy.array([80, 1]), numpy.pi / 2),
+            worldobjects.Wall(numpy.array([WINDOW_WIDTH / 2, WINDOW_HEIGHT - 8]), numpy.array([80, 1]), 0),
+            worldobjects.Wall(numpy.array([WINDOW_WIDTH / 2, 8]), numpy.array([80, 1]), 0),
         ]
-        for wall_coordinate in wall_coordinate_list:
-            self.wall_list.append(worldobjects.Wall(numpy.array([wall_coordinate[0], wall_coordinate[1]]),
-                                                    numpy.array([wall_coordinate[2], wall_coordinate[3]]),
-                                                    wall_coordinate[4]))
+        for border in self.level_border:
+            self.wall_list.append(border)
 
-        for wall in self.level_border:
-            self.wall_list.append(wall)
+        for wall_coordinates in wall_coordinate_list:
+            self.wall_list.append(worldobjects.Wall(
+                numpy.array([wall_coordinates[0], wall_coordinates[1]]),
+                numpy.array([wall_coordinates[2], wall_coordinates[3]]),
+                wall_coordinates[4]
+            ))
 
-        for mirror_coordinate in mirror_coordinate_list:
-            self.mirror_list.append(
-                worldobjects.Mirror(numpy.array([mirror_coordinate[0], mirror_coordinate[1]]), mirror_coordinate[4]))
+        for mirror_coordinates in mirror_coordinate_list:
+            self.mirror_list.append(worldobjects.Mirror(
+                numpy.array([mirror_coordinates[0], mirror_coordinates[1]]), mirror_coordinates[2]
+            ))
+
+        for light_receiver_coordinates in light_receiver_coordinate_list:
+            self.light_receiver_list.append(worldobjects.LightReceiver(
+                numpy.array([light_receiver_coordinates[0], light_receiver_coordinates[1]]),
+                light_receiver_coordinates[2]
+            ))
 
     def draw(self):
-        for mirror in self.mirror_list:
-            mirror.draw()
         for wall in self.wall_list:
             wall.draw()
+        for mirror in self.mirror_list:
+            mirror.draw()
+        for light_receiver in self.light_receiver_list:
+            light_receiver.draw()
 
     def check_collisions(self, character: Character):
         for wall in self.wall_list:
@@ -105,6 +121,9 @@ class Level:
                 return True
         for mirror in self.mirror_list:
             if character.character_sprite.collides_with_list(mirror.sprite_list):
+                return True
+        for light_receiver in self.light_receiver_list:
+            if character.character_sprite.collides_with_list(light_receiver.sprite_list):
                 return True
 
 
@@ -131,12 +150,13 @@ class GameObject(arcade.Window):
 
         # TODO: eventually JSON file
         mirror_coordinate_list = [[WINDOW_WIDTH / 4, (WINDOW_HEIGHT / 3) * 2, 1, 1, numpy.pi / 2],
-                                  [(WINDOW_WIDTH / 2) + 50, WINDOW_HEIGHT - 100, 1, 1, numpy.pi],
+                                  [(WINDOW_WIDTH / 2) + 50, WINDOW_HEIGHT - 100, 1, 1, 0],
                                   [WINDOW_WIDTH / 2, WINDOW_HEIGHT / 4, 1, 1, numpy.pi / 2],
-                                  [((WINDOW_WIDTH / 4) * 3) + 20, WINDOW_HEIGHT / 5 , 1, 1, numpy.pi]]
+                                  [((WINDOW_WIDTH / 4) * 3) + 20, WINDOW_HEIGHT / 5, 1, 1, 0]]
         wall_coordinate_list = [[800, 150, 20, 1, numpy.pi / 2]]
+        light_receiver_coordinate_list = [[650, 450, 0]]
 
-        self.current_level = Level(wall_coordinate_list, mirror_coordinate_list)
+        self.current_level = Level(wall_coordinate_list, mirror_coordinate_list, light_receiver_coordinate_list)
 
     def update(self, delta_time):
         self.character.update(self.current_level)

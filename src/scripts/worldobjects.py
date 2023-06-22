@@ -2,7 +2,6 @@ import arcade
 import math
 import numpy
 import random
-
 import light
 import util.util as util
 import geometry
@@ -21,7 +20,6 @@ class WorldObject:
         self.position = position
         self.rotation_angle = rotation_angle
         self.color = color
-
         self.is_interactable = is_interactable
         self.sprite_list = arcade.SpriteList()
 
@@ -40,7 +38,6 @@ class WorldObject:
             new_position = util.rotate_around_center(self.position, new_position, rotate_angle)
             sprite.center_x, sprite.center_y = new_position[0], new_position[1]
             sprite.radians += rotate_angle
-
 
 
 class Wall(WorldObject):
@@ -65,15 +62,15 @@ class Wall(WorldObject):
 
         for col in range(dimensions[0]):
             for row in range(dimensions[1]):
-                sprite_center = center_position-axis1-axis2 + axis1_norm*(image_width/2 + col*image_width) + axis2_norm*(image_height/2 + row*image_height)
+                sprite_center = center_position - axis1 - axis2 + axis1_norm * (
+                            image_width / 2 + col * image_width) + axis2_norm * (image_height / 2 + row * image_height)
 
                 self.sprite_list.append(
                     arcade.Sprite(sprite_path, scale_factor, image_width=image_width, image_height=image_height,
                                   center_x=sprite_center[0], center_y=sprite_center[1],
                                   angle=util.convert_angle_for_arcade(rotation_angle), hit_box_algorithm="Simple"
-                    )
+                                  )
                 )
-
 
     def draw(self):
         for sprite in self.sprite_list:
@@ -91,22 +88,21 @@ class Mirror(Wall):
 
         self.geometry_segments[2].is_reflective = True
         self.sprite = arcade.Sprite(sprite_path, scale_factor, image_width=image_width, image_height=image_height,
-                                    center_x=center_position[0], center_y=center_position[1], hit_box_algorithm="Simple")
-
+                                    center_x=center_position[0], center_y=center_position[1],
+                                    hit_box_algorithm="Simple")
 
 
 class RadialLightSource(WorldObject):
     def __init__(self, position, rotation_angle, angular_spread):
         super().__init__(position, rotation_angle, arcade.color.BLACK)
-        self.light_rays = [light.LightRay(numpy.array([0, 0]), numpy.array([0, 0])) for _ in range(light.NUM_LIGHT_RAYS)]
+        self.light_rays = [light.LightRay(numpy.array([0, 0]), numpy.array([0, 0])) for _ in
+                           range(light.NUM_LIGHT_RAYS)]
         self.angular_spread = angular_spread
         self.calculate_light_ray_positions(position, rotation_angle, angular_spread)
-
 
     def cast_rays(self, world_objects):
         for ray in self.light_rays:
             ray.cast_ray(world_objects)
-
 
     def calculate_light_ray_positions(self, move_distance, rotate_angle=0, new_angular_spread=None):
         self.rotation_angle += rotate_angle
@@ -115,11 +111,11 @@ class RadialLightSource(WorldObject):
 
         num_rays = len(self.light_rays)
         for n in range(num_rays):
-            ray_angle = (n/num_rays) * (self.rotation_angle - self.angular_spread/2) + (1 - n / num_rays) * (self.rotation_angle + self.angular_spread/2)
+            ray_angle = (n / num_rays) * (self.rotation_angle - self.angular_spread / 2) + (1 - n / num_rays) * (
+                        self.rotation_angle + self.angular_spread / 2)
             ray_direction = numpy.array([math.cos(ray_angle), math.sin(ray_angle)])
             self.light_rays[n].origin = self.position
             self.light_rays[n].direction = ray_direction
-
 
     def draw(self):
         for ray in self.light_rays:

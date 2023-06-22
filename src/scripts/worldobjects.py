@@ -85,7 +85,7 @@ class Mirror(WorldObject):
         axis1 = side_lengths[0] * 0.5 * axis1_norm
         axis2 = side_lengths[1] * 0.5 * axis2_norm
         self.geometry_segments = [
-            geometry.Line(center_position - axis1 - axis2, center_position - axis1 + axis2),
+            geometry.Line(center_position - axis1 - axis2, center_position - axis1 + axis2, is_reflective=True),
             geometry.Line(center_position - axis1 + axis2, center_position + axis1 + axis2),
             geometry.Line(center_position + axis1 + axis2, center_position + axis1 - axis2, is_reflective=True),
             geometry.Line(center_position + axis1 - axis2, center_position - axis1 - axis2),

@@ -1,4 +1,8 @@
 import random
+from abc import abstractmethod
+
+import arcade.color
+
 import light
 from util.util import *
 import geometry
@@ -25,8 +29,7 @@ class WorldObject:
         self.color = color
 
     def draw(self):
-        for sprite in self.sprite_list:
-            sprite.draw()
+        self.sprite_list.draw(pixelated=True)
         for segment in self.geometry_segments:
             segment.draw()
 
@@ -130,13 +133,10 @@ class LightReceiver(WorldObject):
         )
 
 
-class RadialLightSource(WorldObject):
-    def __init__(self, position, rotation_angle, angular_spread):
-        super().__init__(position, rotation_angle, arcade.color.BLACK)
-        self.light_rays = [light.LightRay(numpy.array([0, 0]), numpy.array([0, 0])) for _ in
-                           range(NUM_LIGHT_RAYS)]
-        self.angular_spread = angular_spread
-        self.calculate_light_ray_positions()
+class LightSource(WorldObject):
+    def __init__(self, position, rotation_angle):
+        super().__init__(position, rotation_angle, arcade.color.GOLD)
+        self.light_rays = [light.LightRay(numpy.zeros(2), numpy.zeros(2)) for _ in range(NUM_LIGHT_RAYS)]
 
     def cast_rays(self, world_objects):
         for ray in self.light_rays:
@@ -144,6 +144,22 @@ class RadialLightSource(WorldObject):
 
     def move(self, move_distance: numpy.array, rotate_angle: float = 0):
         super().move(move_distance, rotate_angle)
+        self.calculate_light_ray_positions()
+
+    @abstractmethod
+    def calculate_light_ray_positions(self):
+        pass
+
+    @abstractmethod
+    def draw(self):
+        pass
+
+
+
+class RadialLightSource(LightSource):
+    def __init__(self, position, rotation_angle, angular_spread):
+        super().__init__(position, rotation_angle)
+        self.angular_spread = angular_spread
         self.calculate_light_ray_positions()
 
     def calculate_light_ray_positions(self):
@@ -159,5 +175,29 @@ class RadialLightSource(WorldObject):
         for ray in self.light_rays:
             ray.draw()
         arcade.draw_circle_filled(self.position[0], self.position[1], 15, arcade.color.BLACK)
-        arcade.draw_line(self.position[0], self.position[1], self.position[0] + 50 * math.cos(self.rotation_angle),
-                         self.position[1] + 50 * math.sin(self.rotation_angle), arcade.color.BLUE)
+        # arcade.draw_line(self.position[0], self.position[1], self.position[0] + 50 * math.cos(self.rotation_angle),
+        #                  self.position[1] + 50 * math.sin(self.rotation_angle), arcade.color.BLUE)
+
+
+
+class ParallelLightSource(LightSource):
+    def __init__(self, position, rotation_angle):
+        super().__init__(position, rotation_angle)
+        self.width = 30
+        self.calculate_light_ray_positions()
+
+    def calculate_light_ray_positions(self):
+        num_rays = len(self.light_rays)
+        ray_direction = numpy.array([math.cos(self.rotation_angle), math.sin(self.rotation_angle)])
+        spread_direction = numpy.array([math.cos(self.rotation_angle+numpy.pi/2), math.sin(self.rotation_angle+numpy.pi/2)])
+        for n in range(-num_rays//2, num_rays//2):
+
+            self.light_rays[n].origin = self.position + ((n/num_rays) * self.width) * spread_direction
+            self.light_rays[n].direction = ray_direction
+
+    def draw(self):
+        for ray in self.light_rays:
+            ray.draw()
+        arcade.draw_circle_filled(self.position[0], self.position[1], 15, arcade.color.BLACK)
+        # arcade.draw_line(self.position[0], self.position[1], self.position[0] + 50 * math.cos(self.rotation_angle),
+        #                  self.position[1] + 50 * math.sin(self.rotation_angle), arcade.color.BLUE)

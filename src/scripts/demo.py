@@ -45,10 +45,11 @@ class MyGame(arcade.Window):
 
         self.level_objects = [
             #                   center position          width & height          rotation
-            worldobjects.Wall(numpy.array([8, WINDOW_HEIGHT/2]), numpy.array([80, 1]), numpy.pi / 2, "../../assets/wall.png", 1, 16, 16),
-            worldobjects.Wall(numpy.array([WINDOW_WIDTH - 8, WINDOW_HEIGHT/2]), numpy.array([80, 1]), numpy.pi / 2, "../../assets/wall.png", 1, 16, 16),
-            worldobjects.Wall(numpy.array([WINDOW_WIDTH/2, WINDOW_HEIGHT - 8]), numpy.array([80, 1]), numpy.pi, "../../assets/wall.png", 1, 16, 16),
-            worldobjects.Wall(numpy.array([WINDOW_WIDTH/2, 8]), numpy.array([80, 1]), numpy.pi, "../../assets/wall.png", 1, 16, 16),
+            worldobjects.Wall(numpy.array([8, WINDOW_HEIGHT/2]), numpy.array([80, 1]), numpy.pi / 2),
+            worldobjects.Wall(numpy.array([WINDOW_WIDTH - 8, WINDOW_HEIGHT/2]), numpy.array([80, 1]), numpy.pi / 2),
+            worldobjects.Wall(numpy.array([WINDOW_WIDTH/2, WINDOW_HEIGHT - 8]), numpy.array([80, 1]), numpy.pi),
+            worldobjects.Wall(numpy.array([WINDOW_WIDTH/2, 8]), numpy.array([80, 1]), numpy.pi),
+            worldobjects.Mirror(numpy.array([WINDOW_WIDTH/2, WINDOW_HEIGHT/2]), 0)
         ]
 
 

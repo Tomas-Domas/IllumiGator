@@ -69,9 +69,9 @@ class Line(Geometry):
 
     def draw(self):
         if self.is_reflective:
-            arcade.draw_line(self.point1[0], self.point1[1], self.point2[0], self.point2[1], arcade.color.SILVER)
+            arcade.draw_line(self.point1[0], self.point1[1], self.point2[0], self.point2[1], arcade.color.WHITE)
         else:
-            arcade.draw_line(self.point1[0], self.point1[1], self.point2[0], self.point2[1], arcade.color.RED)
+            arcade.draw_line(self.point1[0], self.point1[1], self.point2[0], self.point2[1], arcade.color.BLACK)
 
 
 

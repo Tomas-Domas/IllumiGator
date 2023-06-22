@@ -19,7 +19,7 @@ class Geometry(ABC):
         pass
 
     @abstractmethod
-    def move(self, world_object_center, rotate_angle=0):
+    def move(self, world_object_center, move_distance, rotate_angle=0):
         pass
 
 
@@ -58,9 +58,9 @@ class Line(Geometry):
         return None
 
 
-    def move(self, world_object_center, rotate_angle=0):
-        self.point1 = util.rotate_around_center(self.point1, rotate_angle, world_object_center)
-        self.point2 = util.rotate_around_center(self.point2, rotate_angle, world_object_center)
+    def move(self, world_object_center, move_distance, rotate_angle=0):
+        self.point1 = util.rotate_around_center(world_object_center, self.point1, rotate_angle) + move_distance
+        self.point2 = util.rotate_around_center(world_object_center, self.point2, rotate_angle) + move_distance
 
 
     def get_reflected_direction(self, ray):
@@ -102,8 +102,7 @@ class Circle(Geometry):
         else:
             return None
 
-
-    def move(self, world_object_center, rotate_angle=0):
+    def move(self, world_object_center, move_distance, rotate_angle=0):
         self.center = world_object_center
 
 

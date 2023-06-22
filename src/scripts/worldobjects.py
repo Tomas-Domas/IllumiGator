@@ -132,7 +132,6 @@ class LightReceiver(WorldObject):
         )
 
 
-
 class RadialLightSource(WorldObject):
     def __init__(self, position, rotation_angle, angular_spread):
         super().__init__(position, rotation_angle, arcade.color.BLACK)

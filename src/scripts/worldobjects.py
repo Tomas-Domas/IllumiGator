@@ -9,7 +9,6 @@ import geometry
 
 
 class WorldObject:
-
     position: numpy.array
     rotation_angle: float
     is_interactable: bool  # TODO: use for player pushing calculations
@@ -66,7 +65,7 @@ class Wall(WorldObject):
         for col in range(dimensions[0]):
             for row in range(dimensions[1]):
                 sprite_center = center_position - axis1 - axis2 + axis1_norm * (
-                            image_width / 2 + col * image_width) + axis2_norm * (image_height / 2 + row * image_height)
+                        image_width / 2 + col * image_width) + axis2_norm * (image_height / 2 + row * image_height)
 
                 self.sprite_list.append(
                     arcade.Sprite(sprite_path, scale_factor, image_width=image_width, image_height=image_height,
@@ -95,7 +94,7 @@ class Mirror(WorldObject):
         ]
 
         sprite_center = center_position - axis1 - axis2 + (image_width / 2) * axis1_norm + (
-                    image_height / 2) * axis2_norm
+                image_height / 2) * axis2_norm
         self.sprite_list.append(
             arcade.Sprite(sprite_path, scale_factor, image_width=image_width, image_height=image_height,
                           center_x=sprite_center[0], center_y=sprite_center[1],
@@ -132,7 +131,6 @@ class LightReceiver(WorldObject):
         )
 
 
-
 class RadialLightSource(WorldObject):
     def __init__(self, position, rotation_angle, angular_spread):
         super().__init__(position, rotation_angle, arcade.color.BLACK)
@@ -153,7 +151,7 @@ class RadialLightSource(WorldObject):
         num_rays = len(self.light_rays)
         for n in range(num_rays):
             ray_angle = (n / num_rays) * (self.rotation_angle - self.angular_spread / 2) + (1 - n / num_rays) * (
-                        self.rotation_angle + self.angular_spread / 2)
+                    self.rotation_angle + self.angular_spread / 2)
             ray_direction = numpy.array([math.cos(ray_angle), math.sin(ray_angle)])
             self.light_rays[n].origin = self.position
             self.light_rays[n].direction = ray_direction
@@ -162,4 +160,5 @@ class RadialLightSource(WorldObject):
         for ray in self.light_rays:
             ray.draw()
         arcade.draw_circle_filled(self.position[0], self.position[1], 15, arcade.color.BLACK)
-        arcade.draw_line(self.position[0], self.position[1], self.position[0]+50*math.cos(self.rotation_angle), self.position[1]+50*math.sin(self.rotation_angle), arcade.color.BLUE)
+        arcade.draw_line(self.position[0], self.position[1], self.position[0] + 50 * math.cos(self.rotation_angle),
+                         self.position[1] + 50 * math.sin(self.rotation_angle), arcade.color.BLUE)

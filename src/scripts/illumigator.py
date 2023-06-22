@@ -84,16 +84,13 @@ class Level:
         self.wall_list = []
         self.mirror_list = []
         self.light_receiver_list = []
-
+        self.light_sources_list = []
         self.level_border = [
             #                 center position                      width & height        rotation
             worldobjects.Wall(numpy.array([8, WINDOW_HEIGHT / 2]), numpy.array([1, 45]), 0),
             worldobjects.Wall(numpy.array([WINDOW_WIDTH - 8, WINDOW_HEIGHT / 2]), numpy.array([1, 45]), 0),
             worldobjects.Wall(numpy.array([WINDOW_WIDTH / 2, WINDOW_HEIGHT - 8]), numpy.array([80, 1]), 0),
             worldobjects.Wall(numpy.array([WINDOW_WIDTH / 2, 8]), numpy.array([80, 1]), 0),
-        ]
-        self.light_sources_list = [
-            worldobjects.RadialLightSource(numpy.array([WINDOW_WIDTH - 100, WINDOW_HEIGHT - 100]), 0, numpy.pi / 4)
         ]
 
         for border in self.level_border:
@@ -174,7 +171,7 @@ class GameObject(arcade.Window):
                                   [((WINDOW_WIDTH / 4) * 3) + 20, WINDOW_HEIGHT / 5, 0]]
         wall_coordinate_list = [[800, 176, 1, 20, 0]]
         light_receiver_coordinate_list = [[650, 450, 0]]
-        light_source_coordinate_list = [[300, 8, 0, numpy.pi / 4]]
+        light_source_coordinate_list = [[300, 16, numpy.pi / 2, numpy.pi / 70]]
 
         self.current_level = Level(wall_coordinate_list, mirror_coordinate_list, light_receiver_coordinate_list,
                                    light_source_coordinate_list)

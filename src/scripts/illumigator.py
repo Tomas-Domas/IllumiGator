@@ -68,7 +68,7 @@ class Character:
 
 
 class Level:
-    def __init__(self, wall_coordinate_list: list[list[list[list[list[int]]]]], mirror_coordinate_list: list[list[int]] = (),
+    def __init__(self, wall_coordinate_list: list[list], mirror_coordinate_list: list[list] = (),
                  name='default'):
         self.background = None
         self.name = name
@@ -92,6 +92,12 @@ class Level:
 
         for wall in self.level_border:
             self.wall_list.append(wall)
+
+        for mirror_coordinate in mirror_coordinate_list:
+            self.mirror_list.append(
+                worldobjects.Mirror(numpy.array([mirror_coordinate[0], mirror_coordinate[1]]),
+                                    numpy.array([mirror_coordinate[2], mirror_coordinate[3]]), mirror_coordinate[4],
+                                    "../../assets/mirror.png", 1, 9, 48))
 
     def draw(self):
         for mirror in self.mirror_list:
@@ -130,9 +136,8 @@ class GameObject(arcade.Window):
         self.elem_list = arcade.SpriteList()
 
         # TODO: eventually JSON file
-        mirror_coordinate_list = [[100, 200]]
-        wall_coordinate_list = [[500, 700, 30, 1, numpy.pi],
-                                [800, 200, 20, 1, numpy.pi / 2]]
+        mirror_coordinate_list = [[WINDOW_WIDTH / 3, WINDOW_HEIGHT - 80, 1, 1, numpy.pi / 2]]
+        wall_coordinate_list = [[800, 150, 20, 1, numpy.pi / 2]]
 
         self.current_level = Level(wall_coordinate_list, mirror_coordinate_list)
 

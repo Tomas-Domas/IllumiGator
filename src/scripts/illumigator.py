@@ -30,19 +30,19 @@ class Character:
     def update(self, level):
         if self.left and not self.right:
             self.character_sprite.center_x -= self.velocity
-            if level.check_wall_collisions(self):
+            if level.check_collisions(self):
                 self.character_sprite.center_x += self.velocity
         elif self.right and not self.left:
             self.character_sprite.center_x += self.velocity
-            if level.check_wall_collisions(self):
+            if level.check_collisions(self):
                 self.character_sprite.center_x -= self.velocity
         if self.up and not self.down:
             self.character_sprite.center_y += self.velocity
-            if level.check_wall_collisions(self):
+            if level.check_collisions(self):
                 self.character_sprite.center_y -= self.velocity
         elif self.down and not self.up:
             self.character_sprite.center_y -= self.velocity
-            if level.check_wall_collisions(self):
+            if level.check_collisions(self):
                 self.character_sprite.center_y += self.velocity
 
         if self.is_walking and not arcade.Sound.is_playing(self.walking_sound, self.player):
@@ -70,7 +70,6 @@ class Character:
 class Level:
     def __init__(self, wall_list: list[list[int]], mirror_list: list[list[int]] = (), name='default'):
         self.background = None
-        self.physics_engine = None
         self.name = name
         self.wall_list = []
         self.mirror_list = []
@@ -92,9 +91,12 @@ class Level:
         for wall in self.wall_list:
             wall.draw()
 
-    def check_wall_collisions(self, character: Character):
+    def check_collisions(self, character: Character):
         for wall in self.wall_list:
             if character.character_sprite.collides_with_list(wall.sprite_list):
+                return True
+        for mirror in self.mirror_list:
+            if character.character_sprite.collides_with_list(mirror.sprite_list):
                 return True
 
 

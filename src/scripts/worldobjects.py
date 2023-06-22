@@ -9,7 +9,7 @@ import geometry
 
 
 class WorldObject:
-    sprite: arcade.Sprite  # TODO: load sprites and display them
+    sprite_list: arcade.SpriteList
     geometry_segments: list[geometry.Geometry]
 
     position: numpy.array
@@ -23,17 +23,23 @@ class WorldObject:
         self.color = color
 
         self.is_interactable = is_interactable
+        self.sprite_list = arcade.SpriteList()
 
     def draw(self):
+        for sprite in self.sprite_list:
+            sprite.draw()
         for segment in self.geometry_segments:
             segment.draw()
 
     def move(self, move_distance: numpy.array, rotate_angle: float = 0):
         self.position += move_distance
         for segment in self.geometry_segments:
-            segment.move(self.position, rotate_angle)
-
-
+            segment.move(self.position, move_distance, rotate_angle=rotate_angle)
+        for sprite in self.sprite_list:
+            new_position = numpy.array([sprite.center_x, sprite.center_y]) + move_distance
+            new_position = util.rotate_around_center(self.position, new_position, rotate_angle)
+            sprite.center_x, sprite.center_y = new_position[0], new_position[1]
+            sprite.radians += rotate_angle
 
 
 
@@ -57,7 +63,6 @@ class Wall(WorldObject):
             geometry.Line(center_position + axis1 - axis2, center_position - axis1 - axis2),
         ]
 
-        self.sprite_list = arcade.SpriteList()
         for col in range(dimensions[0]):
             for row in range(dimensions[1]):
                 sprite_center = center_position-axis1-axis2 + axis1_norm*(image_width/2 + col*image_width) + axis2_norm*(image_height/2 + row*image_height)
@@ -66,7 +71,8 @@ class Wall(WorldObject):
                     arcade.Sprite(sprite_path, scale_factor, image_width=image_width, image_height=image_height,
                                   center_x=sprite_center[0], center_y=sprite_center[1],
                                   angle=util.convert_angle_for_arcade(rotation_angle), hit_box_algorithm="Simple"
-                                  ))
+                    )
+                )
 
 
     def draw(self):
@@ -86,9 +92,6 @@ class Mirror(Wall):
         self.geometry_segments[2].is_reflective = True
         self.sprite = arcade.Sprite(sprite_path, scale_factor, image_width=image_width, image_height=image_height,
                                     center_x=center_position[0], center_y=center_position[1], hit_box_algorithm="Simple")
-
-    def draw(self):
-        self.sprite.draw()
 
 
 

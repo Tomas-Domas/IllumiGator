@@ -25,12 +25,11 @@ class MyGame(arcade.Window):
     def on_draw(self):
         self.clear()
         for source in self.level_light_sources:
-            # source.calculate_light_ray_positions()
+            source.calculate_light_ray_positions()
             source.cast_rays(self.level_objects)
             source.draw()
 
         for wo in self.level_objects:
-            wo.move(numpy.array([1, 0]))
             wo.draw()
 
     def on_mouse_motion(self, x, y, dx, dy):

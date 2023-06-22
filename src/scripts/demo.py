@@ -1,7 +1,8 @@
 import worldobjects
 import arcade
 import numpy
-import light
+# import timeit
+# import math
 
 # Arcade Constants
 SCREEN_WIDTH = 1000
@@ -25,11 +26,12 @@ class MyGame(arcade.Window):
     def on_draw(self):
         self.clear()
         for source in self.level_light_sources:
-            source.move_to(self.mouse_position)
+            # source.calculate_light_ray_positions()
             source.cast_rays(self.level_objects)
             source.draw()
 
         for wo in self.level_objects:
+            wo.move(numpy.array([1, 0]))
             wo.draw()
 
     def on_mouse_motion(self, x, y, dx, dy):
@@ -44,24 +46,27 @@ class MyGame(arcade.Window):
     def load_level1(self):
 
         self.level_objects.append(
-            #                 center position          width & height          rotation
-            worldobjects.Mirror(numpy.array([500, 300]), numpy.array([100, 200]), numpy.pi/4),
+            #                   center position          width & height          rotation
+            worldobjects.Wall(numpy.array([500, 300]), numpy.array([3, 8]), numpy.pi/2, "../../assets/wall.png", 1, 16, 16),
         )
 
-        self.level_light_sources.append(
-            #                        position                 rotation     spread of beam
-            worldobjects.RadialLightSource(numpy.array([300, 500]),  numpy.pi,  numpy.pi*2)
-        )
-
-
-
-
-
+        # self.level_light_sources.append(
+        #     #                              position                  rotation   spread of beam
+        #     worldobjects.RadialLightSource(numpy.array([10, 10]),  numpy.pi,  numpy.pi*2)
+        # )
 
 def main():
     MyGame(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
     arcade.run()
 
+    # def op1(num):
+    #     numpy.square(num)
+    # def op2(num):
+    #     num * num
+    # print("op1 timems:\t", timeit.timeit(lambda: op1(123.123456789), number=1000000))
+    # print("op2 timems:\t", timeit.timeit(lambda: op2(123.123456789), number=1000000))
+
 
 if __name__ == "__main__":
     main()
+

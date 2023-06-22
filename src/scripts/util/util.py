@@ -31,7 +31,7 @@ def distance_squared(point1: numpy.array, point2: numpy.array) -> float:
     return dx*dx + dy*dy
 
 def convert_angle_for_arcade(angle_rads: float) -> float:
-    return -angle_rads * 180 / numpy.pi
+    return angle_rads * 180 / numpy.pi
 
 def rotate_around_center(point, angle, center):
     relative_point = point - center

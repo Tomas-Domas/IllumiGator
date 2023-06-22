@@ -1,19 +1,25 @@
-import math
-import numpy
 import arcade
+import numpy
+import math
 from abc import ABC, abstractmethod
+
+import util.util as util
 
 
 class Geometry(ABC):
     is_reflective: bool
     is_refractive: bool
+
     @abstractmethod
     def draw(self):
         pass
 
-
     @abstractmethod
     def get_intersection(self, ray) -> tuple:
+        pass
+
+    @abstractmethod
+    def move(self, world_object_center, rotate_angle=0):
         pass
 
 
@@ -50,6 +56,11 @@ class Line(Geometry):
         if 0 < t < 1 and u > 0:
             return numpy.array([x1 + t * (x2 - x1), y1 + t * (y2 - y1)])
         return None
+
+
+    def move(self, world_object_center, rotate_angle=0):
+        self.point1 = util.rotate_around_center(self.point1, rotate_angle, world_object_center)
+        self.point2 = util.rotate_around_center(self.point2, rotate_angle, world_object_center)
 
 
     def get_reflected_direction(self, ray):
@@ -90,6 +101,10 @@ class Circle(Geometry):
             return ray.origin + ray.direction * max(intersection_distance1, intersection_distance2)
         else:
             return None
+
+
+    def move(self, world_object_center, rotate_angle=0):
+        self.center = world_object_center
 
 
     def get_reflected_direction(self, ray):

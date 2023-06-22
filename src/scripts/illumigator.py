@@ -83,21 +83,10 @@ class Level:
             worldobjects.Wall(numpy.array([WINDOW_WIDTH/2, 8]), numpy.array([80, 1]), numpy.pi, "../../assets/wall.png", 1, 16, 16),
         ]
 
-        for wall in wall_list:
-            wall_sprite = arcade.Sprite('../../assets/wall.png')
-            wall_sprite.center_x = wall[0]
-            wall_sprite.center_y = wall[1]
-            self.wall_list.append(wall_sprite)
-
-        for mirror in mirror_list:
-            mirror_sprite = arcade.Sprite('../../assets/mirror.png')
-            mirror_sprite.center_x = mirror[0]
-            mirror_sprite.center_y = mirror[1]
-            self.mirror_list.append(mirror_sprite)
+        for wall in self.level_border:
+            self.wall_list.append(wall)
 
     def draw(self):
-        for border_wall in self.level_border:
-            border_wall.draw()
         for mirror in self.mirror_list:
             mirror.draw()
         for wall in self.wall_list:
@@ -105,7 +94,7 @@ class Level:
 
     def check_wall_collisions(self, character: Character):
         for wall in self.wall_list:
-            if character.character_sprite.collides_with_sprite(wall):
+            if character.character_sprite.collides_with_list(wall.sprite_list):
                 return True
 
 

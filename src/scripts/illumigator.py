@@ -6,6 +6,7 @@ from util.util import *
 import worldobjects
 import numpy
 
+
 class Character:
     def __init__(self, sprite_path, scale_factor=2, image_width=24, image_height=24,
                  center_x=WINDOW_WIDTH // 2, center_y=WINDOW_HEIGHT // 2, velocity=10):
@@ -53,7 +54,7 @@ class Character:
         elif not self.is_walking and arcade.Sound.is_playing(self.walking_sound, self.player):
             arcade.stop_sound(self.player)
 
-        closest_distance = 10000000 # arbitrarily large number
+        closest_distance = STARTING_DISTANCE_VALUE  # arbitrarily large number
         for mirror in level.mirror_list:
             distance_x = abs(self.character_sprite.center_x - mirror.position[0])
             distance_y = abs(self.character_sprite.center_y - mirror.position[1])
@@ -75,6 +76,7 @@ class Level:
     def __init__(self, wall_coordinate_list: list[list],
                  mirror_coordinate_list: list[list],
                  light_receiver_coordinate_list: list[list],
+                 light_source_coordinate_list: list[list],
                  name='default'):
 
         self.background = None
@@ -90,6 +92,10 @@ class Level:
             worldobjects.Wall(numpy.array([WINDOW_WIDTH / 2, WINDOW_HEIGHT - 8]), numpy.array([80, 1]), 0),
             worldobjects.Wall(numpy.array([WINDOW_WIDTH / 2, 8]), numpy.array([80, 1]), 0),
         ]
+        self.light_sources_list = [
+            worldobjects.RadialLightSource(numpy.array([WINDOW_WIDTH - 100, WINDOW_HEIGHT - 100]), 0, numpy.pi / 4)
+        ]
+
         for border in self.level_border:
             self.wall_list.append(border)
 
@@ -111,6 +117,11 @@ class Level:
                 light_receiver_coordinates[2]
             ))
 
+        for light_source_coordinates in light_source_coordinate_list:
+            self.light_sources_list.append(worldobjects.RadialLightSource(
+                numpy.array([light_source_coordinates[0], light_source_coordinates[1]]),
+                light_source_coordinates[2], light_source_coordinates[3]))
+
     def draw(self):
         for wall in self.wall_list:
             wall.draw()
@@ -118,6 +129,10 @@ class Level:
             mirror.draw()
         for light_receiver in self.light_receiver_list:
             light_receiver.draw()
+        for light_source in self.light_sources_list:
+            light_source.cast_rays(
+                self.wall_list + self.mirror_list + self.light_receiver_list + self.light_sources_list)
+            light_source.draw()
 
     def check_collisions(self, character: Character):
         for wall in self.wall_list:
@@ -159,8 +174,10 @@ class GameObject(arcade.Window):
                                   [((WINDOW_WIDTH / 4) * 3) + 20, WINDOW_HEIGHT / 5, 0]]
         wall_coordinate_list = [[800, 176, 1, 20, 0]]
         light_receiver_coordinate_list = [[650, 450, 0]]
+        light_source_coordinate_list = [[300, 8, 0, numpy.pi / 4]]
 
-        self.current_level = Level(wall_coordinate_list, mirror_coordinate_list, light_receiver_coordinate_list)
+        self.current_level = Level(wall_coordinate_list, mirror_coordinate_list, light_receiver_coordinate_list,
+                                   light_source_coordinate_list)
 
     def update(self, delta_time):
         self.character.update(self.current_level)

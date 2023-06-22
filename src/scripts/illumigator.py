@@ -21,15 +21,23 @@ class Character:
     def draw(self):
         self.character_sprite.draw()
 
-    def update(self):
+    def update(self, level):
         if self.left and not self.right:
             self.character_sprite.center_x -= self.velocity
+            if level.check_wall_collisions(self):
+                self.character_sprite.center_x += self.velocity
         elif self.right and not self.left:
             self.character_sprite.center_x += self.velocity
+            if level.check_wall_collisions(self):
+                self.character_sprite.center_x -= self.velocity
         if self.up and not self.down:
             self.character_sprite.center_y += self.velocity
+            if level.check_wall_collisions(self):
+                self.character_sprite.center_y -= self.velocity
         elif self.down and not self.up:
             self.character_sprite.center_y -= self.velocity
+            if level.check_wall_collisions(self):
+                self.character_sprite.center_y += self.velocity
 
     def rotate_world_object(self, direction):
         if self.interactive_line is None:
@@ -67,18 +75,7 @@ class Level:
     def check_wall_collisions(self, character: Character):
         for wall in self.wall_list:
             if character.character_sprite.collides_with_sprite(wall):
-                if character.left:
-                    character.character_sprite.center_x += 10
-                    character.left = False
-                if character.right:
-                    character.character_sprite.center_x -= 10
-                    character.right = False
-                if character.up:
-                    character.character_sprite.center_y -= 10
-                    character.up = False
-                if character.down:
-                    character.character_sprite.center_y += 10
-                    character.down = False
+                return True
 
 
 class GameObject(arcade.Window):
@@ -111,8 +108,7 @@ class GameObject(arcade.Window):
         self.current_level = Level(wall_list)
 
     def update(self, delta_time):
-        self.current_level.check_wall_collisions(self.character)
-        self.character.update()
+        self.character.update(self.current_level)
 
     def on_draw(self):
         self.clear()
@@ -167,7 +163,7 @@ class GameObject(arcade.Window):
             self.character.right = False
         if key == arcade.key.S or key == arcade.key.DOWN:
             self.character.down = False
-        self.character.update()
+        self.character.update(self.current_level)
 
 
 def main():

@@ -137,9 +137,9 @@ class GameObject(arcade.Window):
                 self.character.up = True
             if key == arcade.key.A or key == arcade.key.LEFT:
                 self.character.left = True
-            if key == arcade.key.S or key == arcade.key.RIGHT:
+            if key == arcade.key.D or key == arcade.key.RIGHT:
                 self.character.right = True
-            if key == arcade.key.D or key == arcade.key.DOWN:
+            if key == arcade.key.S  or key == arcade.key.DOWN:
                 self.character.down = True
 
         elif self.game_state == 'paused':

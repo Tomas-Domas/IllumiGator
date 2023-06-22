@@ -68,19 +68,27 @@ class Character:
 
 
 class Level:
-    def __init__(self, wall_list: list[list[int]], mirror_list: list[list[int]] = (), name='default'):
+    def __init__(self, wall_coordinate_list: list[list[list[list[list[int]]]]], mirror_coordinate_list: list[list[int]] = (),
+                 name='default'):
         self.background = None
         self.name = name
         self.wall_list = []
         self.mirror_list = []
-
         self.level_border = [
             #                   center position          width & height          rotation
-            worldobjects.Wall(numpy.array([8, WINDOW_HEIGHT/2]), numpy.array([80, 1]), numpy.pi / 2, "../../assets/wall.png", 1, 16, 16),
-            worldobjects.Wall(numpy.array([WINDOW_WIDTH - 8, WINDOW_HEIGHT/2]), numpy.array([80, 1]), numpy.pi / 2, "../../assets/wall.png", 1, 16, 16),
-            worldobjects.Wall(numpy.array([WINDOW_WIDTH/2, WINDOW_HEIGHT - 8]), numpy.array([80, 1]), numpy.pi, "../../assets/wall.png", 1, 16, 16),
-            worldobjects.Wall(numpy.array([WINDOW_WIDTH/2, 8]), numpy.array([80, 1]), numpy.pi, "../../assets/wall.png", 1, 16, 16),
+            worldobjects.Wall(numpy.array([8, WINDOW_HEIGHT / 2]), numpy.array([80, 1]), numpy.pi / 2,
+                              "../../assets/wall.png", 1, 16, 16),
+            worldobjects.Wall(numpy.array([WINDOW_WIDTH - 8, WINDOW_HEIGHT / 2]), numpy.array([80, 1]), numpy.pi / 2,
+                              "../../assets/wall.png", 1, 16, 16),
+            worldobjects.Wall(numpy.array([WINDOW_WIDTH / 2, WINDOW_HEIGHT - 8]), numpy.array([80, 1]), numpy.pi,
+                              "../../assets/wall.png", 1, 16, 16),
+            worldobjects.Wall(numpy.array([WINDOW_WIDTH / 2, 8]), numpy.array([80, 1]), numpy.pi,
+                              "../../assets/wall.png", 1, 16, 16),
         ]
+        for wall_coordinate in wall_coordinate_list:
+            self.wall_list.append(worldobjects.Wall(numpy.array([wall_coordinate[0], wall_coordinate[1]]),
+                                                    numpy.array([wall_coordinate[2], wall_coordinate[3]]),
+                                                    wall_coordinate[4], "../../assets/wall.png", 1, 16, 16))
 
         for wall in self.level_border:
             self.wall_list.append(wall)
@@ -120,16 +128,13 @@ class GameObject(arcade.Window):
         self.game_menu = InGameMenu()
         self.character = Character('../../assets/character1.png')
         self.elem_list = arcade.SpriteList()
-        self.wall = arcade.Sprite('../../assets/wall.png')
-        self.mirror = arcade.Sprite('../../assets/mirror.png')
 
-        mirror_list = [[100, 200]]
-        wall_list = [[400, 500],
-                     [470, 500],
-                     [400, 570],
-                     [470, 570]]  # temporary, eventually load in for maps from JSON
+        # TODO: eventually JSON file
+        mirror_coordinate_list = [[100, 200]]
+        wall_coordinate_list = [[500, 700, 30, 1, numpy.pi],
+                                [800, 200, 20, 1, numpy.pi / 2]]
 
-        self.current_level = Level(wall_list, mirror_list)
+        self.current_level = Level(wall_coordinate_list, mirror_coordinate_list)
 
     def update(self, delta_time):
         self.character.update(self.current_level)

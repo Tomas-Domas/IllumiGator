@@ -1,4 +1,6 @@
 import arcade
+import pyglet.media
+
 from menus import draw_title_menu, InGameMenu
 from util import util
 import worldobjects
@@ -17,6 +19,10 @@ class Character:
         self.up = False
         self.down = False
         self.interactive_line = None
+        self.is_walking = False
+        self.player = pyglet.media.Player()
+
+        self.walking_sound = arcade.load_sound("../../assets/new_walk.wav")
 
     def draw(self):
         self.character_sprite.draw()
@@ -38,6 +44,11 @@ class Character:
             self.character_sprite.center_y -= self.velocity
             if level.check_wall_collisions(self):
                 self.character_sprite.center_y += self.velocity
+
+        if self.is_walking and not arcade.Sound.is_playing(self.walking_sound, self.player):
+            self.player = arcade.play_sound(self.walking_sound)
+        elif not self.is_walking and arcade.Sound.is_playing(self.walking_sound, self.player):
+            arcade.stop_sound(self.player)
 
     def rotate_world_object(self, direction):
         if self.interactive_line is None:
@@ -146,12 +157,16 @@ class GameObject(arcade.Window):
                 self.game_state = 'paused'
             if key == arcade.key.W or key == arcade.key.UP:
                 self.character.up = True
+                self.character.is_walking = True
             if key == arcade.key.A or key == arcade.key.LEFT:
                 self.character.left = True
+                self.character.is_walking = True
             if key == arcade.key.D or key == arcade.key.RIGHT:
                 self.character.right = True
+                self.character.is_walking = True
             if key == arcade.key.S or key == arcade.key.DOWN:
                 self.character.down = True
+                self.character.is_walking = True
 
         elif self.game_state == 'paused':
             if key == arcade.key.ESCAPE:
@@ -169,12 +184,16 @@ class GameObject(arcade.Window):
     def on_key_release(self, key, key_modifiers):
         if key == arcade.key.W or key == arcade.key.UP:
             self.character.up = False
+            self.character.is_walking = False
         if key == arcade.key.A or key == arcade.key.LEFT:
             self.character.left = False
+            self.character.is_walking = False
         if key == arcade.key.D or key == arcade.key.RIGHT:
             self.character.right = False
+            self.character.is_walking = False
         if key == arcade.key.S or key == arcade.key.DOWN:
             self.character.down = False
+            self.character.is_walking = False
         self.character.update(self.current_level)
 
 

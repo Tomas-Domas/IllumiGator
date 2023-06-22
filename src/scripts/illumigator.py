@@ -130,7 +130,10 @@ class GameObject(arcade.Window):
         self.elem_list = arcade.SpriteList()
 
         # TODO: eventually JSON file
-        mirror_coordinate_list = [[WINDOW_WIDTH / 3, WINDOW_HEIGHT - 80, 1, 1, numpy.pi / 2]]
+        mirror_coordinate_list = [[WINDOW_WIDTH / 4, (WINDOW_HEIGHT / 3) * 2, 1, 1, numpy.pi / 2],
+                                  [(WINDOW_WIDTH / 2) + 50, WINDOW_HEIGHT - 100, 1, 1, numpy.pi],
+                                  [WINDOW_WIDTH / 2, WINDOW_HEIGHT / 4, 1, 1, numpy.pi / 2],
+                                  [((WINDOW_WIDTH / 4) * 3) + 20, WINDOW_HEIGHT / 5 , 1, 1, numpy.pi]]
         wall_coordinate_list = [[800, 150, 20, 1, numpy.pi / 2]]
 
         self.current_level = Level(wall_coordinate_list, mirror_coordinate_list)

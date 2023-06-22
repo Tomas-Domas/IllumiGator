@@ -29,7 +29,7 @@ class Character:
         self.closest_interactable = None
 
     def draw(self):
-        self.character_sprite.draw()
+        self.character_sprite.draw(pixelated=True)
 
     def update(self, level):
         if self.left and not self.right:
@@ -110,9 +110,14 @@ class Level:
             ))
 
         for light_source_coordinates in light_source_coordinate_list:
-            self.light_sources_list.append(worldobjects.RadialLightSource(
-                numpy.array([light_source_coordinates[0], light_source_coordinates[1]]),
-                light_source_coordinates[2], light_source_coordinates[3]))
+            if len(light_source_coordinates) == 4:  # Has an angular spread argument
+                self.light_sources_list.append(worldobjects.RadialLightSource(
+                    numpy.array([light_source_coordinates[0], light_source_coordinates[1]]),
+                    light_source_coordinates[2], light_source_coordinates[3]))
+            else:
+                self.light_sources_list.append(worldobjects.ParallelLightSource(
+                    numpy.array([light_source_coordinates[0], light_source_coordinates[1]]),
+                    light_source_coordinates[2]))
 
     def draw(self):
         for wall in self.wall_list:
@@ -136,6 +141,7 @@ class Level:
         for light_receiver in self.light_receiver_list:
             if character.character_sprite.collides_with_list(light_receiver.sprite_list):
                 return True
+
 
 
 class GameObject(arcade.Window):
@@ -166,7 +172,9 @@ class GameObject(arcade.Window):
                                   [((WINDOW_WIDTH / 4) * 3) + 20, WINDOW_HEIGHT / 5, 0]]
         wall_coordinate_list = [[800, 176, 1, 20, 0]]
         light_receiver_coordinate_list = [[650, 450, 0]]
-        light_source_coordinate_list = [[300, 16, numpy.pi / 2, numpy.pi / 70]]
+        light_source_coordinate_list = [
+            [WINDOW_WIDTH / 4, 20, numpy.pi / 2, numpy.pi/100]
+        ]
 
         self.current_level = Level(wall_coordinate_list, mirror_coordinate_list, light_receiver_coordinate_list,
                                    light_source_coordinate_list)

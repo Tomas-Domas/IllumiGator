@@ -35,7 +35,7 @@ MAX_DISTANCE: float = 1000
 MAX_GENERATIONS: int = 5
 
 # Light Source Constants
-NUM_LIGHT_RAYS = 50
+NUM_LIGHT_RAYS = 10
 
 # Light Receiver Constants
 CHARGE_DECAY = 0.95

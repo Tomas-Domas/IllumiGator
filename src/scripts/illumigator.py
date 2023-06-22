@@ -5,18 +5,6 @@ import worldobjects
 import numpy
 
 
-class Level:
-    def __init__(self, elem_list: list[worldobjects.WorldObject], name='default'):
-        self.background = None
-        self.elem_list = elem_list
-        self.physics_engine = None
-        self.name = name
-
-    def draw(self):
-        for elem in self.elem_list:
-            elem.draw()
-
-
 class Character:
     def __init__(self, sprite_path, scale_factor=2, image_width=24, image_height=24,
                  center_x=util.WINDOW_WIDTH // 2, center_y=util.WINDOW_HEIGHT // 2, velocity=10):
@@ -60,21 +48,37 @@ class Character:
         self.interactive_line.point2 = rotated_point2
 
 
-class WorldObjects:
-    def __init__(self, sprite_path, scale_factor=1, image_width=16, image_height=16,
-                 center_x=util.WINDOW_WIDTH // 2, center_y=util.WINDOW_HEIGHT // 2):
-        # TODO: self.wall_object = worldobjects.Wall()
-        self.wall_sprite = arcade.Sprite(sprite_path, scale_factor, image_width=image_width,
-                                         image_height=image_height, center_x=center_x, center_y=center_y,
-                                         hit_box_algorithm="Simple")
-        # TODO: self.mirror_object = worldobjects.Mirror()
-        self.mirror_sprite = arcade.Sprite(sprite_path, scale_factor, image_width=image_width,
-                                           image_height=image_height, center_x=center_x, center_y=center_y,
-                                           hit_box_algorithm="Simple")
+class Level:
+    def __init__(self, wall_list: list[list[int]], mirror_list: list[list[int]] = (), name='default'):
+        self.background = None
+        self.physics_engine = None
+        self.name = name
+        self.wall_list = []
+        for wall in wall_list:
+            wall_sprite = arcade.Sprite('../../assets/wall.png')
+            wall_sprite.center_x = wall[0]
+            wall_sprite.center_y = wall[1]
+            self.wall_list.append(wall_sprite)
 
     def draw(self):
-        self.wall_sprite.draw()
-        self.mirror_sprite.draw()
+        for wall in self.wall_list:
+            wall.draw()
+
+    def check_wall_collisions(self, character: Character):
+        for wall in self.wall_list:
+            if character.character_sprite.collides_with_sprite(wall):
+                if character.left:
+                    character.character_sprite.center_x += 10
+                    character.left = False
+                if character.right:
+                    character.character_sprite.center_x -= 10
+                    character.right = False
+                if character.up:
+                    character.character_sprite.center_y -= 10
+                    character.up = False
+                if character.down:
+                    character.character_sprite.center_y += 10
+                    character.down = False
 
 
 class GameObject(arcade.Window):
@@ -90,6 +94,7 @@ class GameObject(arcade.Window):
         self.tile_map = None
         self.character = None
         self.game_state = None
+        self.current_level = None
 
     def setup(self):
         self.game_state = 'menu'
@@ -99,17 +104,14 @@ class GameObject(arcade.Window):
         self.wall = arcade.Sprite('../../assets/wall.png')
         self.mirror = None
 
-        coordinate_list = [[400, 500],
-                           [470, 500],
-                           [400, 570],
-                           [470, 570]]  # temporary, eventually load in for maps from JSON
-        for coordinate in coordinate_list:
-            wall_sprite = arcade.Sprite('../../assets/wall.png')
-            wall_sprite.center_x = coordinate[0]
-            wall_sprite.center_y = coordinate[1]
-            self.elem_list.append(wall_sprite)
+        wall_list = [[400, 500],
+                     [470, 500],
+                     [400, 570],
+                     [470, 570]]  # temporary, eventually load in for maps from JSON
+        self.current_level = Level(wall_list)
 
     def update(self, delta_time):
+        self.current_level.check_wall_collisions(self.character)
         self.character.update()
 
     def on_draw(self):
@@ -118,8 +120,9 @@ class GameObject(arcade.Window):
         if self.game_state == 'menu':
             draw_title_menu()
         elif self.game_state == 'game' or self.game_state == 'paused':
+            self.current_level.draw()
             self.character.draw()
-            self.elem_list.draw()
+
             if self.game_state == 'paused':
                 self.game_menu.draw()
 
@@ -139,7 +142,7 @@ class GameObject(arcade.Window):
                 self.character.left = True
             if key == arcade.key.D or key == arcade.key.RIGHT:
                 self.character.right = True
-            if key == arcade.key.S  or key == arcade.key.DOWN:
+            if key == arcade.key.S or key == arcade.key.DOWN:
                 self.character.down = True
 
         elif self.game_state == 'paused':

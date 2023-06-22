@@ -81,20 +81,15 @@ class Level:
 
         self.background = None
         self.name = name
-        self.wall_list = []
-        self.mirror_list = []
-        self.light_receiver_list = []
-        self.light_sources_list = []
-        self.level_border = [
-            #                 center position                      width & height        rotation
+        self.wall_list = [
             worldobjects.Wall(numpy.array([8, WINDOW_HEIGHT / 2]), numpy.array([1, 45]), 0),
             worldobjects.Wall(numpy.array([WINDOW_WIDTH - 8, WINDOW_HEIGHT / 2]), numpy.array([1, 45]), 0),
             worldobjects.Wall(numpy.array([WINDOW_WIDTH / 2, WINDOW_HEIGHT - 8]), numpy.array([80, 1]), 0),
             worldobjects.Wall(numpy.array([WINDOW_WIDTH / 2, 8]), numpy.array([80, 1]), 0),
         ]
-
-        for border in self.level_border:
-            self.wall_list.append(border)
+        self.mirror_list = []
+        self.light_receiver_list = []
+        self.light_sources_list = []
 
         for wall_coordinates in wall_coordinate_list:
             self.wall_list.append(worldobjects.Wall(
@@ -126,9 +121,9 @@ class Level:
             mirror.draw()
         for light_receiver in self.light_receiver_list:
             light_receiver.draw()
+            light_receiver.charge *= CHARGE_DECAY
         for light_source in self.light_sources_list:
-            light_source.cast_rays(
-                self.wall_list + self.mirror_list + self.light_receiver_list + self.light_sources_list)
+            light_source.cast_rays(self.wall_list + self.mirror_list + self.light_receiver_list + self.light_sources_list)
             light_source.draw()
 
     def check_collisions(self, character: Character):

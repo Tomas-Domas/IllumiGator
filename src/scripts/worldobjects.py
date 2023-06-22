@@ -1,8 +1,4 @@
-import arcade
-import math
-import numpy
 import random
-
 import light
 from util.util import *
 import geometry
@@ -11,16 +7,18 @@ import geometry
 class WorldObject:
     position: numpy.array
     rotation_angle: float
-    is_interactable: bool  # TODO: use for player pushing calculations
+    is_interactable: bool
+    is_receiver: bool
     geometry_segments: list[geometry.Geometry]
 
     sprite_list: arcade.SpriteList
     color: tuple[int, int, int]
 
-    def __init__(self, position, rotation_angle, color=random.choice(COLORS), is_interactable=False):
+    def __init__(self, position, rotation_angle, color=random.choice(COLORS), is_interactable=False, is_receiver=False):
         self.position = position
         self.rotation_angle = rotation_angle
         self.is_interactable = is_interactable
+        self.is_receiver = is_receiver
         self.geometry_segments = []
 
         self.sprite_list = arcade.SpriteList()
@@ -107,6 +105,7 @@ class LightReceiver(WorldObject):
     def __init__(self, center_position: numpy.array, rotation_angle, is_interactable=False):
         super().__init__(center_position, rotation_angle, is_interactable=is_interactable)
 
+        self.charge = 0
         sprite_path, scale_factor, image_width, image_height = RECEIVER_SPRITE_INFO
         side_lengths = numpy.array([image_width, image_height])
 
@@ -135,7 +134,7 @@ class RadialLightSource(WorldObject):
     def __init__(self, position, rotation_angle, angular_spread):
         super().__init__(position, rotation_angle, arcade.color.BLACK)
         self.light_rays = [light.LightRay(numpy.array([0, 0]), numpy.array([0, 0])) for _ in
-                           range(light.NUM_LIGHT_RAYS)]
+                           range(NUM_LIGHT_RAYS)]
         self.angular_spread = angular_spread
         self.calculate_light_ray_positions()
 

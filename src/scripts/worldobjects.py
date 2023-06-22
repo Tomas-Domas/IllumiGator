@@ -10,7 +10,6 @@ import geometry
 class WorldObject:
     sprite: arcade.Sprite  # TODO: load sprites and display them
     geometry_segments: list[geometry.Geometry]
-
     position: numpy.array
     rotation_angle: float
     color: tuple[int, int, int]
@@ -29,9 +28,8 @@ class WorldObject:
 
 class Wall(WorldObject):
     def __init__(self, sprite_path, scale_factor, image_width, image_height, center_position: numpy.array,
-                 side_lengths: numpy.array, rotation_angle: float = 0, color=random.choice(util.COLORS), is_interactable=True):
+                 side_lengths: numpy.array, rotation_angle: float = 0, color=random.choice(util.COLORS)):
         super().__init__(center_position, rotation_angle, color)
-        self.is_interactable = is_interactable # TODO: check this
         self.side_lengths = side_lengths
         self.wall_sprite = arcade.Sprite(sprite_path, scale_factor, image_width=image_width,
                                          image_height=image_height, hit_box_algorithm="Simple")

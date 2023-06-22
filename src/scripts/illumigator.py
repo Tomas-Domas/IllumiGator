@@ -62,13 +62,23 @@ class Level:
         self.physics_engine = None
         self.name = name
         self.wall_list = []
+        self.mirror_list = []
+
         for wall in wall_list:
             wall_sprite = arcade.Sprite('../../assets/wall.png')
             wall_sprite.center_x = wall[0]
             wall_sprite.center_y = wall[1]
             self.wall_list.append(wall_sprite)
 
+        for mirror in mirror_list:
+            mirror_sprite = arcade.Sprite('../../assets/mirror.png')
+            mirror_sprite.center_x = mirror[0]
+            mirror_sprite.center_y = mirror[1]
+            self.mirror_list.append(mirror_sprite)
+
     def draw(self):
+        for mirror in self.mirror_list:
+            mirror.draw()
         for wall in self.wall_list:
             wall.draw()
 
@@ -86,7 +96,7 @@ class GameObject(arcade.Window):
         self.wall = None
         self.game_state = None
         self.set_mouse_visible(False)
-        arcade.set_background_color(arcade.color.SKY_BLUE)
+        arcade.set_background_color(arcade.color.BROWN)
         self.game_menu = None
         self.tile_map = None
         self.character = None
@@ -99,13 +109,15 @@ class GameObject(arcade.Window):
         self.character = Character('../../assets/character1.png')
         self.elem_list = arcade.SpriteList()
         self.wall = arcade.Sprite('../../assets/wall.png')
-        self.mirror = None
+        self.mirror = arcade.Sprite('../../assets/mirror.png')
 
+        mirror_list = [[100, 200]]
         wall_list = [[400, 500],
                      [470, 500],
                      [400, 570],
                      [470, 570]]  # temporary, eventually load in for maps from JSON
-        self.current_level = Level(wall_list)
+
+        self.current_level = Level(wall_list, mirror_list)
 
     def update(self, delta_time):
         self.character.update(self.current_level)

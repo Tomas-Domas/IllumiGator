@@ -6,7 +6,6 @@ from util.util import *
 import worldobjects
 import numpy
 
-
 class Character:
     def __init__(self, sprite_path, scale_factor=2, image_width=24, image_height=24,
                  center_x=WINDOW_WIDTH // 2, center_y=WINDOW_HEIGHT // 2, velocity=10):
@@ -20,9 +19,13 @@ class Character:
         self.down = False
         self.interactive_line = None
         self.is_walking = False
+        self.counter_clockwise = False
+        self.clockwise = False
         self.player = pyglet.media.Player()
 
         self.walking_sound = arcade.load_sound("../../assets/new_walk.wav")
+
+        self.closest_interactable = None
 
     def draw(self):
         self.character_sprite.draw()
@@ -50,21 +53,20 @@ class Character:
         elif not self.is_walking and arcade.Sound.is_playing(self.walking_sound, self.player):
             arcade.stop_sound(self.player)
 
-    def rotate_world_object(self, direction):
-        if self.interactive_line is None:
-            return
-
-        rotation_amount = numpy.deg2rad(1) * direction
-        point1, point2 = self.interactive_line.point1, self.interactive_line.point2
-        center = (point1 + point2) / 2
-
-        # rotate the points around the center of the mirror
-        rotated_point1 = rotate_around_center(point1, rotation_amount, center)
-        rotated_point2 = rotate_around_center(point2, rotation_amount, center)
-
-        # update the mirror's points
-        self.interactive_line.point1 = rotated_point1
-        self.interactive_line.point2 = rotated_point2
+        closest_distance = 10000000 # arbitrarily large number
+        for mirror in level.mirror_list:
+            distance_x = abs(self.character_sprite.center_x - mirror.position[0])
+            distance_y = abs(self.character_sprite.center_y - mirror.position[1])
+            distance = distance_x + distance_y
+            print(distance)
+            if distance < closest_distance and distance < 200:
+                self.closest_interactable = mirror
+            else:
+                self.closest_interactable = None
+        if self.counter_clockwise and self.closest_interactable and not self.clockwise:
+            self.closest_interactable.move(numpy.zeros(2), 0.02)
+        elif self.clockwise and self.closest_interactable and not self.counter_clockwise:
+            self.closest_interactable.move(numpy.zeros(2), -0.02)
 
 
 class Level:
@@ -106,7 +108,6 @@ class Level:
         for mirror in self.mirror_list:
             if character.character_sprite.collides_with_list(mirror.sprite_list):
                 return True
-
 
 class GameObject(arcade.Window):
     def __init__(self):
@@ -176,6 +177,13 @@ class GameObject(arcade.Window):
                 self.character.down = True
                 self.character.is_walking = True
 
+            if key == arcade.key.Q:
+                if self.character.closest_interactable:
+                    self.character.counter_clockwise = True
+            if key == arcade.key.E:
+                if self.character.closest_interactable:
+                    self.character.clockwise = True
+
         elif self.game_state == 'paused':
             if key == arcade.key.ESCAPE:
                 self.game_state = 'game'
@@ -203,6 +211,11 @@ class GameObject(arcade.Window):
             self.character.down = False
             self.character.is_walking = False
         self.character.update(self.current_level)
+
+        if key == arcade.key.Q:
+            self.character.counter_clockwise = False
+        if key == arcade.key.E:
+            self.character.clockwise = False
 
 
 def main():

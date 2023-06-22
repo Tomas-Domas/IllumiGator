@@ -3,10 +3,9 @@ import arcade
 import numpy
 # import timeit
 # import math
+from util.util import WINDOW_WIDTH, WINDOW_HEIGHT
 
 # Arcade Constants
-SCREEN_WIDTH = 1000
-SCREEN_HEIGHT = 600
 SCREEN_TITLE = "Ray Marching Demo"
 BACKGROUND_COLOR = arcade.color.JET
 
@@ -15,7 +14,7 @@ class MyGame(arcade.Window):
     def __init__(self, width, height, title):
         super().__init__(width, height, title)
 
-        self.mouse_position = numpy.array([SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2])
+        self.mouse_position = numpy.array([WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2])
         self.background_color = BACKGROUND_COLOR
 
         self.level_objects = []
@@ -45,10 +44,14 @@ class MyGame(arcade.Window):
 
     def load_level1(self):
 
-        self.level_objects.append(
+        self.level_objects = [
             #                   center position          width & height          rotation
-            worldobjects.Wall(numpy.array([500, 300]), numpy.array([3, 8]), numpy.pi/2, "../../assets/wall.png", 1, 16, 16),
-        )
+            worldobjects.Wall(numpy.array([8, WINDOW_HEIGHT/2]), numpy.array([80, 1]), numpy.pi / 2, "../../assets/wall.png", 1, 16, 16),
+            worldobjects.Wall(numpy.array([WINDOW_WIDTH - 8, WINDOW_HEIGHT/2]), numpy.array([80, 1]), numpy.pi / 2, "../../assets/wall.png", 1, 16, 16),
+            worldobjects.Wall(numpy.array([WINDOW_WIDTH/2, WINDOW_HEIGHT - 8]), numpy.array([80, 1]), numpy.pi, "../../assets/wall.png", 1, 16, 16),
+            worldobjects.Wall(numpy.array([WINDOW_WIDTH/2, 8]), numpy.array([80, 1]), numpy.pi, "../../assets/wall.png", 1, 16, 16),
+        ]
+
 
         # self.level_light_sources.append(
         #     #                              position                  rotation   spread of beam
@@ -56,7 +59,7 @@ class MyGame(arcade.Window):
         # )
 
 def main():
-    MyGame(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+    MyGame(WINDOW_WIDTH, WINDOW_HEIGHT, SCREEN_TITLE)
     arcade.run()
 
     # def op1(num):

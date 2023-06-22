@@ -2,14 +2,14 @@ import arcade
 import pyglet.media
 
 from menus import draw_title_menu, InGameMenu
-from util import util
+from util.util import *
 import worldobjects
 import numpy
 
 
 class Character:
     def __init__(self, sprite_path, scale_factor=2, image_width=24, image_height=24,
-                 center_x=util.WINDOW_WIDTH // 2, center_y=util.WINDOW_HEIGHT // 2, velocity=10):
+                 center_x=WINDOW_WIDTH // 2, center_y=WINDOW_HEIGHT // 2, velocity=10):
         self.character_sprite = arcade.Sprite(sprite_path, scale_factor, image_width=image_width,
                                               image_height=image_height, center_x=center_x, center_y=center_y,
                                               hit_box_algorithm="Simple")
@@ -59,8 +59,8 @@ class Character:
         center = (point1 + point2) / 2
 
         # rotate the points around the center of the mirror
-        rotated_point1 = util.rotate_around_center(point1, rotation_amount, center)
-        rotated_point2 = util.rotate_around_center(point2, rotation_amount, center)
+        rotated_point1 = rotate_around_center(point1, rotation_amount, center)
+        rotated_point2 = rotate_around_center(point2, rotation_amount, center)
 
         # update the mirror's points
         self.interactive_line.point1 = rotated_point1
@@ -75,6 +75,14 @@ class Level:
         self.wall_list = []
         self.mirror_list = []
 
+        self.level_border = [
+            #                   center position          width & height          rotation
+            worldobjects.Wall(numpy.array([8, WINDOW_HEIGHT/2]), numpy.array([80, 1]), numpy.pi / 2, "../../assets/wall.png", 1, 16, 16),
+            worldobjects.Wall(numpy.array([WINDOW_WIDTH - 8, WINDOW_HEIGHT/2]), numpy.array([80, 1]), numpy.pi / 2, "../../assets/wall.png", 1, 16, 16),
+            worldobjects.Wall(numpy.array([WINDOW_WIDTH/2, WINDOW_HEIGHT - 8]), numpy.array([80, 1]), numpy.pi, "../../assets/wall.png", 1, 16, 16),
+            worldobjects.Wall(numpy.array([WINDOW_WIDTH/2, 8]), numpy.array([80, 1]), numpy.pi, "../../assets/wall.png", 1, 16, 16),
+        ]
+
         for wall in wall_list:
             wall_sprite = arcade.Sprite('../../assets/wall.png')
             wall_sprite.center_x = wall[0]
@@ -88,6 +96,8 @@ class Level:
             self.mirror_list.append(mirror_sprite)
 
     def draw(self):
+        for border_wall in self.level_border:
+            border_wall.draw()
         for mirror in self.mirror_list:
             mirror.draw()
         for wall in self.wall_list:
@@ -101,7 +111,7 @@ class Level:
 
 class GameObject(arcade.Window):
     def __init__(self):
-        super().__init__(util.WINDOW_WIDTH, util.WINDOW_HEIGHT, util.WINDOW_TITLE)
+        super().__init__(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)
         self.elem_list = None
         self.mirror = None
         self.wall = None

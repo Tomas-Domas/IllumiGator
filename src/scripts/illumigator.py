@@ -9,6 +9,7 @@ class Level:
     def __init__(self, elem_list: list[worldobjects.WorldObject], name='default'):
         self.background = None
         self.elem_list = elem_list
+        self.physics_engine = None
         self.name = name
 
     def draw(self):
@@ -79,6 +80,7 @@ class WorldObjects:
 class GameObject(arcade.Window):
     def __init__(self):
         super().__init__(util.WINDOW_WIDTH, util.WINDOW_HEIGHT, util.WINDOW_TITLE)
+        self.elem_list = None
         self.mirror = None
         self.wall = None
         self.game_state = None
@@ -92,14 +94,20 @@ class GameObject(arcade.Window):
     def setup(self):
         self.game_state = 'menu'
         self.game_menu = InGameMenu()
-        self.character = Character('../../assets/sprite.png')
-        self.wall = None
+        self.character = Character('../../assets/character1.png')
+        self.elem_list = arcade.SpriteList()
+        self.wall = arcade.Sprite('../../assets/wall.png')
         self.mirror = None
 
-    def setup(self):
-        self.game_state = 'menu'
-        self.game_menu = InGameMenu()
-        self.character = Character('C:\\Users\\amber\PycharmProjects\IllumiGator\\assets\character1.png')
+        coordinate_list = [[400, 500],
+                           [470, 500],
+                           [400, 570],
+                           [470, 570]]  # temporary, eventually load in for maps from JSON
+        for coordinate in coordinate_list:
+            wall_sprite = arcade.Sprite('../../assets/wall.png')
+            wall_sprite.center_x = coordinate[0]
+            wall_sprite.center_y = coordinate[1]
+            self.elem_list.append(wall_sprite)
 
     def update(self, delta_time):
         self.character.update()
@@ -111,6 +119,7 @@ class GameObject(arcade.Window):
             draw_title_menu()
         elif self.game_state == 'game' or self.game_state == 'paused':
             self.character.draw()
+            self.elem_list.draw()
             if self.game_state == 'paused':
                 self.game_menu.draw()
 

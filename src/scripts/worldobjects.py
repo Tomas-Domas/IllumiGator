@@ -57,7 +57,7 @@ class Wall(WorldObject):
             geometry.Line(center_position + axis1 - axis2, center_position - axis1 - axis2),
         ]
 
-        self.sprite_list = []
+        self.sprite_list = arcade.SpriteList()
         for col in range(dimensions[0]):
             for row in range(dimensions[1]):
                 sprite_center = center_position-axis1-axis2 + axis1_norm*(image_width/2 + col*image_width) + axis2_norm*(image_height/2 + row*image_height)

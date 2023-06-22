@@ -24,6 +24,7 @@ COLORS = [arcade.color.AQUAMARINE, arcade.color.BLUE, arcade.color.CHERRY, arcad
 
 WALL_SPRITE_INFO = ("../../assets/wall.png", 1, 16, 16)
 MIRROR_SPRITE_INFO = ("../../assets/mirror.png", 1, 9, 48)
+RECEIVER_SPRITE_INFO = ("../../assets/light_receiver.png", 1, 32, 32)
 
 # Script Constants
 MAX_RAY_DISTANCE = math.sqrt(WINDOW_WIDTH ** 2 + WINDOW_HEIGHT ** 2) # maximum distance a ray can travel before going off-screen

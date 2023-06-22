@@ -49,7 +49,8 @@ class MyGame(arcade.Window):
             worldobjects.Wall(numpy.array([WINDOW_WIDTH - 8, WINDOW_HEIGHT/2]), numpy.array([80, 1]), numpy.pi / 2),
             worldobjects.Wall(numpy.array([WINDOW_WIDTH/2, WINDOW_HEIGHT - 8]), numpy.array([80, 1]), numpy.pi),
             worldobjects.Wall(numpy.array([WINDOW_WIDTH/2, 8]), numpy.array([80, 1]), numpy.pi),
-            worldobjects.Mirror(numpy.array([WINDOW_WIDTH/2, WINDOW_HEIGHT/2]), 0)
+            worldobjects.Mirror(numpy.array([WINDOW_WIDTH/2, WINDOW_HEIGHT/2]), 0),
+            worldobjects.LightReceiver(numpy.array([100, 100]), 0)
         ]
 
 

@@ -17,16 +17,14 @@ class MyGame(arcade.Window):
         self.mouse_position = numpy.array([WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2])
         self.background_color = BACKGROUND_COLOR
 
-        self.level_objects = []
-        self.level_light_sources = []
         self.load_level1()
 
 
     def on_draw(self):
         self.clear()
         for source in self.level_light_sources:
-            source.calculate_light_ray_positions()
             source.cast_rays(self.level_objects)
+            source.move(numpy.zeros(2), 0.03)
             source.draw()
 
         for wo in self.level_objects:
@@ -44,7 +42,6 @@ class MyGame(arcade.Window):
     def load_level1(self):
 
         self.level_objects = [
-            #                   center position          width & height          rotation
             worldobjects.Wall(numpy.array([8, WINDOW_HEIGHT/2]), numpy.array([80, 1]), numpy.pi / 2),
             worldobjects.Wall(numpy.array([WINDOW_WIDTH - 8, WINDOW_HEIGHT/2]), numpy.array([80, 1]), numpy.pi / 2),
             worldobjects.Wall(numpy.array([WINDOW_WIDTH/2, WINDOW_HEIGHT - 8]), numpy.array([80, 1]), numpy.pi),
@@ -54,10 +51,9 @@ class MyGame(arcade.Window):
         ]
 
 
-        # self.level_light_sources.append(
-        #     #                              position                  rotation   spread of beam
-        #     worldobjects.RadialLightSource(numpy.array([10, 10]),  numpy.pi,  numpy.pi*2)
-        # )
+        self.level_light_sources = [
+            worldobjects.RadialLightSource(numpy.array([WINDOW_WIDTH-100, WINDOW_HEIGHT-100]), 0,     numpy.pi/4)
+        ]
 
 def main():
     MyGame(WINDOW_WIDTH, WINDOW_HEIGHT, SCREEN_TITLE)

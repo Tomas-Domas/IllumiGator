@@ -4,6 +4,7 @@ from util import util
 import worldobjects
 import numpy
 
+
 class Level:
     def __init__(self, elem_list: list[worldobjects.WorldObject], name='default'):
         self.elem_list = elem_list
@@ -12,6 +13,7 @@ class Level:
     def draw(self):
         for elem in self.elem_list:
             elem.draw()
+
 
 class Character:
     def __init__(self, sprite_path, scale_factor=1, image_width=128, image_height=128, center_x=util.WINDOW_WIDTH // 2, center_y=util.WINDOW_HEIGHT // 2, velocity=10):
@@ -53,6 +55,7 @@ class Character:
         self.interactive_line.point1 = rotated_point1
         self.interactive_line.point2 = rotated_point2
 
+
 class GameObject(arcade.Window):
     def __init__(self):
         super().__init__(util.WINDOW_WIDTH, util.WINDOW_HEIGHT, util.WINDOW_TITLE)
@@ -62,11 +65,12 @@ class GameObject(arcade.Window):
         self.game_menu = None
         self.tile_map = None
         self.character = None
+        self.game_state = None
     
     def setup(self):
         self.game_state = 'menu'
         self.game_menu = InGameMenu()
-        self.character = Character('sprite.png')
+        self.character = Character('../../assets/sprite.png')
 
     def update(self, delta_time):
         self.character.update()
@@ -124,10 +128,12 @@ class GameObject(arcade.Window):
             self.character.down = False
         self.character.update()
 
+
 def main():
     window = GameObject()
     window.setup()
     arcade.run()
+
 
 if __name__ == '__main__':
     main()

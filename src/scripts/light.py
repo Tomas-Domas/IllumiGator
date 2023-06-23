@@ -6,50 +6,51 @@ import util.util as util
 
 class LightRay:
     def __init__(self, origin, direction, generation=0):
-        self.origin = origin
-        self.direction = direction
-        self.end = None
-        self.child_ray = None
-        self.generation = generation
+        self._origin = origin
+        self._direction = direction
+        self._end = None
+        self._child_ray = None
+        self._generation = generation
 
     def cast_ray(self, world_objects: list):
         nearest_distance_squared = util.STARTING_DISTANCE_VALUE
+        nearest_intersection_worldobject = None
         nearest_intersection_geometry = None
         for wo in world_objects:
-            for segment in wo.geometry_segments:
+            for segment in wo._geometry_segments:
                 intersection_point = segment.get_intersection(self)
                 if intersection_point is None:
                     continue
 
-                if wo.is_receiver:  # Charge receiver when a light ray intercepts it
-                    wo.charge += util.LIGHT_INCREMENT
-
-                intersection_dist_squared = util.distance_squared(self.origin, intersection_point)
+                intersection_dist_squared = util.distance_squared(self._origin, intersection_point)
                 if intersection_dist_squared < nearest_distance_squared:
                     nearest_distance_squared = intersection_dist_squared
+                    nearest_intersection_worldobject = wo
                     nearest_intersection_geometry = segment
 
         if nearest_intersection_geometry is None:
-            self.end = self.origin + self.direction * util.MAX_RAY_DISTANCE
-            self.child_ray = None
+            self._end = self._origin + self._direction * util.MAX_RAY_DISTANCE
+            self._child_ray = None
             return
 
-        self.end = self.origin + self.direction * math.sqrt(nearest_distance_squared)
-
-        if nearest_intersection_geometry.is_reflective and self.generation < util.MAX_GENERATIONS:  # if the ray hit a mirror, create child and cast it
+        self._end = self._origin + self._direction * math.sqrt(nearest_distance_squared)
+        if nearest_intersection_worldobject._is_receiver:  # Charge receiver when a light ray hits it
+            nearest_intersection_worldobject.charge += util.LIGHT_INCREMENT
+        elif nearest_intersection_geometry.is_reflective and self._generation < util.MAX_GENERATIONS:  # if the ray hit a mirror, create child and cast it
             self.generate_child_ray(nearest_intersection_geometry.get_reflected_direction(self))
-            self.child_ray.cast_ray(world_objects)
-        else:
-            self.child_ray = None
+            self._child_ray.cast_ray(world_objects)
+            return
+        self._child_ray = None
+
 
     def generate_child_ray(self, direction):
-        if self.child_ray is None:
-            self.child_ray = LightRay(self.end + direction * 0.001, direction, generation=self.generation+1)
+        if self._child_ray is None:
+            self._child_ray = LightRay(self._end + direction * 0.001, direction, generation=self._generation + 1)
         else:
-            self.child_ray.origin = self.end + direction * 0.001
-            self.child_ray.direction = direction
+            self._child_ray._origin = self._end + direction * 0.001
+            self._child_ray._direction = direction
 
     def draw(self):
-        arcade.draw_line(self.origin[0], self.origin[1], self.end[0], self.end[1], arcade.color.WHITE)
-        if self.child_ray is not None:
-            self.child_ray.draw()
+        arcade.draw_line(self._origin[0], self._origin[1], self._end[0], self._end[1], arcade.color.WHITE)
+        if self._child_ray is not None:
+            self._child_ray.draw()

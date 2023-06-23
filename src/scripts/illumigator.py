@@ -2,7 +2,8 @@ import arcade
 import pyglet.media
 
 from menus import draw_title_menu, InGameMenu
-from util.util import *
+import util.util as util
+from util.util import WINDOW_WIDTH, WINDOW_HEIGHT
 import worldobjects
 import numpy
 
@@ -54,42 +55,43 @@ class Character:
         elif not self.is_walking and arcade.Sound.is_playing(self.walking_sound, self.player):
             arcade.stop_sound(self.player)
 
-        closest_distance = STARTING_DISTANCE_VALUE  # arbitrarily large number
+        closest_distance = util.STARTING_DISTANCE_VALUE  # arbitrarily large number
         for mirror in level.mirror_list:
-            distance_x = abs(self.character_sprite.center_x - mirror.position[0])
-            distance_y = abs(self.character_sprite.center_y - mirror.position[1])
-            distance = distance_x + distance_y
+            distance = mirror.distance_squared_to_center(self.character_sprite.center_x, self.character_sprite.center_y)
             if distance < closest_distance:
                 self.closest_interactable = mirror
                 closest_distance = distance
 
-        if self.closest_interactable is None or closest_distance > 100:
+        if self.closest_interactable is None or closest_distance > util.PLAYER_REACH_DISTANCE_SQUARED:
             return
 
         if self.counter_clockwise and self.closest_interactable and not self.clockwise:
-            self.closest_interactable.move(numpy.zeros(2), 0.02)
+            self.closest_interactable.move(numpy.zeros(2), util.OBJECT_ROTATION_AMOUNT)
         elif self.clockwise and self.closest_interactable and not self.counter_clockwise:
-            self.closest_interactable.move(numpy.zeros(2), -0.02)
+            self.closest_interactable.move(numpy.zeros(2), -util.OBJECT_ROTATION_AMOUNT)
 
 
 class Level:
-    def __init__(self, wall_coordinate_list: list[list],
-                 mirror_coordinate_list: list[list],
-                 light_receiver_coordinate_list: list[list],
-                 light_source_coordinate_list: list[list],
-                 name='default'):
-
+    def __init__(
+            self,
+            wall_coordinate_list: list[list],
+            mirror_coordinate_list: list[list],
+            light_receiver_coordinate_list: list[list],
+            light_source_coordinate_list: list[list],
+            name='default'
+    ):
         self.background = None
         self.name = name
-        self.wall_list = [
+
+        self.mirror_list = []
+        self.light_receiver_list = []
+        self.light_sources_list = []
+        self.wall_list: list[worldobjects.WorldObject] = [
             worldobjects.Wall(numpy.array([8, WINDOW_HEIGHT / 2]), numpy.array([1, 45]), 0),
             worldobjects.Wall(numpy.array([WINDOW_WIDTH - 8, WINDOW_HEIGHT / 2]), numpy.array([1, 45]), 0),
             worldobjects.Wall(numpy.array([WINDOW_WIDTH / 2, WINDOW_HEIGHT - 8]), numpy.array([80, 1]), 0),
             worldobjects.Wall(numpy.array([WINDOW_WIDTH / 2, 8]), numpy.array([80, 1]), 0),
         ]
-        self.mirror_list = []
-        self.light_receiver_list = []
-        self.light_sources_list = []
 
         for wall_coordinates in wall_coordinate_list:
             self.wall_list.append(worldobjects.Wall(
@@ -100,7 +102,8 @@ class Level:
 
         for mirror_coordinates in mirror_coordinate_list:
             self.mirror_list.append(worldobjects.Mirror(
-                numpy.array([mirror_coordinates[0], mirror_coordinates[1]]), mirror_coordinates[2]
+                numpy.array([mirror_coordinates[0], mirror_coordinates[1]]),
+                mirror_coordinates[2]
             ))
 
         for light_receiver_coordinates in light_receiver_coordinate_list:
@@ -113,7 +116,8 @@ class Level:
             if len(light_source_coordinates) == 4:  # Has an angular spread argument
                 self.light_sources_list.append(worldobjects.RadialLightSource(
                     numpy.array([light_source_coordinates[0], light_source_coordinates[1]]),
-                    light_source_coordinates[2], light_source_coordinates[3]))
+                    light_source_coordinates[2],
+                    light_source_coordinates[3]))
             else:
                 self.light_sources_list.append(worldobjects.ParallelLightSource(
                     numpy.array([light_source_coordinates[0], light_source_coordinates[1]]),
@@ -126,27 +130,28 @@ class Level:
             mirror.draw()
         for light_receiver in self.light_receiver_list:
             light_receiver.draw()
-            light_receiver.charge *= CHARGE_DECAY
+            light_receiver.charge *= util.CHARGE_DECAY
+            print(light_receiver.charge)
         for light_source in self.light_sources_list:
             light_source.cast_rays(self.wall_list + self.mirror_list + self.light_receiver_list + self.light_sources_list)
             light_source.draw()
 
     def check_collisions(self, character: Character):
         for wall in self.wall_list:
-            if character.character_sprite.collides_with_list(wall.sprite_list):
+            if wall.check_collision(character.character_sprite):
                 return True
         for mirror in self.mirror_list:
-            if character.character_sprite.collides_with_list(mirror.sprite_list):
+            if mirror.check_collision(character.character_sprite):
                 return True
         for light_receiver in self.light_receiver_list:
-            if character.character_sprite.collides_with_list(light_receiver.sprite_list):
+            if light_receiver.check_collision(character.character_sprite):
                 return True
 
 
 
 class GameObject(arcade.Window):
     def __init__(self):
-        super().__init__(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)
+        super().__init__(WINDOW_WIDTH, WINDOW_HEIGHT, util.WINDOW_TITLE)
         self.elem_list = None
         self.mirror = None
         self.wall = None
@@ -166,18 +171,29 @@ class GameObject(arcade.Window):
         self.elem_list = arcade.SpriteList()
 
         # TODO: eventually JSON file
-        mirror_coordinate_list = [[WINDOW_WIDTH / 4, (WINDOW_HEIGHT / 3) * 2, numpy.pi / 2],
-                                  [(WINDOW_WIDTH / 2) + 50, WINDOW_HEIGHT - 100, 0],
-                                  [WINDOW_WIDTH / 2, WINDOW_HEIGHT / 4, numpy.pi / 2],
-                                  [((WINDOW_WIDTH / 4) * 3) + 20, WINDOW_HEIGHT / 5, 0]]
-        wall_coordinate_list = [[800, 176, 1, 20, 0]]
-        light_receiver_coordinate_list = [[650, 450, 0]]
+        mirror_coordinate_list = [
+            [WINDOW_WIDTH / 4, (WINDOW_HEIGHT / 3) * 2, -numpy.pi / 3.8],
+            [(WINDOW_WIDTH / 2) + 50, WINDOW_HEIGHT - 100, 0],
+            [WINDOW_WIDTH / 2, WINDOW_HEIGHT / 4, numpy.pi / 2],
+            [((WINDOW_WIDTH / 4) * 3) + 20, WINDOW_HEIGHT / 5, 0]
+        ]
+        wall_coordinate_list = [
+            [800, 176, 1, 20, 0]
+        ]
+        light_receiver_coordinate_list = [
+            [650, 450, 0]
+        ]
         light_source_coordinate_list = [
-            [WINDOW_WIDTH / 4, 20, numpy.pi / 2, numpy.pi/100]
+            # A 4th argument will make RadialLightSource with that angular spread instead of ParallelLightSource
+            [WINDOW_WIDTH / 4, 20, numpy.pi / 2]
         ]
 
-        self.current_level = Level(wall_coordinate_list, mirror_coordinate_list, light_receiver_coordinate_list,
-                                   light_source_coordinate_list)
+        self.current_level = Level(
+            wall_coordinate_list,
+            mirror_coordinate_list,
+            light_receiver_coordinate_list,
+            light_source_coordinate_list
+        )
 
     def update(self, delta_time):
         self.character.update(self.current_level)

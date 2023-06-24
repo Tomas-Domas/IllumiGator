@@ -1,0 +1,38 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "illumigator"
+version = "0.0.5"
+authors = [
+    { name="Richard Sorkin", email="r.sorkin@ufl.edu" },
+    { name="Tomas Mejia", email="tomas.mejia@ufl.edu" },
+    { name="Amber Handal", email="amberhandal@ufl.edu" },
+    { name="Elton Li", email="eltonli@ufl.edu" },
+    { name="Dakota Cappel", email="dakota.cappel@ufl.edu"}
+]
+description = "2D Light-Based Puzzle Game"
+readme = "README.md"
+requires-python = ">=3.6"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "arcade",
+    "numpy",
+    "screeninfo"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/EltonLi2000/IllumiGator"
+"Bug Tracker" = "https://github.com/EltonLi2000/IllumiGator/issues"
+
+[tool.hatch.build.targets.wheel]
+only-include = ["src/illumigator", "assets"]
+
+[tool.hatch.build.targets.wheel.sources]
+"src" = ""
+"assets" = "illumigator/assets"

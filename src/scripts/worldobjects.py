@@ -18,7 +18,8 @@ class WorldObject:
     _sprite_list: arcade.SpriteList
     color: tuple[int, int, int]
 
-    def __init__(self, position, rotation_angle, color=random.choice(util.COLORS), is_interactable=False, is_receiver=False):
+    def __init__(self, position, rotation_angle, color=random.choice(util.COLORS), is_interactable=False,
+                 is_receiver=False):
         self._position = position
         self._rotation_angle = rotation_angle
         self._is_interactable = is_interactable
@@ -161,7 +162,6 @@ class LightSource(WorldObject):
         pass
 
 
-
 class RadialLightSource(LightSource):
     def __init__(self, position, rotation_angle, angular_spread):
         super().__init__(position, rotation_angle)
@@ -185,7 +185,6 @@ class RadialLightSource(LightSource):
         #                  self.position[1] + 50 * math.sin(self.rotation_angle), arcade.color.BLUE)
 
 
-
 class ParallelLightSource(LightSource):
     def __init__(self, position, rotation_angle):
         super().__init__(position, rotation_angle)
@@ -195,9 +194,9 @@ class ParallelLightSource(LightSource):
     def calculate_light_ray_positions(self):
         num_rays = len(self._light_rays)
         ray_direction = numpy.array([math.cos(self._rotation_angle), math.sin(self._rotation_angle)])
-        spread_direction = numpy.array([math.cos(self._rotation_angle + numpy.pi / 2), math.sin(self._rotation_angle + numpy.pi / 2)])
-        for n in range(-num_rays//2, num_rays//2):
-
+        spread_direction = numpy.array(
+            [math.cos(self._rotation_angle + numpy.pi / 2), math.sin(self._rotation_angle + numpy.pi / 2)])
+        for n in range(-num_rays // 2, num_rays // 2):
             self._light_rays[n]._origin = self._position + ((n / num_rays) * self._width) * spread_direction
             self._light_rays[n]._direction = ray_direction
 

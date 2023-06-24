@@ -28,6 +28,7 @@ COLORS: list[arcade.color] = [arcade.color.AQUAMARINE, arcade.color.BLUE, arcade
 WALL_SPRITE_INFO: tuple = ("../../assets/wall.png", 1, 16, 16)
 MIRROR_SPRITE_INFO: tuple = ("../../assets/mirror.png", 1, 9, 48)
 RECEIVER_SPRITE_INFO: tuple = ("../../assets/light_receiver.png", 1, 32, 32)
+PLACEHOLDER_SPRITE_INFO: tuple = ("../../assets/sprite.png", 0.25, 128, 128)
 
 
 
@@ -48,6 +49,7 @@ LIGHT_INCREMENT: float = 0.009085 / NUM_LIGHT_RAYS
 # Player Constants
 PLAYER_REACH_DISTANCE_SQUARED: int = 100 ** 2
 OBJECT_ROTATION_AMOUNT: float = 0.004
+
 
 
 # ========================= Functions =========================

@@ -94,11 +94,25 @@ class Level:
         self.mirror_list = []
         self.light_receiver_list = []
         self.light_sources_list = []
+
+        wall_size = util.WALL_SPRITE_INFO[1] * util.WALL_SPRITE_INFO[2]
         self.wall_list: list[worldobjects.WorldObject] = [
-            worldobjects.Wall(numpy.array([8, WINDOW_HEIGHT / 2]), numpy.array([1, 45]), 0),
-            worldobjects.Wall(numpy.array([WINDOW_WIDTH - 8, WINDOW_HEIGHT / 2]), numpy.array([1, 45]), 0),
-            worldobjects.Wall(numpy.array([WINDOW_WIDTH / 2, WINDOW_HEIGHT - 8]), numpy.array([80, 1]), 0),
-            worldobjects.Wall(numpy.array([WINDOW_WIDTH / 2, 8]), numpy.array([80, 1]), 0),
+            worldobjects.Wall(
+                numpy.array([wall_size*0.5, WINDOW_HEIGHT*0.5 - wall_size*0.25]),
+                numpy.array([1, WINDOW_HEIGHT//wall_size + 1]), 0
+            ),
+            worldobjects.Wall(
+                numpy.array([WINDOW_WIDTH - wall_size*0.5, WINDOW_HEIGHT*0.5 - wall_size*0.25]),
+                numpy.array([1, WINDOW_HEIGHT//wall_size + 1]), 0
+            ),
+            worldobjects.Wall(
+                numpy.array([WINDOW_WIDTH*0.5, wall_size*0.5]),
+                numpy.array([WINDOW_WIDTH//wall_size - 2, 1]), 0
+            ),
+            worldobjects.Wall(
+                numpy.array([WINDOW_WIDTH*0.5, WINDOW_HEIGHT - wall_size*0.5]),
+                numpy.array([WINDOW_WIDTH//wall_size - 2, 1]), 0
+            ),
         ]
 
         for wall_coordinates in wall_coordinate_list:
@@ -141,8 +155,7 @@ class Level:
             light_receiver.draw()
             light_receiver.charge *= util.CHARGE_DECAY
         for light_source in self.light_sources_list:
-            light_source.cast_rays(
-                self.wall_list + self.mirror_list + self.light_receiver_list + self.light_sources_list)
+            light_source.cast_rays(self.wall_list + self.mirror_list + self.light_receiver_list + self.light_sources_list)
             light_source.draw()
 
     def check_collisions(self, character: Character):
@@ -186,16 +199,16 @@ class GameObject(arcade.Window):
             [((WINDOW_WIDTH / 4) * 3) + 20, WINDOW_HEIGHT / 5, 0]
         ]
         wall_coordinate_list = [
-            [800, 176, 1, 20, 0],
-            [500, WINDOW_HEIGHT - 120, 1, 17, 0],
-            [900, WINDOW_HEIGHT - 120, 1, 17, 0]
+            [784, 176, 1, 9, 0],
+            [496, WINDOW_HEIGHT - 176, 1, 9, 0],
+            [880, WINDOW_HEIGHT - 176, 1, 9, 0]
         ]
         light_receiver_coordinate_list = [
             [WINDOW_WIDTH - 8, (WINDOW_HEIGHT / 4) * 3, 0]
         ]
         light_source_coordinate_list = [
             # A 4th argument will make RadialLightSource with that angular spread instead of ParallelLightSource
-            [WINDOW_WIDTH / 4, 20, numpy.pi / 2]
+            [WINDOW_WIDTH / 4, 48, numpy.pi / 2]
         ]
 
         self.current_level = Level(

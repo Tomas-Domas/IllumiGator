@@ -14,6 +14,12 @@ class Character:
                                               image_height=image_height, center_x=center_x, center_y=center_y,
                                               hit_box_algorithm="Simple")
         self.velocity = velocity
+        self.textures = []
+        texture_right = arcade.load_texture('../../assets/character-right.png')
+        texture_left = arcade.load_texture('../../assets/character-left.png')
+        self.textures.append(texture_right)
+        self.textures.append(texture_left)
+        self.texture = texture_right
         self.left = False
         self.right = False
         self.up = False
@@ -34,9 +40,11 @@ class Character:
     def update(self, level):
         if self.left and not self.right:
             self.character_sprite.center_x -= self.velocity
+            self.character_sprite.texture = self.textures[1]
             if level.check_collisions(self):
                 self.character_sprite.center_x += self.velocity
         elif self.right and not self.left:
+            self.character_sprite.texture = self.textures[0]
             self.character_sprite.center_x += self.velocity
             if level.check_collisions(self):
                 self.character_sprite.center_x -= self.velocity
@@ -133,7 +141,8 @@ class Level:
             light_receiver.draw()
             light_receiver.charge *= util.CHARGE_DECAY
         for light_source in self.light_sources_list:
-            light_source.cast_rays(self.wall_list + self.mirror_list + self.light_receiver_list + self.light_sources_list)
+            light_source.cast_rays(
+                self.wall_list + self.mirror_list + self.light_receiver_list + self.light_sources_list)
             light_source.draw()
 
     def check_collisions(self, character: Character):
@@ -146,7 +155,6 @@ class Level:
         for light_receiver in self.light_receiver_list:
             if light_receiver.check_collision(character.character_sprite):
                 return True
-
 
 
 class GameObject(arcade.Window):
@@ -167,7 +175,7 @@ class GameObject(arcade.Window):
     def setup(self):
         self.game_state = 'menu'
         self.game_menu = InGameMenu()
-        self.character = Character('../../assets/character1.png')
+        self.character = Character('../../assets/character-right.png')
         self.elem_list = arcade.SpriteList()
 
         # TODO: eventually JSON file
@@ -178,10 +186,12 @@ class GameObject(arcade.Window):
             [((WINDOW_WIDTH / 4) * 3) + 20, WINDOW_HEIGHT / 5, 0]
         ]
         wall_coordinate_list = [
-            [800, 176, 1, 20, 0]
+            [800, 176, 1, 20, 0],
+            [500, WINDOW_HEIGHT - 120, 1, 17, 0],
+            [900, WINDOW_HEIGHT - 120, 1, 17, 0]
         ]
         light_receiver_coordinate_list = [
-            [650, 450, 0]
+            [WINDOW_WIDTH - 8, (WINDOW_HEIGHT / 4) * 3, 0]
         ]
         light_source_coordinate_list = [
             # A 4th argument will make RadialLightSource with that angular spread instead of ParallelLightSource

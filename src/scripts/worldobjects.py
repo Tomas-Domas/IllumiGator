@@ -9,7 +9,7 @@ import geometry
 
 
 class WorldObject:
-    _position: numpy.array
+    _position: numpy.ndarray
     _rotation_angle: float
     _is_interactable: bool
     _is_receiver: bool
@@ -18,7 +18,7 @@ class WorldObject:
     _sprite_list: arcade.SpriteList
     color: tuple[int, int, int]
 
-    def __init__(self, position, rotation_angle, color=random.choice(util.COLORS), is_interactable=False, is_receiver=False):
+    def __init__(self, position: numpy.ndarray, dimensions: numpy.ndarray, rotation_angle: float, sprite_info: tuple, color=random.choice(util.COLORS), is_interactable=False, is_receiver=False):
         self._position = position
         self._rotation_angle = rotation_angle
         self._is_interactable = is_interactable
@@ -28,12 +28,39 @@ class WorldObject:
         self._sprite_list = arcade.SpriteList()
         self.color = color
 
+        sprite_path, sprite_scale, sprite_width, sprite_height = sprite_info
+
+        side_lengths = numpy.array([
+            sprite_width  * sprite_scale * dimensions[0],
+            sprite_height * sprite_scale * dimensions[1]
+        ])
+        axis1_norm = numpy.array([math.cos(rotation_angle), math.sin(rotation_angle)])
+        axis2_norm = numpy.array([-math.sin(rotation_angle), math.cos(rotation_angle)])
+        axis1 = 0.5 * side_lengths[0] * axis1_norm
+        axis2 = 0.5 * side_lengths[1] * axis2_norm
+        self._geometry_segments = [
+            geometry.Line(position - axis1 - axis2, position - axis1 + axis2),
+            geometry.Line(position - axis1 + axis2, position + axis1 + axis2),
+            geometry.Line(position + axis1 + axis2, position + axis1 - axis2),
+            geometry.Line(position + axis1 - axis2, position - axis1 - axis2),
+        ]
+
+        for col in range(int(dimensions[0])):
+            for row in range(int(dimensions[1])):
+                sprite_center = (position-axis1-axis2) + sprite_scale * ((sprite_width*(col+0.5)*axis1_norm) + (sprite_height*(row+0.5)*axis2_norm))
+
+                self._sprite_list.append( arcade.Sprite(
+                    sprite_path, sprite_scale, image_width=sprite_width, image_height=sprite_height,
+                    center_x=sprite_center[0], center_y=sprite_center[1],
+                    angle=numpy.rad2deg(rotation_angle), hit_box_algorithm="Simple"
+                ))
+
     def draw(self):
         self._sprite_list.draw(pixelated=True)
         for segment in self._geometry_segments:
             segment.draw()
 
-    def move(self, move_distance: numpy.array, rotate_angle: float = 0):
+    def move(self, move_distance: numpy.ndarray, rotate_angle: float = 0):
         self._position = self._position + move_distance
         self._rotation_angle = self._rotation_angle + rotate_angle
         for segment in self._geometry_segments:
@@ -51,120 +78,57 @@ class WorldObject:
         return sprite.collides_with_list(self._sprite_list)
 
 
+
 class Wall(WorldObject):
-    def __init__(self, center_position: numpy.array, dimensions: numpy.array, rotation_angle, is_interactable=False):
-        super().__init__(center_position, rotation_angle, is_interactable=is_interactable)
+    def __init__(self, position: numpy.ndarray, dimensions: numpy.ndarray, rotation_angle: float):
+        super().__init__(position, dimensions, rotation_angle, util.WALL_SPRITE_INFO)
 
-        sprite_path, scale_factor, image_width, image_height = util.WALL_SPRITE_INFO
-        side_lengths = dimensions * image_width
-
-        axis1_norm = numpy.array([math.cos(rotation_angle), math.sin(rotation_angle)])
-        axis2_norm = numpy.array([-math.sin(rotation_angle), math.cos(rotation_angle)])
-        axis1 = side_lengths[0] * 0.5 * axis1_norm
-        axis2 = side_lengths[1] * 0.5 * axis2_norm
-        self._geometry_segments = [
-            geometry.Line(center_position - axis1 - axis2, center_position - axis1 + axis2),
-            geometry.Line(center_position - axis1 + axis2, center_position + axis1 + axis2),
-            geometry.Line(center_position + axis1 + axis2, center_position + axis1 - axis2),
-            geometry.Line(center_position + axis1 - axis2, center_position - axis1 - axis2),
-        ]
-
-        for col in range(dimensions[0]):
-            for row in range(dimensions[1]):
-                sprite_center = center_position - axis1 - axis2 + axis1_norm * (
-                        image_width / 2 + col * image_width) + axis2_norm * (image_height / 2 + row * image_height)
-
-                self._sprite_list.append(
-                    arcade.Sprite(sprite_path, scale_factor, image_width=image_width, image_height=image_height,
-                                  center_x=sprite_center[0], center_y=sprite_center[1],
-                                  angle=numpy.rad2deg(rotation_angle), hit_box_algorithm="Simple"
-                                  )
-                )
 
 
 class Mirror(WorldObject):
-    def __init__(self, center_position: numpy.array, rotation_angle, is_interactable=False):
-        super().__init__(center_position, rotation_angle, is_interactable=is_interactable)
+    def __init__(self, position: numpy.ndarray, rotation_angle: float):
+        super().__init__(position, numpy.ones(2), rotation_angle, util.MIRROR_SPRITE_INFO, is_interactable=True)
+        self._geometry_segments[0].is_reflective = True
+        self._geometry_segments[2].is_reflective = True
 
-        sprite_path, scale_factor, image_width, image_height = util.MIRROR_SPRITE_INFO
-        side_lengths = numpy.array([image_width, image_height])
-
-        axis1_norm = numpy.array([math.cos(rotation_angle), math.sin(rotation_angle)])
-        axis2_norm = numpy.array([-math.sin(rotation_angle), math.cos(rotation_angle)])
-        axis1 = side_lengths[0] * 0.5 * axis1_norm
-        axis2 = side_lengths[1] * 0.5 * axis2_norm
-        self._geometry_segments = [
-            geometry.Line(center_position - axis1 - axis2, center_position - axis1 + axis2, is_reflective=True),
-            geometry.Line(center_position - axis1 + axis2, center_position + axis1 + axis2),
-            geometry.Line(center_position + axis1 + axis2, center_position + axis1 - axis2, is_reflective=True),
-            geometry.Line(center_position + axis1 - axis2, center_position - axis1 - axis2),
-        ]
-
-        sprite_center = center_position - axis1 - axis2 + (image_width / 2) * axis1_norm + (
-                image_height / 2) * axis2_norm
-        self._sprite_list.append(
-            arcade.Sprite(sprite_path, scale_factor, image_width=image_width, image_height=image_height,
-                          center_x=sprite_center[0], center_y=sprite_center[1],
-                          angle=numpy.rad2deg(rotation_angle), hit_box_algorithm="Simple"
-                          )
-        )
 
 
 class LightReceiver(WorldObject):
-    def __init__(self, center_position: numpy.array, rotation_angle, is_interactable=False):
-        super().__init__(center_position, rotation_angle, is_interactable=is_interactable, is_receiver=True)
+    def __init__(self, position: numpy.ndarray, rotation_angle: float):
+        super().__init__(position, numpy.ones(2), rotation_angle, util.RECEIVER_SPRITE_INFO, is_receiver=True)
         self.charge = 0
 
-        sprite_path, scale_factor, image_width, image_height = util.RECEIVER_SPRITE_INFO
-        side_lengths = numpy.array([image_width, image_height])
-
-        axis1_norm = numpy.array([math.cos(rotation_angle), math.sin(rotation_angle)])
-        axis2_norm = numpy.array([-math.sin(rotation_angle), math.cos(rotation_angle)])
-        axis1 = side_lengths[0] * 0.5 * axis1_norm
-        axis2 = side_lengths[1] * 0.5 * axis2_norm
-        self._geometry_segments = [
-            geometry.Line(center_position - axis1 - axis2, center_position - axis1 + axis2),
-            geometry.Line(center_position - axis1 + axis2, center_position + axis1 + axis2),
-            geometry.Line(center_position + axis1 + axis2, center_position + axis1 - axis2),
-            geometry.Line(center_position + axis1 - axis2, center_position - axis1 - axis2),
-        ]
-
-        sprite_center = center_position - axis1 - axis2 + (image_width / 2) * axis1_norm + (
-                image_height / 2) * axis2_norm
-        self._sprite_list.append(
-            arcade.Sprite(sprite_path, scale_factor, image_width=image_width, image_height=image_height,
-                          center_x=sprite_center[0], center_y=sprite_center[1],
-                          angle=numpy.rad2deg(rotation_angle), hit_box_algorithm="Simple"
-                          )
-        )
 
 
 class LightSource(WorldObject):
-    def __init__(self, position, rotation_angle):
-        super().__init__(position, rotation_angle, arcade.color.GOLD)
+    def __init__(self, position: numpy.ndarray, rotation_angle: float, sprite_info: tuple):
+        super().__init__(position, numpy.ones(2), rotation_angle, sprite_info)
         self._light_rays = [light.LightRay(numpy.zeros(2), numpy.zeros(2)) for _ in range(util.NUM_LIGHT_RAYS)]
+        self._geometry_segments = []  # TODO: do this better, don't just overwrite to get rid of geometry
 
     def cast_rays(self, world_objects):
         for ray in self._light_rays:
             ray.cast_ray(world_objects)
 
-    def move(self, move_distance: numpy.array, rotate_angle: float = 0):
+    def move(self, move_distance: numpy.ndarray, rotate_angle: float = 0):
         super().move(move_distance, rotate_angle)
         self.calculate_light_ray_positions()
+
+    def draw(self):
+        for ray in self._light_rays:
+            ray.draw()
+        super().draw()
 
     @abstractmethod
     def calculate_light_ray_positions(self):
         pass
 
-    @abstractmethod
-    def draw(self):
-        pass
 
 
 
 class RadialLightSource(LightSource):
-    def __init__(self, position, rotation_angle, angular_spread):
-        super().__init__(position, rotation_angle)
+    def __init__(self, position: numpy.ndarray, rotation_angle: float, angular_spread: float):
+        super().__init__(position, rotation_angle, util.PLACEHOLDER_SPRITE_INFO)
         self._angular_spread = angular_spread
         self.calculate_light_ray_positions()
 
@@ -177,19 +141,12 @@ class RadialLightSource(LightSource):
             self._light_rays[n]._origin = self._position
             self._light_rays[n]._direction = ray_direction
 
-    def draw(self):
-        for ray in self._light_rays:
-            ray.draw()
-        arcade.draw_circle_filled(self._position[0], self._position[1], 15, arcade.color.BLACK)
-        # arcade.draw_line(self.position[0], self.position[1], self.position[0] + 50 * math.cos(self.rotation_angle),
-        #                  self.position[1] + 50 * math.sin(self.rotation_angle), arcade.color.BLUE)
-
 
 
 class ParallelLightSource(LightSource):
-    def __init__(self, position, rotation_angle):
-        super().__init__(position, rotation_angle)
-        self._width = 30
+    def __init__(self, position: numpy.ndarray, rotation_angle: float):
+        super().__init__(position, rotation_angle, util.PLACEHOLDER_SPRITE_INFO)
+        self._width = 32
         self.calculate_light_ray_positions()
 
     def calculate_light_ray_positions(self):
@@ -201,9 +158,3 @@ class ParallelLightSource(LightSource):
             self._light_rays[n]._origin = self._position + ((n / num_rays) * self._width) * spread_direction
             self._light_rays[n]._direction = ray_direction
 
-    def draw(self):
-        for ray in self._light_rays:
-            ray.draw()
-        arcade.draw_circle_outline(self._position[0], self._position[1], 15, arcade.color.BLACK)
-        # arcade.draw_line(self.position[0], self.position[1], self.position[0] + 50 * math.cos(self.rotation_angle),
-        #                  self.position[1] + 50 * math.sin(self.rotation_angle), arcade.color.BLUE)

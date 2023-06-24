@@ -7,7 +7,6 @@ from util.util import WINDOW_WIDTH, WINDOW_HEIGHT
 import worldobjects
 import numpy
 
-
 class Character:
     def __init__(self, sprite_path, scale_factor=2, image_width=24, image_height=24,
                  center_x=WINDOW_WIDTH // 2, center_y=WINDOW_HEIGHT // 2, velocity=10):
@@ -71,6 +70,7 @@ class Character:
             self.closest_interactable.move(numpy.zeros(2), -util.OBJECT_ROTATION_AMOUNT)
 
 
+
 class Level:
     def __init__(
             self,
@@ -117,7 +117,8 @@ class Level:
                 self.light_sources_list.append(worldobjects.RadialLightSource(
                     numpy.array([light_source_coordinates[0], light_source_coordinates[1]]),
                     light_source_coordinates[2],
-                    light_source_coordinates[3]))
+                    light_source_coordinates[3])
+                )
             else:
                 self.light_sources_list.append(worldobjects.ParallelLightSource(
                     numpy.array([light_source_coordinates[0], light_source_coordinates[1]]),
@@ -131,7 +132,6 @@ class Level:
         for light_receiver in self.light_receiver_list:
             light_receiver.draw()
             light_receiver.charge *= util.CHARGE_DECAY
-            print(light_receiver.charge)
         for light_source in self.light_sources_list:
             light_source.cast_rays(self.wall_list + self.mirror_list + self.light_receiver_list + self.light_sources_list)
             light_source.draw()
@@ -272,6 +272,7 @@ class GameObject(arcade.Window):
             self.character.counter_clockwise = False
         if key == arcade.key.E:
             self.character.clockwise = False
+
 
 
 def main():

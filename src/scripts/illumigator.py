@@ -133,7 +133,8 @@ class Level:
             light_receiver.charge *= util.CHARGE_DECAY
             print(light_receiver.charge)
         for light_source in self.light_sources_list:
-            light_source.cast_rays(self.wall_list + self.mirror_list + self.light_receiver_list + self.light_sources_list)
+            light_source.cast_rays(
+                self.wall_list + self.mirror_list + self.light_receiver_list + self.light_sources_list)
             light_source.draw()
 
     def check_collisions(self, character: Character):
@@ -146,7 +147,6 @@ class Level:
         for light_receiver in self.light_receiver_list:
             if light_receiver.check_collision(character.character_sprite):
                 return True
-
 
 
 class GameObject(arcade.Window):
@@ -178,10 +178,12 @@ class GameObject(arcade.Window):
             [((WINDOW_WIDTH / 4) * 3) + 20, WINDOW_HEIGHT / 5, 0]
         ]
         wall_coordinate_list = [
-            [800, 176, 1, 20, 0]
+            [800, 176, 1, 20, 0],
+            [500, WINDOW_HEIGHT - 120, 1, 17, 0],
+            [900, WINDOW_HEIGHT - 120, 1, 17, 0]
         ]
         light_receiver_coordinate_list = [
-            [650, 450, 0]
+            [WINDOW_WIDTH - 8, (WINDOW_HEIGHT / 4) * 3, 0]
         ]
         light_source_coordinate_list = [
             # A 4th argument will make RadialLightSource with that angular spread instead of ParallelLightSource

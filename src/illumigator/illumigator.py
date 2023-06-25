@@ -1,7 +1,7 @@
 import arcade
 import pyglet.media
 
-from menus import draw_title_menu, InGameMenu
+from menus import draw_title_menu, InGameMenu, WinScreen
 import util.util as util
 from util.util import WINDOW_WIDTH, WINDOW_HEIGHT
 import worldobjects
@@ -180,14 +180,15 @@ class GameObject(arcade.Window):
         self.set_mouse_visible(False)
         arcade.set_background_color(arcade.color.BROWN)
         self.game_menu = None
+        self.win_screen = None
         self.tile_map = None
         self.character = None
-        self.game_state = None
         self.current_level = None
 
     def setup(self):
         self.game_state = 'menu'
         self.game_menu = InGameMenu()
+        self.win_screen = WinScreen()
         self.character = Character('../../assets/character-right.png')
         self.elem_list = arcade.SpriteList()
 
@@ -220,6 +221,8 @@ class GameObject(arcade.Window):
 
     def update(self, delta_time):
         self.character.update(self.current_level)
+        if any(light_receiver.charge >= 0.6 for light_receiver in self.current_level.light_receiver_list):
+            self.game_state = 'win'
 
     def on_draw(self):
         self.clear()
@@ -232,6 +235,9 @@ class GameObject(arcade.Window):
 
             if self.game_state == 'paused':
                 self.game_menu.draw()
+
+        if self.game_state == 'win':
+            self.win_screen.draw()
 
     def on_key_press(self, key, key_modifiers):
         if self.game_state == 'menu':
@@ -274,6 +280,17 @@ class GameObject(arcade.Window):
                 if self.game_menu.selection == 0:
                     self.game_state = 'game'
                 elif self.game_menu.selection == 1:
+                    self.game_state = 'menu'
+
+        elif self.game_state == 'win':
+            if key == arcade.key.DOWN:
+                self.win_screen.increment_selection()
+            if key == arcade.key.UP:
+                self.win_screen.decrement_selection()
+            if key == arcade.key.ENTER:
+                if self.win_screen.selection == 0:
+                    self.setup()
+                elif self.win_screen.selection == 1:
                     self.game_state = 'menu'
 
     def on_key_release(self, key, key_modifiers):

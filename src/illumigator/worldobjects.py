@@ -1,8 +1,10 @@
 from abc import abstractmethod
+from colorsys import hsv_to_rgb
 import random
 import arcade
 import math
 import numpy
+
 import light
 import util.util as util
 import geometry
@@ -100,6 +102,13 @@ class LightReceiver(WorldObject):
         super().__init__(position, numpy.ones(2), rotation_angle, util.RECEIVER_SPRITE_INFO, is_receiver=True)
         self.charge = 0
 
+    def draw(self):
+        color = self.charge / util.RECEIVER_THRESHOLD
+        color = min(color*255, 255)
+        for sprite in self._sprite_list:
+            sprite.color = (color, color, 70)
+        super().draw()
+
 
 
 class LightSource(WorldObject):
@@ -124,7 +133,6 @@ class LightSource(WorldObject):
     @abstractmethod
     def calculate_light_ray_positions(self):
         pass
-
 
 
 class RadialLightSource(LightSource):

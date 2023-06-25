@@ -170,6 +170,7 @@ class Level:
                 return True
 
 
+
 class GameObject(arcade.Window):
     def __init__(self):
         super().__init__(WINDOW_WIDTH, WINDOW_HEIGHT, util.WINDOW_TITLE)
@@ -194,7 +195,7 @@ class GameObject(arcade.Window):
 
         # TODO: eventually JSON file
         mirror_coordinate_list = [
-            [WINDOW_WIDTH / 4, (WINDOW_HEIGHT / 3) * 2, -numpy.pi / 3.8],
+            [WINDOW_WIDTH / 4, (WINDOW_HEIGHT / 3) * 2, -numpy.pi / 4],
             [(WINDOW_WIDTH / 2) + 50, WINDOW_HEIGHT - 100, 0],
             [WINDOW_WIDTH / 2, WINDOW_HEIGHT / 4, numpy.pi / 2],
             [((WINDOW_WIDTH / 4) * 3) + 20, WINDOW_HEIGHT / 5, 0]
@@ -205,7 +206,8 @@ class GameObject(arcade.Window):
             [880, WINDOW_HEIGHT - 176, 1, 9, 0]
         ]
         light_receiver_coordinate_list = [
-            [WINDOW_WIDTH - 8, (WINDOW_HEIGHT / 4) * 3, 0]
+            [WINDOW_WIDTH - 128, WINDOW_HEIGHT - 128, 0],
+            # [WINDOW_WIDTH / 3, (WINDOW_HEIGHT / 2), 0]
         ]
         light_source_coordinate_list = [
             # A 4th argument will make RadialLightSource with that angular spread instead of ParallelLightSource
@@ -219,9 +221,9 @@ class GameObject(arcade.Window):
             light_source_coordinate_list
         )
 
-    def update(self, delta_time):
+    def on_update(self, delta_time):
         self.character.update(self.current_level)
-        if any(light_receiver.charge >= 0.6 for light_receiver in self.current_level.light_receiver_list):
+        if any(light_receiver.charge >= util.RECEIVER_THRESHOLD for light_receiver in self.current_level.light_receiver_list):
             self.game_state = 'win'
 
     def on_draw(self):

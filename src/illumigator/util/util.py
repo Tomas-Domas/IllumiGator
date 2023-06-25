@@ -45,6 +45,7 @@ NUM_LIGHT_RAYS: int = 10
 # Light Receiver Constants
 CHARGE_DECAY: float = 0.991
 LIGHT_INCREMENT: float = 0.009085 / NUM_LIGHT_RAYS
+RECEIVER_THRESHOLD: float = 0.7
 
 # Player Constants
 PLAYER_REACH_DISTANCE_SQUARED: int = 100 ** 2

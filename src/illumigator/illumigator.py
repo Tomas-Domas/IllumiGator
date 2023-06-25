@@ -15,8 +15,8 @@ class Character:
                                               hit_box_algorithm="Simple")
         self.velocity = velocity
         self.textures = []
-        texture_right = arcade.load_texture('../../assets/character-right.png')
-        texture_left = arcade.load_texture('../../assets/character-left.png')
+        texture_right = arcade.load_texture('../../assets/character_right.png')
+        texture_left = arcade.load_texture('../../assets/character_left.png')
         self.textures.append(texture_right)
         self.textures.append(texture_left)
         self.texture = texture_right
@@ -189,7 +189,7 @@ class GameObject(arcade.Window):
         self.game_state = 'menu'
         self.game_menu = InGameMenu()
         self.win_screen = WinScreen()
-        self.character = Character('../../assets/character-right.png')
+        self.character = Character('../../assets/character_right.png')
         self.elem_list = arcade.SpriteList()
 
         # TODO: eventually JSON file

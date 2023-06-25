@@ -28,11 +28,13 @@ class Character:
         self.is_walking = False
         self.counter_clockwise = False
         self.clockwise = False
-        self.player = pyglet.media.Player()
+        self.player = pyglet.media.player.Player()
 
         self.walking_sound = arcade.load_sound("../../assets/new_walk.wav")
 
         self.closest_interactable = None
+        self.rotation_factor = 0.00
+        self.increase_rotation = 1/15
 
     def draw(self):
         self.character_sprite.draw(pixelated=True)
@@ -73,9 +75,13 @@ class Character:
             return
 
         if self.counter_clockwise and self.closest_interactable and not self.clockwise:
-            self.closest_interactable.move(numpy.zeros(2), util.OBJECT_ROTATION_AMOUNT)
+            self.closest_interactable.move(numpy.zeros(2), util.OBJECT_ROTATION_AMOUNT * (2)**self.rotation_factor)
+            if self.rotation_factor < 3.00:
+                self.rotation_factor = self.rotation_factor + self.increase_rotation
         elif self.clockwise and self.closest_interactable and not self.counter_clockwise:
-            self.closest_interactable.move(numpy.zeros(2), -util.OBJECT_ROTATION_AMOUNT)
+            self.closest_interactable.move(numpy.zeros(2), -util.OBJECT_ROTATION_AMOUNT * (2)**self.rotation_factor)
+            if self.rotation_factor < 3.00:
+                self.rotation_factor = self.rotation_factor + self.increase_rotation
 
 
 
@@ -312,8 +318,10 @@ class GameObject(arcade.Window):
 
         if key == arcade.key.Q:
             self.character.counter_clockwise = False
+            self.character.rotation_factor = 0.00
         if key == arcade.key.E:
             self.character.clockwise = False
+            self.character.rotation_factor = 0.00
 
 
 

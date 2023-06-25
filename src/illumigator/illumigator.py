@@ -291,9 +291,9 @@ class GameObject(arcade.Window):
                 self.win_screen.decrement_selection()
             if key == arcade.key.ENTER:
                 if self.win_screen.selection == 0:
-                    self.setup()
-                elif self.win_screen.selection == 1:
                     self.game_state = 'menu'
+                elif self.win_screen.selection == 1:
+                    self.setup()
 
     def on_key_release(self, key, key_modifiers):
         if key == arcade.key.W or key == arcade.key.UP:

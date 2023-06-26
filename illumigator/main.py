@@ -245,10 +245,11 @@ class GameObject(arcade.Window):
         )
 
     def on_update(self, delta_time):
-        self.character.update(self.current_level)
-        self.current_level.update()
-        if any(light_receiver.charge >= util.RECEIVER_THRESHOLD for light_receiver in self.current_level.light_receiver_list):
-            self.game_state = 'win'
+        if self.game_state == 'game':
+            self.character.update(self.current_level)
+            self.current_level.update()
+            if any(light_receiver.charge >= util.RECEIVER_THRESHOLD for light_receiver in self.current_level.light_receiver_list):
+                self.game_state = 'win'
 
 
     def on_draw(self):

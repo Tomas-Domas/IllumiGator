@@ -191,9 +191,11 @@ class GameObject(arcade.Window):
         self.tile_map = None
         self.character = None
         self.current_level = None
+        self.background = None
 
     def setup(self):
         self.game_state = 'menu'
+        self.background = arcade.Sprite('assets/wood_floor.png', 1.11, center_x = util.WINDOW_WIDTH / 2, center_y = util.WINDOW_HEIGHT / 2)
         self.game_menu = InGameMenu()
         self.win_screen = WinScreen()
         self.character = Character('assets/character_right.png')
@@ -238,6 +240,7 @@ class GameObject(arcade.Window):
         if self.game_state == 'menu':
             draw_title_menu()
         elif self.game_state == 'game' or self.game_state == 'paused':
+            self.background.draw()
             self.current_level.draw()
             self.character.draw()
 

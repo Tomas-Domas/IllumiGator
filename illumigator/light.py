@@ -1,5 +1,6 @@
 import arcade
 import math
+import numpy
 
 from illumigator import util
 
@@ -8,7 +9,7 @@ class LightRay:
     def __init__(self, origin, direction, generation=0):
         self._origin = origin
         self._direction = direction
-        self._end = None
+        self._end = numpy.zeros(2)
         self._child_ray = None
         self._generation = generation
 

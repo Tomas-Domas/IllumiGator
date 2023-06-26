@@ -14,4 +14,4 @@ screeninfo
 ## Install
 pip install illumigator
 
-run **llumigator** command
+run **illumigator** command

@@ -1,4 +1,5 @@
 import arcade
+
 from illumigator import util
 
 x_midpoint = util.WINDOW_WIDTH // 2

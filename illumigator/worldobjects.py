@@ -1,12 +1,13 @@
 from abc import abstractmethod
-import random
 import arcade
-import math
 import numpy
+import random
+import math
 
-import illumigator.light as light
-from illumigator import util as util
-import illumigator.geometry as geometry
+from illumigator import light
+from illumigator import util
+from illumigator import geometry
+from illumigator import object_animation
 
 
 class WorldObject:
@@ -15,18 +16,20 @@ class WorldObject:
     _is_interactable: bool
     _is_receiver: bool
     _geometry_segments: list[geometry.Geometry]
+    obj_animation: object_animation.ObjectAnimation
 
     _sprite_list: arcade.SpriteList
     color: tuple[int, int, int]
 
-      
-    def __init__(self, position: numpy.ndarray, dimensions: numpy.ndarray, rotation_angle: float, sprite_info: tuple, color=random.choice(
-        util.COLORS), is_interactable=False, is_receiver=False):
+
+    def __init__(self, position: numpy.ndarray, dimensions: numpy.ndarray, rotation_angle: float, sprite_info: tuple,
+                 color=random.choice(util.COLORS), is_interactable=False, is_receiver=False):
         self._position = position
         self._rotation_angle = rotation_angle
         self._is_interactable = is_interactable
         self._is_receiver = is_receiver
         self._geometry_segments = []
+        self.obj_animation = None
 
         self._sprite_list = arcade.SpriteList()
         self.color = color
@@ -80,6 +83,11 @@ class WorldObject:
     def check_collision(self, sprite: arcade.Sprite):
         return sprite.collides_with_list(self._sprite_list)
 
+    def apply_object_animation(self):
+        self.move(self.obj_animation.get_new_position() - self._position)
+
+    def make_animation(self, travel: numpy.ndarray, dt: float = 0.01):
+        self.obj_animation = object_animation.ObjectAnimation(self._position, self._position+travel, dt)
 
 
 class Wall(WorldObject):
@@ -134,6 +142,7 @@ class LightSource(WorldObject):
         pass
 
 
+
 class RadialLightSource(LightSource):
     def __init__(self, position: numpy.ndarray, rotation_angle: float, angular_spread: float):
         super().__init__(position, rotation_angle, util.PLACEHOLDER_SPRITE_INFO)
@@ -150,6 +159,7 @@ class RadialLightSource(LightSource):
             self._light_rays[n]._direction = ray_direction
 
 
+
 class ParallelLightSource(LightSource):
     def __init__(self, position: numpy.ndarray, rotation_angle: float):
         super().__init__(position, rotation_angle, util.PLACEHOLDER_SPRITE_INFO)
@@ -164,4 +174,3 @@ class ParallelLightSource(LightSource):
         for n in range(-num_rays // 2, num_rays // 2):
             self._light_rays[n]._origin = self._position + ((n / num_rays) * self._width) * spread_direction
             self._light_rays[n]._direction = ray_direction
-

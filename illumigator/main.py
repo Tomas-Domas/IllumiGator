@@ -3,23 +3,21 @@ import pyglet.media
 import numpy
 
 from illumigator.menus import draw_title_menu, InGameMenu, WinScreen
-from illumigator import util
 from illumigator.util import WINDOW_WIDTH, WINDOW_HEIGHT
-import illumigator.worldobjects as worldobjects
+from illumigator import util
+from illumigator import worldobjects
 
 class Character:
-    def __init__(self, sprite_path, scale_factor=2, image_width=24, image_height=24,
+    def __init__(self, scale_factor=2, image_width=24, image_height=24,
                  center_x=WINDOW_WIDTH // 2, center_y=WINDOW_HEIGHT // 2, velocity=10):
-        self.character_sprite = arcade.Sprite(sprite_path, scale_factor, image_width=image_width,
+        self.velocity = velocity
+        self.textures = [
+            arcade.load_texture('assets/character_right.png'),
+            arcade.load_texture('assets/character_left.png')
+        ]
+        self.character_sprite = arcade.Sprite(util.PLAYER_SPRITE_RIGHT, scale_factor, image_width=image_width,
                                               image_height=image_height, center_x=center_x, center_y=center_y,
                                               hit_box_algorithm="Simple")
-        self.velocity = velocity
-        self.textures = []
-        texture_right = arcade.load_texture('assets/character_right.png')
-        texture_left = arcade.load_texture('assets/character_left.png')
-        self.textures.append(texture_right)
-        self.textures.append(texture_left)
-        self.texture = texture_right
         self.left = False
         self.right = False
         self.up = False
@@ -120,6 +118,13 @@ class Level:
                 numpy.array([WINDOW_WIDTH//wall_size - 2, 1]), 0
             ),
         ]
+        #Animated Wall:
+        animated_wall = worldobjects.Wall(
+                numpy.array([WINDOW_WIDTH-176, WINDOW_HEIGHT-240]),
+                numpy.array([1, 1]), 0
+            )
+        animated_wall.make_animation(numpy.array([128, 0]), 0.02)
+        self.wall_list.append(animated_wall)
 
         for wall_coordinates in wall_coordinate_list:
             self.wall_list.append(worldobjects.Wall(
@@ -152,17 +157,27 @@ class Level:
                     numpy.array([light_source_coordinates[0], light_source_coordinates[1]]),
                     light_source_coordinates[2]))
 
+
+    def update(self):
+        for wall in self.wall_list:
+            if wall.obj_animation is not None:
+                wall.apply_object_animation()
+        for light_source in self.light_sources_list:
+            light_source.cast_rays(self.wall_list + self.mirror_list + self.light_receiver_list + self.light_sources_list)
+        for light_receiver in self.light_receiver_list:
+            light_receiver.charge *= util.CHARGE_DECAY
+
+
     def draw(self):
         for wall in self.wall_list:
             wall.draw()
         for mirror in self.mirror_list:
             mirror.draw()
+        for light_source in self.light_sources_list:
+            light_source.draw()
         for light_receiver in self.light_receiver_list:
             light_receiver.draw()
-            light_receiver.charge *= util.CHARGE_DECAY
-        for light_source in self.light_sources_list:
-            light_source.cast_rays(self.wall_list + self.mirror_list + self.light_receiver_list + self.light_sources_list)
-            light_source.draw()
+
 
     def check_collisions(self, character: Character):
         for wall in self.wall_list:
@@ -198,7 +213,7 @@ class GameObject(arcade.Window):
         self.background = arcade.Sprite('assets/wood_floor.png', 1.11, center_x = util.WINDOW_WIDTH / 2, center_y = util.WINDOW_HEIGHT / 2)
         self.game_menu = InGameMenu()
         self.win_screen = WinScreen()
-        self.character = Character('assets/character_right.png')
+        self.character = Character()
         self.elem_list = arcade.SpriteList()
 
         # TODO: eventually JSON file
@@ -231,8 +246,10 @@ class GameObject(arcade.Window):
 
     def on_update(self, delta_time):
         self.character.update(self.current_level)
+        self.current_level.update()
         if any(light_receiver.charge >= util.RECEIVER_THRESHOLD for light_receiver in self.current_level.light_receiver_list):
             self.game_state = 'win'
+
 
     def on_draw(self):
         self.clear()

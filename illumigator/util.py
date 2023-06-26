@@ -1,7 +1,7 @@
-import math
-import numpy
-import arcade
 from screeninfo import get_monitors, ScreenInfoError
+import arcade
+import numpy
+import math
 
 
 
@@ -48,6 +48,7 @@ LIGHT_INCREMENT: float = 0.009085 / NUM_LIGHT_RAYS
 RECEIVER_THRESHOLD: float = 0.7
 
 # Player Constants
+PLAYER_SPRITE_RIGHT = 'assets/character_right.png'
 PLAYER_REACH_DISTANCE_SQUARED: int = 100 ** 2
 OBJECT_ROTATION_AMOUNT: float = 0.004
 

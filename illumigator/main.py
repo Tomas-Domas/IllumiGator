@@ -221,7 +221,7 @@ class GameObject(arcade.Window):
         self.wall = None
         self.game_state = None
         self.set_mouse_visible(False)
-        arcade.set_background_color(arcade.color.BROWN)
+        arcade.set_background_color(arcade.color.BLACK)
         self.game_menu = None
         self.win_screen = None
         self.tile_map = None
@@ -231,7 +231,8 @@ class GameObject(arcade.Window):
 
     def setup(self):
         self.game_state = 'menu'
-        self.background = arcade.Sprite('assets/wood_floor.png', 1.11, center_x = util.WINDOW_WIDTH / 2, center_y = util.WINDOW_HEIGHT / 2)
+        self.background = arcade.Sprite('assets/flowers.jpg', 0.333333, center_x = util.WINDOW_WIDTH / 2, center_y = util.WINDOW_HEIGHT / 2)
+        self.background.alpha = 100
         self.game_menu = InGameMenu()
         self.win_screen = WinScreen()
         self.character = Character()

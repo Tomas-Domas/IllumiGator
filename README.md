@@ -10,3 +10,8 @@ https://drive.google.com/drive/folders/1HQ1lIxgZJNANgWnts3bsWUUTnnfJrKXW?usp=sha
 arcade
 numpy
 screeninfo
+
+## Install
+pip install illumigator
+
+run **llumigator** command

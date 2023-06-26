@@ -8,8 +8,14 @@ from illumigator import util
 from illumigator import worldobjects
 
 class Character:
-    def __init__(self, scale_factor=2, image_width=24, image_height=24,
-                 center_x=WINDOW_WIDTH // 2, center_y=WINDOW_HEIGHT // 2, velocity=10):
+    def __init__(self,
+                 scale_factor=2,
+                 image_width=24,
+                 image_height=24,
+                 center_x=WINDOW_WIDTH // 2,
+                 center_y=WINDOW_HEIGHT // 2,
+                 velocity=10):
+
         self.velocity = velocity
         self.textures = [
             arcade.load_texture('assets/character_right.png'),
@@ -22,6 +28,9 @@ class Character:
         self.right = False
         self.up = False
         self.down = False
+
+        self.position = numpy.zeros(2)
+
         self.interactive_line = None
         self.is_walking = False
         self.counter_clockwise = False
@@ -38,24 +47,36 @@ class Character:
         self.character_sprite.draw(pixelated=True)
 
     def update(self, level):
+        # Refresh position vector
+        self.position = numpy.zeros(2)
+
         if self.left and not self.right:
-            self.character_sprite.center_x -= self.velocity
             self.character_sprite.texture = self.textures[1]
-            if level.check_collisions(self):
-                self.character_sprite.center_x += self.velocity
+            if not level.check_collisions(self):
+                self.position[0] = -1
         elif self.right and not self.left:
             self.character_sprite.texture = self.textures[0]
-            self.character_sprite.center_x += self.velocity
-            if level.check_collisions(self):
-                self.character_sprite.center_x -= self.velocity
+            if not level.check_collisions(self):
+                self.position[0] = 1
         if self.up and not self.down:
-            self.character_sprite.center_y += self.velocity
-            if level.check_collisions(self):
-                self.character_sprite.center_y -= self.velocity
+            if not level.check_collisions(self):
+                self.position[1] = 1
         elif self.down and not self.up:
-            self.character_sprite.center_y -= self.velocity
-            if level.check_collisions(self):
-                self.character_sprite.center_y += self.velocity
+            if not level.check_collisions(self):
+                self.position[1] = -1
+
+        # Creating movement vector through scalar multiplication
+        self.position = self.position * self.velocity
+
+        # Checking if x movement is valid
+        self.character_sprite.center_x += self.position[0]
+        if level.check_collisions(self):
+            self.character_sprite.center_x -= self.position[0]
+
+        # Checking if y movement is valid
+        self.character_sprite.center_y += self.position[1]
+        if level.check_collisions(self):
+            self.character_sprite.center_y -= self.position[1]
 
         if self.is_walking and not arcade.Sound.is_playing(self.walking_sound, self.player):
             self.player = arcade.play_sound(self.walking_sound)

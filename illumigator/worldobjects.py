@@ -86,7 +86,7 @@ class WorldObject:
     def apply_object_animation(self):
         self.move(self.obj_animation.get_new_position() - self._position)
 
-    def make_animation(self, travel: numpy.ndarray, dt: float = 0.0075):
+    def make_animation(self, travel: numpy.ndarray, dt: float = 0.01):
         self.obj_animation = object_animation.ObjectAnimation(self._position, self._position+travel, dt)
 
 

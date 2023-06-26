@@ -120,10 +120,10 @@ class Level:
         ]
         #Animated Wall:
         animated_wall = worldobjects.Wall(
-                numpy.array([100, WINDOW_HEIGHT-300]),
+                numpy.array([WINDOW_WIDTH-176, WINDOW_HEIGHT-240]),
                 numpy.array([1, 1]), 0
             )
-        animated_wall.make_animation(numpy.array([100, 100]))
+        animated_wall.make_animation(numpy.array([128, 0]), 0.02)
         self.wall_list.append(animated_wall)
 
         for wall_coordinates in wall_coordinate_list:

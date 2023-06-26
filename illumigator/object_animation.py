@@ -2,7 +2,7 @@ import numpy
 
 
 class ObjectAnimation:
-    t: float  # t as in time for a parametric equation
+    t: float  # as in time for a parametric equation
     dt: float
     endpoint1: numpy.ndarray
     endpoint2: numpy.ndarray

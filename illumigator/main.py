@@ -13,14 +13,13 @@ class Character:
                  image_width=24,
                  image_height=24,
                  center_x=WINDOW_WIDTH // 2,
-                 center_y=WINDOW_HEIGHT // 2,
-                 velocity=10):
+                 center_y=WINDOW_HEIGHT // 2):
 
-        self.velocity = velocity
         self.textures = [
-            arcade.load_texture('assets/character_right.png'),
-            arcade.load_texture('assets/character_left.png')
+            arcade.load_texture(util.PLAYER_SPRITE_RIGHT),
+            arcade.load_texture(util.PLAYER_SPRITE_LEFT)
         ]
+
         self.character_sprite = arcade.Sprite(util.PLAYER_SPRITE_RIGHT, scale_factor, image_width=image_width,
                                               image_height=image_height, center_x=center_x, center_y=center_y,
                                               hit_box_algorithm="Simple")
@@ -29,78 +28,76 @@ class Character:
         self.up = False
         self.down = False
 
-        self.position = numpy.zeros(2)
-
         self.interactive_line = None
-        self.is_walking = False
-        self.counter_clockwise = False
-        self.clockwise = False
+        self.rotation_dir = 0
         self.player = pyglet.media.player.Player()
 
         self.walking_sound = arcade.load_sound("assets/new_walk.wav")
 
-        self.closest_interactable = None
         self.rotation_factor = 0.00
-        self.increase_rotation = 1/15
 
     def draw(self):
         self.character_sprite.draw(pixelated=True)
 
     def update(self, level):
-        # Refresh position vector
-        self.position = numpy.zeros(2)
-
-        if self.left and not self.right:
-            self.character_sprite.texture = self.textures[1]
-            if not level.check_collisions(self):
-                self.position[0] = -1
-        elif self.right and not self.left:
-            self.character_sprite.texture = self.textures[0]
-            if not level.check_collisions(self):
-                self.position[0] = 1
-        if self.up and not self.down:
-            if not level.check_collisions(self):
-                self.position[1] = 1
-        elif self.down and not self.up:
-            if not level.check_collisions(self):
-                self.position[1] = -1
-
-        # Creating movement vector through scalar multiplication
-        self.position = self.position * self.velocity
-
-        # Checking if x movement is valid
-        self.character_sprite.center_x += self.position[0]
-        if level.check_collisions(self):
-            self.character_sprite.center_x -= self.position[0]
-
-        # Checking if y movement is valid
-        self.character_sprite.center_y += self.position[1]
-        if level.check_collisions(self):
-            self.character_sprite.center_y -= self.position[1]
-
-        if self.is_walking and not arcade.Sound.is_playing(self.walking_sound, self.player):
-            self.player = arcade.play_sound(self.walking_sound)
-        elif not self.is_walking and arcade.Sound.is_playing(self.walking_sound, self.player):
-            arcade.stop_sound(self.player)
-
-        closest_distance = util.STARTING_DISTANCE_VALUE  # arbitrarily large number
-        for mirror in level.mirror_list:
-            distance = mirror.distance_squared_to_center(self.character_sprite.center_x, self.character_sprite.center_y)
-            if distance < closest_distance:
-                self.closest_interactable = mirror
-                closest_distance = distance
-
-        if self.closest_interactable is None or closest_distance > util.PLAYER_REACH_DISTANCE_SQUARED:
+        self.walk(level)
+        if self.rotation_dir == 0:
+            self.rotation_factor = 0
             return
 
-        if self.counter_clockwise and self.closest_interactable and not self.clockwise:
-            self.closest_interactable.move(numpy.zeros(2), util.OBJECT_ROTATION_AMOUNT * (2)**self.rotation_factor)
-            if self.rotation_factor < 3.00:
-                self.rotation_factor = self.rotation_factor + self.increase_rotation
-        elif self.clockwise and self.closest_interactable and not self.counter_clockwise:
-            self.closest_interactable.move(numpy.zeros(2), -util.OBJECT_ROTATION_AMOUNT * (2)**self.rotation_factor)
-            if self.rotation_factor < 3.00:
-                self.rotation_factor = self.rotation_factor + self.increase_rotation
+        self.rotate_surroundings(level)
+        if self.rotation_factor < 3.00:
+            self.rotation_factor += 1/15
+
+
+    def walk(self, level):
+        direction = numpy.zeros(2)
+        if self.right:
+            self.character_sprite.texture = self.textures[0]
+            direction[0] += 1
+        if self.left:
+            self.character_sprite.texture = self.textures[1]
+            direction[0] -= 1
+        if self.up:
+            direction[1] += 1
+        if self.down:
+            direction[1] -= 1
+
+        direction_mag = numpy.linalg.norm(direction)
+        if direction_mag > 0:
+            direction = direction * util.PLAYER_MOVEMENT_SPEED / direction_mag  # Normalize and scale with speed
+
+            # Checking if x movement is valid
+            self.character_sprite.center_x += direction[0]
+            if level.check_collisions(self):
+                self.character_sprite.center_x -= direction[0]
+
+            # Checking if y movement is valid
+            self.character_sprite.center_y += direction[1]
+            if level.check_collisions(self):
+                self.character_sprite.center_y -= direction[1]
+
+            # Check if sound should be played
+            if not arcade.Sound.is_playing(self.walking_sound, self.player):
+                self.player = arcade.play_sound(self.walking_sound)
+
+        else:
+            # Check if sound should be stopped
+            if arcade.Sound.is_playing(self.walking_sound, self.player):
+                arcade.stop_sound(self.player)
+
+
+    def rotate_surroundings(self, level):
+        closest_distance_squared = util.STARTING_DISTANCE_VALUE  # arbitrarily large number
+        closest_mirror = None
+        for mirror in level.mirror_list:
+            distance = mirror.distance_squared_to_center(self.character_sprite.center_x, self.character_sprite.center_y)
+            if distance < closest_distance_squared:
+                closest_mirror = mirror
+                closest_distance_squared = distance
+
+        if closest_mirror is not None and closest_distance_squared <= util.PLAYER_REACH_DISTANCE_SQUARED:
+            closest_mirror.move(numpy.zeros(2), self.rotation_dir * util.OBJECT_ROTATION_AMOUNT * self.rotation_factor)
 
 
 
@@ -139,7 +136,7 @@ class Level:
                 numpy.array([WINDOW_WIDTH//wall_size - 2, 1]), 0
             ),
         ]
-        #Animated Wall:
+        # Animated Wall:
         animated_wall = worldobjects.Wall(
                 numpy.array([WINDOW_WIDTH-176, WINDOW_HEIGHT-240]),
                 numpy.array([1, 1]), 0
@@ -179,10 +176,10 @@ class Level:
                     light_source_coordinates[2]))
 
 
-    def update(self):
+    def update(self, character: Character):
         for wall in self.wall_list:
             if wall.obj_animation is not None:
-                wall.apply_object_animation()
+                wall.apply_object_animation(character)
         for light_source in self.light_sources_list:
             light_source.cast_rays(self.wall_list + self.mirror_list + self.light_receiver_list + self.light_sources_list)
         for light_receiver in self.light_receiver_list:
@@ -229,6 +226,7 @@ class GameObject(arcade.Window):
         self.current_level = None
         self.background = None
 
+
     def setup(self):
         self.game_state = 'menu'
         self.background = arcade.Sprite('assets/flowers.jpg', 0.333333, center_x = util.WINDOW_WIDTH / 2, center_y = util.WINDOW_HEIGHT / 2)
@@ -252,7 +250,6 @@ class GameObject(arcade.Window):
         ]
         light_receiver_coordinate_list = [
             [WINDOW_WIDTH - 128, WINDOW_HEIGHT - 128, 0],
-            # [WINDOW_WIDTH / 3, (WINDOW_HEIGHT / 2), 0]
         ]
         light_source_coordinate_list = [
             # A 4th argument will make RadialLightSource with that angular spread instead of ParallelLightSource
@@ -266,10 +263,11 @@ class GameObject(arcade.Window):
             light_source_coordinate_list
         )
 
+
     def on_update(self, delta_time):
         if self.game_state == 'game':
             self.character.update(self.current_level)
-            self.current_level.update()
+            self.current_level.update(self.character)
             if any(light_receiver.charge >= util.RECEIVER_THRESHOLD for light_receiver in self.current_level.light_receiver_list):
                 self.game_state = 'win'
 
@@ -290,6 +288,7 @@ class GameObject(arcade.Window):
         if self.game_state == 'win':
             self.win_screen.draw()
 
+
     def on_key_press(self, key, key_modifiers):
         if self.game_state == 'menu':
             if key == arcade.key.ENTER:
@@ -302,23 +301,17 @@ class GameObject(arcade.Window):
                 self.game_state = 'paused'
             if key == arcade.key.W or key == arcade.key.UP:
                 self.character.up = True
-                self.character.is_walking = True
             if key == arcade.key.A or key == arcade.key.LEFT:
                 self.character.left = True
-                self.character.is_walking = True
-            if key == arcade.key.D or key == arcade.key.RIGHT:
-                self.character.right = True
-                self.character.is_walking = True
             if key == arcade.key.S or key == arcade.key.DOWN:
                 self.character.down = True
-                self.character.is_walking = True
+            if key == arcade.key.D or key == arcade.key.RIGHT:
+                self.character.right = True
 
             if key == arcade.key.Q:
-                if self.character.closest_interactable:
-                    self.character.counter_clockwise = True
+                self.character.rotation_dir += 1
             if key == arcade.key.E:
-                if self.character.closest_interactable:
-                    self.character.clockwise = True
+                self.character.rotation_dir -= 1
 
         elif self.game_state == 'paused':
             if key == arcade.key.ESCAPE:
@@ -347,24 +340,18 @@ class GameObject(arcade.Window):
     def on_key_release(self, key, key_modifiers):
         if key == arcade.key.W or key == arcade.key.UP:
             self.character.up = False
-            self.character.is_walking = False
         if key == arcade.key.A or key == arcade.key.LEFT:
             self.character.left = False
-            self.character.is_walking = False
-        if key == arcade.key.D or key == arcade.key.RIGHT:
-            self.character.right = False
-            self.character.is_walking = False
         if key == arcade.key.S or key == arcade.key.DOWN:
             self.character.down = False
-            self.character.is_walking = False
+        if key == arcade.key.D or key == arcade.key.RIGHT:
+            self.character.right = False
         self.character.update(self.current_level)
 
         if key == arcade.key.Q:
-            self.character.counter_clockwise = False
-            self.character.rotation_factor = 0.00
+            self.character.rotation_dir -= 1
         if key == arcade.key.E:
-            self.character.clockwise = False
-            self.character.rotation_factor = 0.00
+            self.character.rotation_dir += 1
 
 
 

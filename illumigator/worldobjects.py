@@ -83,8 +83,15 @@ class WorldObject:
     def check_collision(self, sprite: arcade.Sprite):
         return sprite.collides_with_list(self._sprite_list)
 
-    def apply_object_animation(self):
-        self.move(self.obj_animation.get_new_position() - self._position)
+    def apply_object_animation(self, character):
+        # Test for sprite collisions
+        position_change = self.obj_animation.get_new_position() - self._position
+        self._sprite_list.move(position_change[0], position_change[1])
+        if character.character_sprite.collides_with_list(self._sprite_list):
+            self.obj_animation.backtrack()
+        else:
+            self.move(position_change)
+        self._sprite_list.move(-position_change[0], -position_change[1])
 
     def make_animation(self, travel: numpy.ndarray, dt: float = 0.01):
         self.obj_animation = object_animation.ObjectAnimation(self._position, self._position+travel, dt)
@@ -110,8 +117,7 @@ class LightReceiver(WorldObject):
         self.charge = 0
 
     def draw(self):
-        color = self.charge / util.RECEIVER_THRESHOLD
-        color = min(color*255, 255)
+        color = min(255 * self.charge / util.RECEIVER_THRESHOLD, 255)
         for sprite in self._sprite_list:
             sprite.color = (color, color, 70)
         super().draw()
@@ -162,15 +168,14 @@ class RadialLightSource(LightSource):
 
 class ParallelLightSource(LightSource):
     def __init__(self, position: numpy.ndarray, rotation_angle: float):
-        super().__init__(position, rotation_angle, util.PLACEHOLDER_SPRITE_INFO)
-        self._width = 32
+        super().__init__(position, rotation_angle, util.PLACEHOLDER_SPRITE_INFO)  # TODO: Use actual sprite
+        self._width = util.PLACEHOLDER_SPRITE_INFO[1] * util.PLACEHOLDER_SPRITE_INFO[2]
         self.calculate_light_ray_positions()
 
     def calculate_light_ray_positions(self):
         num_rays = len(self._light_rays)
         ray_direction = numpy.array([math.cos(self._rotation_angle), math.sin(self._rotation_angle)])
-        spread_direction = numpy.array(
-            [math.cos(self._rotation_angle + numpy.pi / 2), math.sin(self._rotation_angle + numpy.pi / 2)])
-        for n in range(-num_rays // 2, num_rays // 2):
-            self._light_rays[n]._origin = self._position + ((n / num_rays) * self._width) * spread_direction
+        spread_direction = numpy.array([math.cos(self._rotation_angle + 0.5*numpy.pi), math.sin(self._rotation_angle + 0.5*numpy.pi)])
+        for n in range(num_rays):
+            self._light_rays[n]._origin = self._position - (self._width * (n/(util.NUM_LIGHT_RAYS-1) - 0.5)) * spread_direction
             self._light_rays[n]._direction = ray_direction

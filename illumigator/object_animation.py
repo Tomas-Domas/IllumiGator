@@ -23,3 +23,12 @@ class ObjectAnimation:
             self.t = 0
 
         return self.endpoint1 + self.t * (self.endpoint2 - self.endpoint1)
+
+    def backtrack(self):
+        self.t = self.t - self.dt
+        if self.t > 1:
+            self.dt = - self.dt
+            self.t = 1
+        if self.t < 0:
+            self.dt = - self.dt
+            self.t = 0

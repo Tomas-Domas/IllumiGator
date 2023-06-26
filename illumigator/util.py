@@ -3,8 +3,6 @@ import arcade
 import numpy
 import math
 
-
-
 # ========================= System Constants =========================
 try:
     for display in get_monitors():
@@ -25,10 +23,15 @@ COLORS: list[arcade.color] = [arcade.color.AQUAMARINE, arcade.color.BLUE, arcade
 
 
 # ========================= Sprite Constants =========================
-WALL_SPRITE_INFO: tuple = ("assets/wall.png", 2, 16, 16)
+# World Objects
+WALL_SPRITE_INFO: tuple = ("assets/wall.png", 2, 16, 16)  # path, scale, width, height
 MIRROR_SPRITE_INFO: tuple = ("assets/mirror.png", 1.3, 9, 48)
 RECEIVER_SPRITE_INFO: tuple = ("assets/light_receiver.png", 2, 32, 32)
 PLACEHOLDER_SPRITE_INFO: tuple = ("assets/sprite.png", 0.25, 128, 128)
+
+# Player
+PLAYER_SPRITE_RIGHT = 'assets/character_right.png'
+PLAYER_SPRITE_LEFT = 'assets/character_left.png'
 
 
 
@@ -37,7 +40,7 @@ PLACEHOLDER_SPRITE_INFO: tuple = ("assets/sprite.png", 0.25, 128, 128)
 MAX_RAY_DISTANCE = math.sqrt(WINDOW_WIDTH ** 2 + WINDOW_HEIGHT ** 2) # maximum distance a ray can travel before going off-screen
 STARTING_DISTANCE_VALUE = WINDOW_WIDTH**2 + WINDOW_HEIGHT**2  # WINDOW_DIAGONAL_LENGTH**2. Large number for starting out min distance calculations
 MAX_DISTANCE: float = 1000
-MAX_GENERATIONS: int = 5
+MAX_GENERATIONS: int = 50
 
 # Light Source Constants
 NUM_LIGHT_RAYS: int = 10
@@ -48,8 +51,8 @@ LIGHT_INCREMENT: float = 0.009085 / NUM_LIGHT_RAYS
 RECEIVER_THRESHOLD: float = 0.7
 
 # Player Constants
-PLAYER_SPRITE_RIGHT = 'assets/character_right.png'
 PLAYER_REACH_DISTANCE_SQUARED: int = 100 ** 2
+PLAYER_MOVEMENT_SPEED = 10
 OBJECT_ROTATION_AMOUNT: float = 0.004
 
 

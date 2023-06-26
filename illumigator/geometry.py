@@ -83,7 +83,7 @@ class Circle(Geometry):
     def get_intersection(self, ray) -> numpy.array:  # TODO: optimize if necessary
         # Don't @ me...    https://en.wikipedia.org/wiki/Line-sphere_intersection#Calculation_using_vectors_in_3D
         temp_calculation1 = ray._direction @ (ray._origin - self.center)
-        temp_calculation2 = numpy.linalg.norm((ray._origin - self.center))
+        temp_calculation2 = numpy.linalg.norm(ray._origin - self.center)
         nabla = (temp_calculation1 * temp_calculation1) - (
                 (temp_calculation2 * temp_calculation2) - self.radius * self.radius)
         if nabla < 0:

@@ -27,7 +27,7 @@ COLORS: list[arcade.color] = [arcade.color.AQUAMARINE, arcade.color.BLUE, arcade
 WALL_SPRITE_INFO: tuple = ("assets/wall.png", 2, 16, 16)  # path, scale, width, height
 MIRROR_SPRITE_INFO: tuple = ("assets/mirror.png", 1.3, 9, 48)
 RECEIVER_SPRITE_INFO: tuple = ("assets/light_receiver.png", 2, 32, 32)
-PLACEHOLDER_SPRITE_INFO: tuple = ("assets/sprite.png", 0.25, 128, 128)
+PLACEHOLDER_SPRITE_INFO: tuple = ("assets/light_source.png", 2, 16, 16)
 
 # Player
 PLAYER_SPRITE_RIGHT = 'assets/character_right.png'

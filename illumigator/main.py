@@ -34,7 +34,7 @@ class Character:
 
         self.walking_sound = arcade.load_sound("assets/new_walk.wav")
 
-        self.rotation_factor = 0.00
+        self.rotation_factor = 0
 
     def draw(self):
         self.character_sprite.draw(pixelated=True)
@@ -97,7 +97,7 @@ class Character:
                 closest_distance_squared = distance
 
         if closest_mirror is not None and closest_distance_squared <= util.PLAYER_REACH_DISTANCE_SQUARED:
-            closest_mirror.move(numpy.zeros(2), self.rotation_dir * util.OBJECT_ROTATION_AMOUNT * self.rotation_factor)
+            closest_mirror.move_if_safe(self, numpy.zeros(2), self.rotation_dir * util.OBJECT_ROTATION_AMOUNT * (2 ** self.rotation_factor))
 
 
 
@@ -141,7 +141,7 @@ class Level:
                 numpy.array([WINDOW_WIDTH-176, WINDOW_HEIGHT-240]),
                 numpy.array([1, 1]), 0
             )
-        animated_wall.make_animation(numpy.array([128, 0]), 0.02)
+        animated_wall.create_animation(numpy.array([128, 0]), 0.02)
         self.wall_list.append(animated_wall)
 
         for wall_coordinates in wall_coordinate_list:

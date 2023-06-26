@@ -61,10 +61,10 @@ class WorldObject:
                     angle=numpy.rad2deg(rotation_angle), hit_box_algorithm="Simple"
                 ))
 
+
     def draw(self):
         self._sprite_list.draw(pixelated=True)
-        for segment in self._geometry_segments:
-            segment.draw()
+
 
     def move_geometry(self, move_distance: numpy.ndarray = numpy.zeros(2), rotate_angle: float = 0):
         self._position = self._position + move_distance
@@ -104,6 +104,7 @@ class WorldObject:
         self.move_geometry(move_distance, rotate_angle)
         return True
 
+
     def create_animation(self, travel: numpy.ndarray, dt: float = 0.01):
         self.obj_animation = object_animation.ObjectAnimation(self._position, self._position+travel, dt)
 
@@ -128,18 +129,22 @@ class LightSource(WorldObject):
         self._light_rays = [light.LightRay(numpy.zeros(2), numpy.zeros(2)) for _ in range(util.NUM_LIGHT_RAYS)]
         self._geometry_segments = []  # TODO: do this better, don't just overwrite to get rid of geometry
 
+
     def cast_rays(self, world_objects):
         for ray in self._light_rays:
             ray.cast_ray(world_objects)
 
+
     def move(self, move_distance: numpy.ndarray, rotate_angle: float = 0):
-        super().move(move_distance, rotate_angle)
+        super().move_geometry(move_distance, rotate_angle)
         self.calculate_light_ray_positions()
+
 
     def draw(self):
         for ray in self._light_rays:
             ray.draw()
         super().draw()
+
 
     @abstractmethod
     def calculate_light_ray_positions(self):
@@ -152,6 +157,7 @@ class RadialLightSource(LightSource):
         super().__init__(position, rotation_angle, util.PLACEHOLDER_SPRITE_INFO)
         self._angular_spread = angular_spread
         self.calculate_light_ray_positions()
+
 
     def calculate_light_ray_positions(self):
         num_rays = len(self._light_rays)
@@ -186,8 +192,12 @@ class LightReceiver(WorldObject):
         super().__init__(position, numpy.ones(2), rotation_angle, util.RECEIVER_SPRITE_INFO, is_receiver=True)
         self.charge = 0
 
+
     def draw(self):
         color = min(255 * self.charge / util.RECEIVER_THRESHOLD, 255)
         for sprite in self._sprite_list:
             sprite.color = (color, color, 70)
         super().draw()
+
+        for segment in self._geometry_segments:
+            segment.draw()

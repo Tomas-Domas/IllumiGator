@@ -70,7 +70,7 @@ class Line(Geometry):
         if self.is_reflective:
             arcade.draw_line(self._point1[0], self._point1[1], self._point2[0], self._point2[1], arcade.color.WHITE)
         else:
-            arcade.draw_line(self._point1[0], self._point1[1], self._point2[0], self._point2[1], arcade.color.BLACK)
+            arcade.draw_line(self._point1[0], self._point1[1], self._point2[0], self._point2[1], arcade.color.BLUE)
 
 
 class Circle(Geometry):

@@ -1,9 +1,9 @@
+from abc import ABC, abstractmethod
 import arcade
 import numpy
 import math
-from abc import ABC, abstractmethod
 
-from illumigator import util as util
+from illumigator import util
 
 
 class Geometry(ABC):
@@ -30,7 +30,7 @@ class Line(Geometry):
         self._point2 = point2
         self.is_reflective = is_reflective
         self.is_refractive = is_refractive
-        self._normal = self.calculate_normal()
+        self._normal = self._calculate_normal()
 
     def get_intersection(self, ray) -> numpy.array:
         # Don't @ me...    https://en.wikipedia.org/wiki/Line-line_intersection#Given_two_points_on_each_line_segment
@@ -57,9 +57,9 @@ class Line(Geometry):
     def move(self, world_object_center, move_distance, rotate_angle=0):
         self._point1 = util.rotate_around_center(world_object_center, self._point1, rotate_angle) + move_distance
         self._point2 = util.rotate_around_center(world_object_center, self._point2, rotate_angle) + move_distance
-        self._normal = self.calculate_normal()
+        self._normal = self._calculate_normal()
 
-    def calculate_normal(self):
+    def _calculate_normal(self):
         normal_unscaled = numpy.array([-(self._point2[1] - self._point1[1]), self._point2[0] - self._point1[0]])
         return normal_unscaled / numpy.linalg.norm(normal_unscaled)
 

@@ -1,6 +1,7 @@
-import math
 import arcade
-from illumigator import util as util
+import math
+
+from illumigator import util
 
 
 class LightRay:
@@ -36,13 +37,13 @@ class LightRay:
         if nearest_intersection_worldobject._is_receiver:  # Charge receiver when a light ray hits it
             nearest_intersection_worldobject.charge += util.LIGHT_INCREMENT
         elif nearest_intersection_geometry.is_reflective and self._generation < util.MAX_GENERATIONS:  # if the ray hit a mirror, create child and cast it
-            self.generate_child_ray(nearest_intersection_geometry.get_reflected_direction(self))
+            self._generate_child_ray(nearest_intersection_geometry.get_reflected_direction(self))
             self._child_ray.cast_ray(world_objects)
             return
         self._child_ray = None
 
 
-    def generate_child_ray(self, direction):
+    def _generate_child_ray(self, direction):
         if self._child_ray is None:
             self._child_ray = LightRay(self._end + direction * 0.001, direction, generation=self._generation + 1)
         else:

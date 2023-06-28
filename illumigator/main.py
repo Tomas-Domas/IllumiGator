@@ -25,11 +25,11 @@ class Character:
                                                   hit_box_algorithm="Simple")
         except:
             self.textures = [
-                arcade.load_texture("illumigator/"+util.PLAYER_SPRITE_RIGHT),
-                arcade.load_texture("illumigator/"+util.PLAYER_SPRITE_LEFT)
+                arcade.load_texture("./venv/Lib/site-packages/illumigator/"+util.PLAYER_SPRITE_RIGHT),
+                arcade.load_texture("./venv/Lib/site-packages/illumigator/"+util.PLAYER_SPRITE_LEFT)
             ]
 
-            self.character_sprite = arcade.Sprite("illumigator/"+util.PLAYER_SPRITE_RIGHT, scale_factor, image_width=image_width,
+            self.character_sprite = arcade.Sprite("./venv/Lib/site-packages/illumigator/"+util.PLAYER_SPRITE_RIGHT, scale_factor, image_width=image_width,
                                                   image_height=image_height, center_x=center_x, center_y=center_y,
                                                   hit_box_algorithm="Simple")
         self.left = False
@@ -44,7 +44,7 @@ class Character:
         try:
             self.walking_sound = arcade.load_sound("assets/new_walk.wav")
         except:
-            self.walking_sound = arcade.load_sound("illumigator/assets/new_walk.wav")
+            self.walking_sound = arcade.load_sound("./venv/Lib/site-packages/illumigator/assets/new_walk.wav")
         self.rotation_factor = 0
 
     def draw(self):
@@ -243,7 +243,7 @@ class GameObject(arcade.Window):
         try:
             self.background = arcade.Sprite('assets/flowers.jpg', 0.333333, center_x = util.WINDOW_WIDTH / 2, center_y = util.WINDOW_HEIGHT / 2)
         except:
-            self.background = arcade.Sprite('illumigator/assets/flowers.jpg', 0.333333, center_x=util.WINDOW_WIDTH / 2,
+            self.background = arcade.Sprite('./venv/Lib/site-packages/illumigator/assets/flowers.jpg', 0.333333, center_x=util.WINDOW_WIDTH / 2,
                                             center_y=util.WINDOW_HEIGHT / 2)
 
         self.background.alpha = 100

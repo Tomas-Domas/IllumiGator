@@ -63,7 +63,7 @@ class WorldObject:
                     ))
                 except:
                     self._sprite_list.append(arcade.Sprite(
-                        "illumigator/"+sprite_path, sprite_scale, image_width=sprite_width, image_height=sprite_height,
+                        "./venv/Lib/site-packages/illumigator/"+sprite_path, sprite_scale, image_width=sprite_width, image_height=sprite_height,
                         center_x=sprite_center[0], center_y=sprite_center[1],
                         angle=numpy.rad2deg(rotation_angle), hit_box_algorithm="Simple"
                     ))

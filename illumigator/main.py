@@ -14,15 +14,24 @@ class Character:
                  image_height=24,
                  center_x=WINDOW_WIDTH // 2,
                  center_y=WINDOW_HEIGHT // 2):
+        try:
+            self.textures = [
+                arcade.load_texture(util.PLAYER_SPRITE_RIGHT),
+                arcade.load_texture(util.PLAYER_SPRITE_LEFT)
+            ]
 
-        self.textures = [
-            arcade.load_texture(util.PLAYER_SPRITE_RIGHT),
-            arcade.load_texture(util.PLAYER_SPRITE_LEFT)
-        ]
+            self.character_sprite = arcade.Sprite(util.PLAYER_SPRITE_RIGHT, scale_factor, image_width=image_width,
+                                                  image_height=image_height, center_x=center_x, center_y=center_y,
+                                                  hit_box_algorithm="Simple")
+        except:
+            self.textures = [
+                arcade.load_texture("illumigator/"+util.PLAYER_SPRITE_RIGHT),
+                arcade.load_texture("illumigator/"+util.PLAYER_SPRITE_LEFT)
+            ]
 
-        self.character_sprite = arcade.Sprite(util.PLAYER_SPRITE_RIGHT, scale_factor, image_width=image_width,
-                                              image_height=image_height, center_x=center_x, center_y=center_y,
-                                              hit_box_algorithm="Simple")
+            self.character_sprite = arcade.Sprite("illumigator/"+util.PLAYER_SPRITE_RIGHT, scale_factor, image_width=image_width,
+                                                  image_height=image_height, center_x=center_x, center_y=center_y,
+                                                  hit_box_algorithm="Simple")
         self.left = False
         self.right = False
         self.up = False
@@ -32,8 +41,10 @@ class Character:
         self.rotation_dir = 0
         self.player = pyglet.media.player.Player()
 
-        self.walking_sound = arcade.load_sound("assets/new_walk.wav")
-
+        try:
+            self.walking_sound = arcade.load_sound("assets/new_walk.wav")
+        except:
+            self.walking_sound = arcade.load_sound("illumigator/assets/new_walk.wav")
         self.rotation_factor = 0
 
     def draw(self):
@@ -229,7 +240,12 @@ class GameObject(arcade.Window):
 
     def setup(self):
         self.game_state = 'menu'
-        self.background = arcade.Sprite('assets/flowers.jpg', 0.333333, center_x = util.WINDOW_WIDTH / 2, center_y = util.WINDOW_HEIGHT / 2)
+        try:
+            self.background = arcade.Sprite('assets/flowers.jpg', 0.333333, center_x = util.WINDOW_WIDTH / 2, center_y = util.WINDOW_HEIGHT / 2)
+        except:
+            self.background = arcade.Sprite('illumigator/assets/flowers.jpg', 0.333333, center_x=util.WINDOW_WIDTH / 2,
+                                            center_y=util.WINDOW_HEIGHT / 2)
+
         self.background.alpha = 100
         self.game_menu = InGameMenu()
         self.win_screen = WinScreen()

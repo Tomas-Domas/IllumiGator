@@ -3,6 +3,10 @@ import arcade
 import numpy
 import math
 
+DEBUG_GEOMETRY: bool = False        # Toggle with G
+DEBUG_LIGHT_SOURCES: bool = False   # Toggle with L
+
+
 # ========================= System Constants =========================
 try:
     for display in get_monitors():
@@ -11,6 +15,7 @@ try:
             SCREEN_HEIGHT = display.height
 except ScreenInfoError:
     print("No monitors detected!")
+
 
 
 # ========================= Game Constants =========================
@@ -22,16 +27,20 @@ COLORS: list[arcade.color] = [arcade.color.AQUAMARINE, arcade.color.BLUE, arcade
 ENVIRON_PATH = "assets/"
 VENV_PATH = "./venv/Lib/site-packages/illumigator/assets/"
 
+
+
 # ========================= Sprite Constants =========================
 # World Objects
 WALL_SPRITE_INFO: tuple = ("wall.png", 2, 16, 16)  # path, scale, width, height
 MIRROR_SPRITE_INFO: tuple = ("mirror.png", 1.3, 9, 48)
+SOURCE_SPRITE_INFO: tuple = ("light_source.png", 2, 16, 16)
 RECEIVER_SPRITE_INFO: tuple = ("light_receiver.png", 2, 32, 32)
 PLACEHOLDER_SPRITE_INFO: tuple = ("sprite.png", 0.25, 128, 128)
 
 # Player
 PLAYER_SPRITE_RIGHT = "character_right.png"
 PLAYER_SPRITE_LEFT = "character_left.png"
+
 
 
 # ========================= Script Constants =========================
@@ -55,6 +64,7 @@ PLAYER_MOVEMENT_SPEED = 10
 OBJECT_ROTATION_AMOUNT: float = 0.004
 
 
+
 # ========================= Physics Functions =========================
 def distance_squared(point1: numpy.array, point2: numpy.array) -> float:
     dx, dy = point1[0]-point2[0], point1[1]-point2[1]
@@ -73,6 +83,7 @@ def rotate_around_center(center: numpy.array, point: numpy.array, angle: float) 
         relative_point[0]*math.sin(angle) + relative_point[1]*math.cos(angle)
     ])
     return rotated_point + center
+
 
 
 # ========================= File Handling Functions =========================

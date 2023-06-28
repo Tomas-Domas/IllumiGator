@@ -90,8 +90,8 @@ class Circle(Geometry):
             return None
 
         nabla_sqrt = math.sqrt(nabla)
-        intersection_distance1 = - temp_calculation1 - nabla_sqrt
-        intersection_distance2 = - temp_calculation1 + nabla_sqrt
+        intersection_distance1 = -nabla_sqrt - temp_calculation1
+        intersection_distance2 = nabla_sqrt - temp_calculation1
 
         if intersection_distance1 > 0 and intersection_distance2 > 0:
             return ray._origin + ray._direction * min(intersection_distance1, intersection_distance2)
@@ -103,21 +103,65 @@ class Circle(Geometry):
     def move(self, world_object_center, move_distance, rotate_angle=0):
         self.center = world_object_center
 
-    def get_reflected_direction(self, ray):
-        normal = (self.center - ray._end) / self.radius
-        return ray._direction - (2 * normal * (normal @ ray._direction))
-
     def draw(self):
         arcade.draw_circle_outline(self.center[0], self.center[1], self.radius, arcade.color.MAGENTA)
 
-# class Arc(Geometry):  # WIP
-#     def __init__(self, center: numpy.array, radius: float, start_angle: float, end_angle: float, is_reflective: bool = False, is_refractive: bool = False):
-#         self._center = center
-#         self._radius = radius
-#         self.start_angle = start_angle
-#         self.end_angle = end_angle
-#         self.is_reflective = is_reflective
-#         self.is_refractive = is_refractive
-#
-#     def draw(self):
-#         arcade.draw_arc_outline(self._center[0], self._center[1], self._radius, self._radius, arcade.color.MAGENTA, self.start_angle, self.end_angle)
+
+class Arc(Geometry):
+    def __init__(self, center: numpy.array, radius: float, start_angle: float, end_angle: float, is_reflective: bool = False, is_refractive: bool = False):
+        self.center = center
+        self.radius = radius
+        self.start_angle = start_angle
+        self.end_angle = end_angle
+        self.is_reflective = is_reflective
+        self.is_refractive = is_refractive
+
+    def get_intersection(self, ray) -> numpy.array:  # TODO: optimize if necessary
+        # Don't @ me...    https://en.wikipedia.org/wiki/Line-sphere_intersection#Calculation_using_vectors_in_3D
+        temp_calculation1 = ray._direction @ (ray._origin - self.center)
+        temp_calculation2 = numpy.linalg.norm(ray._origin - self.center)
+        nabla = (temp_calculation1 * temp_calculation1) - (
+                (temp_calculation2 * temp_calculation2) - self.radius * self.radius)
+        if nabla < 0:
+            return None
+
+        nabla_sqrt = math.sqrt(nabla)
+        intersection_distance1 = -nabla_sqrt - temp_calculation1
+        intersection_distance2 = nabla_sqrt - temp_calculation1
+
+        point1, point1_angle = None, None
+        point2, point2_angle = None, None
+
+        if intersection_distance1 > 0:
+            point1 = ray._origin + ray._direction * min(intersection_distance1, intersection_distance2)
+            point1_angle = math.atan2(point1[0] - self.center[0], point1[1] - self.center[1])
+        if intersection_distance2 > 0:
+            point2 = ray._origin + ray._direction * max(intersection_distance1, intersection_distance2)
+            point2_angle = math.atan2(point2[0] - self.center[0], point2[1] - self.center[1])
+
+        if point1 is None and point2 is None:
+            return None
+
+        if point1 is None:
+            return point2
+        if point2 is None:
+            return point1
+
+        if intersection_distance1 < intersection_distance2:
+            return point1
+        else:
+            return point2
+
+    def move(self, world_object_center, move_distance, rotate_angle=0):
+        self.center = world_object_center
+        self.start_angle += rotate_angle
+        self.end_angle += rotate_angle
+
+    def draw(self):
+        # arcade.draw_circle_outline(self.center[0], self.center[1], self.radius, arcade.color.MAGENTA)
+        arcade.draw_arc_outline(
+            self.center[0], self.center[1],
+            2*self.radius, 2*self.radius,
+            arcade.color.MAGENTA,
+            self.start_angle*180/numpy.pi, self.end_angle*180/numpy.pi, border_width=2
+        )

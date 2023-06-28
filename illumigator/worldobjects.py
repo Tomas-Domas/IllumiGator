@@ -15,8 +15,8 @@ class WorldObject:
     _rotation_angle: float
     _is_interactable: bool
     _is_receiver: bool
-    _geometry_segments: list[geometry.Geometry]
-    obj_animation: object_animation.ObjectAnimation
+    _geometry_segments: list[geometry.Geometry] | None
+    obj_animation: object_animation.ObjectAnimation | None
 
     _sprite_list: arcade.SpriteList
     color: tuple[int, int, int]
@@ -63,6 +63,9 @@ class WorldObject:
 
     def draw(self):
         self._sprite_list.draw(pixelated=True)
+        if util.DEBUG_GEOMETRY:
+            for segment in self._geometry_segments:
+                segment.draw()
 
     def move_geometry(self, move_distance: numpy.ndarray = numpy.zeros(2), rotate_angle: float = 0):
         self._position = self._position + move_distance
@@ -126,6 +129,7 @@ class LightSource(WorldObject):
 
     def move(self, move_distance: numpy.ndarray, rotate_angle: float = 0):
         super().move_geometry(move_distance, rotate_angle)
+        self._sprite_list.move(move_distance[0], move_distance[1])
         self.calculate_light_ray_positions()
 
     def draw(self):
@@ -140,7 +144,7 @@ class LightSource(WorldObject):
 
 class RadialLightSource(LightSource):
     def __init__(self, position: numpy.ndarray, rotation_angle: float, angular_spread: float):
-        super().__init__(position, rotation_angle, util.PLACEHOLDER_SPRITE_INFO)
+        super().__init__(position, rotation_angle, util.SOURCE_SPRITE_INFO)
         self._angular_spread = angular_spread
         self.calculate_light_ray_positions()
 
@@ -156,8 +160,8 @@ class RadialLightSource(LightSource):
 
 class ParallelLightSource(LightSource):
     def __init__(self, position: numpy.ndarray, rotation_angle: float):
-        super().__init__(position, rotation_angle, util.PLACEHOLDER_SPRITE_INFO)  # TODO: Use actual sprite
-        self._width = util.PLACEHOLDER_SPRITE_INFO[1] * util.PLACEHOLDER_SPRITE_INFO[2]
+        super().__init__(position, rotation_angle, util.SOURCE_SPRITE_INFO)  # TODO: Use actual sprite
+        self._width = util.SOURCE_SPRITE_INFO[1] * util.SOURCE_SPRITE_INFO[2]
         self.calculate_light_ray_positions()
 
     def calculate_light_ray_positions(self):
@@ -179,6 +183,3 @@ class LightReceiver(WorldObject):
         for sprite in self._sprite_list:
             sprite.color = (color, color, 70)
         super().draw()
-
-        for segment in self._geometry_segments:
-            segment.draw()

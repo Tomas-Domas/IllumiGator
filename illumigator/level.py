@@ -1,18 +1,14 @@
 import numpy
 
-from illumigator import util
-from illumigator import worldobjects
-from illumigator import entity
-from illumigator import util
-
+from illumigator import worldobjects, geometry, entity, util
 
 class Level:
     def __init__(
             self,
-            wall_coordinate_list: list[list],
-            mirror_coordinate_list: list[list],
-            light_receiver_coordinate_list: list[list],
-            light_source_coordinate_list: list[list],
+            wall_coordinate_list: list[list] = None,
+            mirror_coordinate_list: list[list] = None,
+            light_receiver_coordinate_list: list[list] = None,
+            light_source_coordinate_list: list[list] = None,
             name='default'
     ):
         self.background = None
@@ -41,15 +37,8 @@ class Level:
                 numpy.array([util.WINDOW_WIDTH//wall_size - 2, 1]), 0
             ),
         ]
-        # Animated Wall:
-        animated_wall = worldobjects.Wall(
-                numpy.array([util.WINDOW_WIDTH-176, util.WINDOW_HEIGHT-240]),
-                numpy.array([1, 1]), 0
-            )
-        animated_wall.create_animation(numpy.array([128, 0]), 0.02)
-        self.wall_list.append(animated_wall)
 
-        for wall_coordinates in wall_coordinate_list:
+        for wall_coordinates in wall_coordinate_list:  # TODO: Handle animated walls somehow. For now they're hand-made in the functions
             self.wall_list.append(worldobjects.Wall(
                 numpy.array([wall_coordinates[0], wall_coordinates[1]]),
                 numpy.array([wall_coordinates[2], wall_coordinates[3]]),
@@ -80,13 +69,16 @@ class Level:
                     numpy.array([light_source_coordinates[0], light_source_coordinates[1]]),
                     light_source_coordinates[2]))
 
-    def update(self, character: entity.Character):
+    def update(self, character: entity.Character, mouse_x, mouse_y):
         for wall in self.wall_list:
             if wall.obj_animation is not None:
                 wall.apply_object_animation(character)
         for light_source in self.light_sources_list:
             light_source.cast_rays(self.wall_list + self.mirror_list + self.light_receiver_list +
                                    self.light_sources_list)
+        if util.DEBUG_LIGHT_SOURCES:
+            for light_source in self.light_sources_list:
+                light_source.move(numpy.array([mouse_x - light_source._position[0], mouse_y - light_source._position[1]]))
         for light_receiver in self.light_receiver_list:
             light_receiver.charge *= util.CHARGE_DECAY
 
@@ -110,3 +102,62 @@ class Level:
         for light_receiver in self.light_receiver_list:
             if light_receiver.check_collision(character.character_sprite):
                 return True
+
+
+def load_level1() -> Level:  # TODO: Load from JSON files
+    mirror_coordinate_list = [
+        [util.WINDOW_WIDTH / 4, (util.WINDOW_HEIGHT / 3) * 2, -numpy.pi / 4],
+        [(util.WINDOW_WIDTH / 2) + 50, util.WINDOW_HEIGHT - 100, 0],
+        [util.WINDOW_WIDTH / 2, util.WINDOW_HEIGHT / 4, numpy.pi / 2],
+        [((util.WINDOW_WIDTH / 4) * 3) + 20, util.WINDOW_HEIGHT / 5, 0]
+    ]
+    wall_coordinate_list = [
+        [784, 176, 1, 9, 0],
+        [496, util.WINDOW_HEIGHT - 176, 1, 9, 0],
+        [880, util.WINDOW_HEIGHT - 176, 1, 9, 0]
+    ]
+    light_receiver_coordinate_list = [
+        [util.WINDOW_WIDTH - 128, util.WINDOW_HEIGHT - 128, 0],
+    ]
+    light_source_coordinate_list = [
+        # A 4th argument will make RadialLightSource with that angular spread instead of ParallelLightSource
+        [util.WINDOW_WIDTH / 4, 48, numpy.pi / 2]
+    ]
+
+    lvl = Level(
+        wall_coordinate_list,
+        mirror_coordinate_list,
+        light_receiver_coordinate_list,
+        light_source_coordinate_list
+    )
+
+    # Animated Wall: # TODO: Handle animated walls. For now they're hand-made
+    animated_wall = worldobjects.Wall(
+        numpy.array([util.WINDOW_WIDTH - 176, util.WINDOW_HEIGHT - 240]),
+        numpy.array([1, 1]), 0
+    )
+    animated_wall.create_animation(numpy.array([128, 0]), 0.02)
+    lvl.wall_list.append(animated_wall)
+
+    return lvl
+
+def load_test_level():
+    wall_coordinate_list = []
+    light_source_coordinate_list = [
+        [util.WINDOW_WIDTH / 4, 48, numpy.pi / 2, numpy.pi / 4]
+    ]
+    light_receiver_coordinate_list = []
+    mirror_coordinate_list = []
+
+    lvl = Level(
+        wall_coordinate_list,
+        mirror_coordinate_list,
+        light_receiver_coordinate_list,
+        light_source_coordinate_list
+    )
+
+    lvl.wall_list[0]._geometry_segments.append(
+        geometry.Arc(numpy.array([300, 300]), 100, 0 * numpy.pi/2, 2 * numpy.pi/2)
+    )
+
+    return lvl

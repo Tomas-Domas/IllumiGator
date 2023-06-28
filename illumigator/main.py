@@ -1,70 +1,40 @@
 import arcade
-import pyglet.media
-import numpy
 
-from illumigator import entity
-from illumigator import level
-from illumigator.menus import draw_title_menu, InGameMenu, WinScreen
-from illumigator import util
+from illumigator import entity, level, menus, util
 
 
 class GameObject(arcade.Window):
     def __init__(self):
         super().__init__(util.WINDOW_WIDTH, util.WINDOW_HEIGHT, util.WINDOW_TITLE)
-        self.elem_list = None
-        self.mirror = None
-        self.wall = None
         self.game_state = None
-        self.set_mouse_visible(False)
-        arcade.set_background_color(arcade.color.BLACK)
         self.game_menu = None
         self.win_screen = None
-        self.tile_map = None
         self.character = None
         self.current_level = None
-        self.background = None
+        self.background_sprite = None
+        self.mouse_x = util.WINDOW_WIDTH/2
+        self.mouse_y = util.WINDOW_HEIGHT/2
+
+        self.set_mouse_visible(False)
+        arcade.set_background_color(arcade.color.BLACK)
 
     def setup(self):
         self.game_state = 'menu'
-        self.background = util.load_sprite("flowers.jpg", 0.333333, center_x=util.WINDOW_WIDTH / 2,
-                                           center_y=util.WINDOW_HEIGHT / 2)
-        self.background.alpha = 100
-        self.game_menu = InGameMenu()
-        self.win_screen = WinScreen()
+        self.background_sprite = util.load_sprite("flowers.jpg", 0.333333, center_x=util.WINDOW_WIDTH / 2,
+                                                  center_y=util.WINDOW_HEIGHT / 2)
+        self.background_sprite.alpha = 100
+        self.game_menu = menus.InGameMenu()
+        self.win_screen = menus.WinScreen()
         self.character = entity.Character()
-        self.elem_list = arcade.SpriteList()
 
-        # TODO: eventually JSON file
-        mirror_coordinate_list = [
-            [util.WINDOW_WIDTH / 4, (util.WINDOW_HEIGHT / 3) * 2, -numpy.pi / 4],
-            [(util.WINDOW_WIDTH / 2) + 50, util.WINDOW_HEIGHT - 100, 0],
-            [util.WINDOW_WIDTH / 2, util.WINDOW_HEIGHT / 4, numpy.pi / 2],
-            [((util.WINDOW_WIDTH / 4) * 3) + 20, util.WINDOW_HEIGHT / 5, 0]
-        ]
-        wall_coordinate_list = [
-            [784, 176, 1, 9, 0],
-            [496, util.WINDOW_HEIGHT - 176, 1, 9, 0],
-            [880, util.WINDOW_HEIGHT - 176, 1, 9, 0]
-        ]
-        light_receiver_coordinate_list = [
-            [util.WINDOW_WIDTH - 128, util.WINDOW_HEIGHT - 128, 0],
-        ]
-        light_source_coordinate_list = [
-            # A 4th argument will make RadialLightSource with that angular spread instead of ParallelLightSource
-            [util.WINDOW_WIDTH / 4, 48, numpy.pi / 2]
-        ]
+        self.current_level = level.load_level1()
+        # self.current_level = level.load_test_level()
 
-        self.current_level = level.Level(
-            wall_coordinate_list,
-            mirror_coordinate_list,
-            light_receiver_coordinate_list,
-            light_source_coordinate_list
-        )
 
     def on_update(self, delta_time):
         if self.game_state == 'game':
             self.character.update(self.current_level)
-            self.current_level.update(self.character)
+            self.current_level.update(self.character, self.mouse_x, self.mouse_y)  # Pass mouse coords for debugging purposes
             if any(light_receiver.charge >= util.RECEIVER_THRESHOLD
                    for light_receiver in self.current_level.light_receiver_list):
                 self.game_state = 'win'
@@ -73,9 +43,9 @@ class GameObject(arcade.Window):
         self.clear()
 
         if self.game_state == 'menu':
-            draw_title_menu()
+            menus.draw_title_menu()
         elif self.game_state == 'game' or self.game_state == 'paused':
-            self.background.draw()
+            self.background_sprite.draw()
             self.current_level.draw()
             self.character.draw()
 
@@ -93,6 +63,11 @@ class GameObject(arcade.Window):
                 arcade.close_window()
 
         elif self.game_state == 'game':
+            if key == arcade.key.G:
+                util.DEBUG_GEOMETRY = not util.DEBUG_GEOMETRY
+            if key == arcade.key.L:
+                util.DEBUG_LIGHT_SOURCES = not util.DEBUG_LIGHT_SOURCES
+
             if key == arcade.key.ESCAPE:
                 self.game_state = 'paused'
             if key == arcade.key.W or key == arcade.key.UP:
@@ -148,6 +123,10 @@ class GameObject(arcade.Window):
             self.character.rotation_dir -= 1
         if key == arcade.key.E:
             self.character.rotation_dir += 1
+
+    def on_mouse_motion(self, x: int, y: int, dx: int, dy: int):
+        self.mouse_x, self.mouse_y = x, y
+
 
 
 def main():

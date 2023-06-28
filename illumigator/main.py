@@ -32,8 +32,10 @@ class Character:
         self.rotation_dir = 0
         self.player = pyglet.media.player.Player()
 
-        self.walking_sound = arcade.load_sound("assets/new_walk.wav")
-
+        try:
+            self.walking_sound = arcade.load_sound("assets/new_walk.wav")
+        except:
+            self.walking_sound = arcade.load_sound("illumigator/assets/new_walk.wav")
         self.rotation_factor = 0
 
     def draw(self):
@@ -229,7 +231,12 @@ class GameObject(arcade.Window):
 
     def setup(self):
         self.game_state = 'menu'
-        self.background = arcade.Sprite('assets/flowers.jpg', 0.333333, center_x = util.WINDOW_WIDTH / 2, center_y = util.WINDOW_HEIGHT / 2)
+        try:
+            self.background = arcade.Sprite('assets/flowers.jpg', 0.333333, center_x = util.WINDOW_WIDTH / 2, center_y = util.WINDOW_HEIGHT / 2)
+        except:
+            self.background = arcade.Sprite('illumigator/assets/flowers.jpg', 0.333333, center_x=util.WINDOW_WIDTH / 2,
+                                            center_y=util.WINDOW_HEIGHT / 2)
+
         self.background.alpha = 100
         self.game_menu = InGameMenu()
         self.win_screen = WinScreen()

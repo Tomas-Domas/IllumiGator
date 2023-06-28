@@ -55,12 +55,18 @@ class WorldObject:
             for row in range(int(dimensions[1])):
                 sprite_center = (position-axis1-axis2) + sprite_scale * ((sprite_width*(col+0.5)*axis1_norm) + (sprite_height*(row+0.5)*axis2_norm))
 
-                self._sprite_list.append( arcade.Sprite(
-                    sprite_path, sprite_scale, image_width=sprite_width, image_height=sprite_height,
-                    center_x=sprite_center[0], center_y=sprite_center[1],
-                    angle=numpy.rad2deg(rotation_angle), hit_box_algorithm="Simple"
-                ))
-
+                try:
+                    self._sprite_list.append( arcade.Sprite(
+                        sprite_path, sprite_scale, image_width=sprite_width, image_height=sprite_height,
+                        center_x=sprite_center[0], center_y=sprite_center[1],
+                        angle=numpy.rad2deg(rotation_angle), hit_box_algorithm="Simple"
+                    ))
+                except:
+                    self._sprite_list.append(arcade.Sprite(
+                        "illumigator/"+sprite_path, sprite_scale, image_width=sprite_width, image_height=sprite_height,
+                        center_x=sprite_center[0], center_y=sprite_center[1],
+                        angle=numpy.rad2deg(rotation_angle), hit_box_algorithm="Simple"
+                    ))
 
     def draw(self):
         self._sprite_list.draw(pixelated=True)

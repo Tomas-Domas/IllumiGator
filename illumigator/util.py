@@ -13,32 +13,29 @@ except ScreenInfoError:
     print('No monitors detected!')
 
 
-
 # ========================= Game Constants =========================
 WINDOW_WIDTH: int = 1280
 WINDOW_HEIGHT: int = 720
 WINDOW_TITLE: str = 'IllumiGator'
-COLORS: list[arcade.color] = [arcade.color.AQUAMARINE, arcade.color.BLUE, arcade.color.CHERRY, arcade.color.DAFFODIL, arcade.color.EGGPLANT]
-
-
+COLORS: list[arcade.color] = [arcade.color.AQUAMARINE, arcade.color.BLUE, arcade.color.CHERRY,
+                              arcade.color.DAFFODIL, arcade.color.EGGPLANT]
 
 # ========================= Sprite Constants =========================
 # World Objects
 WALL_SPRITE_INFO: tuple = ("assets/wall.png", 2, 16, 16)  # path, scale, width, height
 MIRROR_SPRITE_INFO: tuple = ("assets/mirror.png", 1.3, 9, 48)
 RECEIVER_SPRITE_INFO: tuple = ("assets/light_receiver.png", 2, 32, 32)
-PLACEHOLDER_SPRITE_INFO: tuple = ("assets/light_source.png", 2, 16, 16)
+PLACEHOLDER_SPRITE_INFO: tuple = ("assets/sprite.png", 0.25, 128, 128)
 
 # Player
 PLAYER_SPRITE_RIGHT = 'assets/character_right.png'
 PLAYER_SPRITE_LEFT = 'assets/character_left.png'
 
 
-
 # ========================= Script Constants =========================
 # Ray Casting Constants
-MAX_RAY_DISTANCE = math.sqrt(WINDOW_WIDTH ** 2 + WINDOW_HEIGHT ** 2) # maximum distance a ray can travel before going off-screen
-STARTING_DISTANCE_VALUE = WINDOW_WIDTH**2 + WINDOW_HEIGHT**2  # WINDOW_DIAGONAL_LENGTH**2. Large number for starting out min distance calculations
+MAX_RAY_DISTANCE = math.sqrt(WINDOW_WIDTH ** 2 + WINDOW_HEIGHT ** 2)  # Max distance before ray goes off-screen
+STARTING_DISTANCE_VALUE = WINDOW_WIDTH**2 + WINDOW_HEIGHT**2  # Large number for starting out min distance calculations
 MAX_DISTANCE: float = 1000
 MAX_GENERATIONS: int = 50
 
@@ -56,15 +53,16 @@ PLAYER_MOVEMENT_SPEED = 10
 OBJECT_ROTATION_AMOUNT: float = 0.004
 
 
-
 # ========================= Functions =========================
 def distance_squared(point1: numpy.array, point2: numpy.array) -> float:
     dx, dy = point1[0]-point2[0], point1[1]-point2[1]
     return dx*dx + dy*dy
 
+
 def distance_squared_ordered_pair(point: numpy.array, x: float, y: float) -> float:
     dx, dy = point[0]-x, point[1]-y
     return dx*dx + dy*dy
+
 
 def rotate_around_center(center: numpy.array, point: numpy.array, angle: float) -> numpy.array:
     relative_point = point - center
@@ -73,3 +71,17 @@ def rotate_around_center(center: numpy.array, point: numpy.array, angle: float) 
         relative_point[0]*math.sin(angle) + relative_point[1]*math.cos(angle)
     ])
     return rotated_point + center
+
+
+def load_sprite(file_name: str) -> arcade.Sprite:
+    try:
+        return arcade.Sprite("assets/" + file_name)
+    except FileNotFoundError:
+        return arcade.Sprite("./venv/Lib/site-packages/illumigator/assets/" + file_name)
+
+
+def load_sound(file_name: str) -> arcade.Sound:
+    try:
+        return arcade.load_sound("assets/" + file_name)
+    except FileNotFoundError:
+        return arcade.load_sound("./venv/Lib/site-packages/illumigator/assets/" + file_name)

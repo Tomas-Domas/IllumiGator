@@ -10,26 +10,28 @@ try:
             SCREEN_WIDTH = display.width
             SCREEN_HEIGHT = display.height
 except ScreenInfoError:
-    print('No monitors detected!')
+    print("No monitors detected!")
 
 
 # ========================= Game Constants =========================
 WINDOW_WIDTH: int = 1280
 WINDOW_HEIGHT: int = 720
-WINDOW_TITLE: str = 'IllumiGator'
+WINDOW_TITLE: str = "IllumiGator"
 COLORS: list[arcade.color] = [arcade.color.AQUAMARINE, arcade.color.BLUE, arcade.color.CHERRY,
                               arcade.color.DAFFODIL, arcade.color.EGGPLANT]
+ENVIRON_PATH = "assets/"
+VENV_PATH = "./venv/Lib/site-packages/illumigator/assets/"
 
 # ========================= Sprite Constants =========================
 # World Objects
-WALL_SPRITE_INFO: tuple = ("assets/wall.png", 2, 16, 16)  # path, scale, width, height
-MIRROR_SPRITE_INFO: tuple = ("assets/mirror.png", 1.3, 9, 48)
-RECEIVER_SPRITE_INFO: tuple = ("assets/light_receiver.png", 2, 32, 32)
-PLACEHOLDER_SPRITE_INFO: tuple = ("assets/sprite.png", 0.25, 128, 128)
+WALL_SPRITE_INFO: tuple = ("wall.png", 2, 16, 16)  # path, scale, width, height
+MIRROR_SPRITE_INFO: tuple = ("mirror.png", 1.3, 9, 48)
+RECEIVER_SPRITE_INFO: tuple = ("light_receiver.png", 2, 32, 32)
+PLACEHOLDER_SPRITE_INFO: tuple = ("sprite.png", 0.25, 128, 128)
 
 # Player
-PLAYER_SPRITE_RIGHT = 'assets/character_right.png'
-PLAYER_SPRITE_LEFT = 'assets/character_left.png'
+PLAYER_SPRITE_RIGHT = "character_right.png"
+PLAYER_SPRITE_LEFT = "character_left.png"
 
 
 # ========================= Script Constants =========================
@@ -53,7 +55,7 @@ PLAYER_MOVEMENT_SPEED = 10
 OBJECT_ROTATION_AMOUNT: float = 0.004
 
 
-# ========================= Functions =========================
+# ========================= Physics Functions =========================
 def distance_squared(point1: numpy.array, point2: numpy.array) -> float:
     dx, dy = point1[0]-point2[0], point1[1]-point2[1]
     return dx*dx + dy*dy
@@ -73,15 +75,47 @@ def rotate_around_center(center: numpy.array, point: numpy.array, angle: float) 
     return rotated_point + center
 
 
-def load_sprite(file_name: str) -> arcade.Sprite:
+# ========================= File Handling Functions =========================
+def load_sprite(
+    filename: str | None = None,
+    scale: float = 1,
+    image_x: float = 0,
+    image_y: float = 0,
+    image_width: float = 0,
+    image_height: float = 0,
+    center_x: float = 0,
+    center_y: float = 0,
+    repeat_count_x: int = 1,
+    repeat_count_y: int = 1,
+    flipped_horizontally: bool = False,
+    flipped_vertically: bool = False,
+    flipped_diagonally: bool = False,
+    hit_box_algorithm: str | None = "Simple",
+    hit_box_detail: float = 4.5,
+    texture: arcade.Texture | None = None,
+    angle: float = 0
+) -> arcade.Sprite:
+
     try:
-        return arcade.Sprite("assets/" + file_name)
+        return arcade.Sprite(ENVIRON_PATH + filename, scale, image_x, image_y, image_width, image_height, center_x,
+                             center_y, repeat_count_x, repeat_count_y, flipped_horizontally, flipped_vertically,
+                             flipped_diagonally, hit_box_algorithm, hit_box_detail, texture, angle)
     except FileNotFoundError:
-        return arcade.Sprite("./venv/Lib/site-packages/illumigator/assets/" + file_name)
+        return arcade.Sprite(VENV_PATH + filename, scale, image_x, image_y,
+                             image_width, image_height, center_x, center_y, repeat_count_x, repeat_count_y,
+                             flipped_horizontally, flipped_vertically, flipped_diagonally, hit_box_algorithm,
+                             hit_box_detail, texture, angle)
 
 
-def load_sound(file_name: str) -> arcade.Sound:
+def load_sound(filename: str) -> arcade.Sound:
     try:
-        return arcade.load_sound("assets/" + file_name)
+        return arcade.load_sound(ENVIRON_PATH + filename)
     except FileNotFoundError:
-        return arcade.load_sound("./venv/Lib/site-packages/illumigator/assets/" + file_name)
+        return arcade.load_sound(VENV_PATH + filename)
+
+
+def load_texture(filename: str) -> arcade.Texture:
+    try:
+        return arcade.load_texture(ENVIRON_PATH + filename)
+    except FileNotFoundError:
+        return arcade.load_texture(VENV_PATH + filename)

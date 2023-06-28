@@ -7,6 +7,7 @@ from illumigator.util import WINDOW_WIDTH, WINDOW_HEIGHT
 from illumigator import util
 from illumigator import worldobjects
 
+
 class Character:
     def __init__(self,
                  scale_factor=2,
@@ -14,24 +15,15 @@ class Character:
                  image_height=24,
                  center_x=WINDOW_WIDTH // 2,
                  center_y=WINDOW_HEIGHT // 2):
-        try:
-            self.textures = [
-                arcade.load_texture(util.PLAYER_SPRITE_RIGHT),
-                arcade.load_texture(util.PLAYER_SPRITE_LEFT)
-            ]
 
-            self.character_sprite = arcade.Sprite(util.PLAYER_SPRITE_RIGHT, scale_factor, image_width=image_width,
-                                                  image_height=image_height, center_x=center_x, center_y=center_y,
-                                                  hit_box_algorithm="Simple")
-        except:
-            self.textures = [
-                arcade.load_texture("./venv/Lib/site-packages/illumigator/"+util.PLAYER_SPRITE_RIGHT),
-                arcade.load_texture("./venv/Lib/site-packages/illumigator/"+util.PLAYER_SPRITE_LEFT)
-            ]
+        self.textures = [
+            util.load_texture(util.PLAYER_SPRITE_RIGHT),
+            util.load_texture(util.PLAYER_SPRITE_LEFT)
+        ]
 
-            self.character_sprite = arcade.Sprite("./venv/Lib/site-packages/illumigator/"+util.PLAYER_SPRITE_RIGHT, scale_factor, image_width=image_width,
-                                                  image_height=image_height, center_x=center_x, center_y=center_y,
-                                                  hit_box_algorithm="Simple")
+        self.character_sprite = util.load_sprite(util.PLAYER_SPRITE_RIGHT, scale_factor, image_width=image_width,
+                                                 image_height=image_height, center_x=center_x, center_y=center_y,
+                                                 hit_box_algorithm="Simple")
         self.left = False
         self.right = False
         self.up = False
@@ -41,10 +33,7 @@ class Character:
         self.rotation_dir = 0
         self.player = pyglet.media.player.Player()
 
-        try:
-            self.walking_sound = arcade.load_sound("assets/new_walk.wav")
-        except:
-            self.walking_sound = arcade.load_sound("./venv/Lib/site-packages/illumigator/assets/new_walk.wav")
+        self.walking_sound = util.load_sound("new_walk.wav")
         self.rotation_factor = 0
 
     def draw(self):
@@ -59,7 +48,6 @@ class Character:
         self.rotate_surroundings(level)
         if self.rotation_factor < 3.00:
             self.rotation_factor += 1/15
-
 
     def walk(self, level):
         direction = numpy.zeros(2)
@@ -97,7 +85,6 @@ class Character:
             if arcade.Sound.is_playing(self.walking_sound, self.player):
                 arcade.stop_sound(self.player)
 
-
     def rotate_surroundings(self, level):
         closest_distance_squared = util.STARTING_DISTANCE_VALUE  # arbitrarily large number
         closest_mirror = None
@@ -108,8 +95,8 @@ class Character:
                 closest_distance_squared = distance
 
         if closest_mirror is not None and closest_distance_squared <= util.PLAYER_REACH_DISTANCE_SQUARED:
-            closest_mirror.move_if_safe(self, numpy.zeros(2), self.rotation_dir * util.OBJECT_ROTATION_AMOUNT * (2 ** self.rotation_factor))
-
+            closest_mirror.move_if_safe(self, numpy.zeros(2),
+                                        self.rotation_dir * util.OBJECT_ROTATION_AMOUNT * (2 ** self.rotation_factor))
 
 
 class Level:
@@ -186,16 +173,15 @@ class Level:
                     numpy.array([light_source_coordinates[0], light_source_coordinates[1]]),
                     light_source_coordinates[2]))
 
-
     def update(self, character: Character):
         for wall in self.wall_list:
             if wall.obj_animation is not None:
                 wall.apply_object_animation(character)
         for light_source in self.light_sources_list:
-            light_source.cast_rays(self.wall_list + self.mirror_list + self.light_receiver_list + self.light_sources_list)
+            light_source.cast_rays(self.wall_list + self.mirror_list + self.light_receiver_list +
+                                   self.light_sources_list)
         for light_receiver in self.light_receiver_list:
             light_receiver.charge *= util.CHARGE_DECAY
-
 
     def draw(self):
         for wall in self.wall_list:
@@ -207,7 +193,6 @@ class Level:
         for light_receiver in self.light_receiver_list:
             light_receiver.draw()
 
-
     def check_collisions(self, character: Character):
         for wall in self.wall_list:
             if wall.check_collision(character.character_sprite):
@@ -218,7 +203,6 @@ class Level:
         for light_receiver in self.light_receiver_list:
             if light_receiver.check_collision(character.character_sprite):
                 return True
-
 
 
 class GameObject(arcade.Window):
@@ -237,15 +221,10 @@ class GameObject(arcade.Window):
         self.current_level = None
         self.background = None
 
-
     def setup(self):
         self.game_state = 'menu'
-        try:
-            self.background = arcade.Sprite('assets/flowers.jpg', 0.333333, center_x = util.WINDOW_WIDTH / 2, center_y = util.WINDOW_HEIGHT / 2)
-        except:
-            self.background = arcade.Sprite('./venv/Lib/site-packages/illumigator/assets/flowers.jpg', 0.333333, center_x=util.WINDOW_WIDTH / 2,
-                                            center_y=util.WINDOW_HEIGHT / 2)
-
+        self.background = util.load_sprite("flowers.jpg", 0.333333, center_x=util.WINDOW_WIDTH / 2,
+                                           center_y=util.WINDOW_HEIGHT / 2)
         self.background.alpha = 100
         self.game_menu = InGameMenu()
         self.win_screen = WinScreen()
@@ -279,14 +258,13 @@ class GameObject(arcade.Window):
             light_source_coordinate_list
         )
 
-
     def on_update(self, delta_time):
         if self.game_state == 'game':
             self.character.update(self.current_level)
             self.current_level.update(self.character)
-            if any(light_receiver.charge >= util.RECEIVER_THRESHOLD for light_receiver in self.current_level.light_receiver_list):
+            if any(light_receiver.charge >= util.RECEIVER_THRESHOLD
+                   for light_receiver in self.current_level.light_receiver_list):
                 self.game_state = 'win'
-
 
     def on_draw(self):
         self.clear()
@@ -303,7 +281,6 @@ class GameObject(arcade.Window):
 
         if self.game_state == 'win':
             self.win_screen.draw()
-
 
     def on_key_press(self, key, key_modifiers):
         if self.game_state == 'menu':
@@ -368,7 +345,6 @@ class GameObject(arcade.Window):
             self.character.rotation_dir -= 1
         if key == arcade.key.E:
             self.character.rotation_dir += 1
-
 
 
 def main():

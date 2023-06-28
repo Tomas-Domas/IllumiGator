@@ -53,24 +53,16 @@ class WorldObject:
 
         for col in range(int(dimensions[0])):
             for row in range(int(dimensions[1])):
-                sprite_center = (position-axis1-axis2) + sprite_scale * ((sprite_width*(col+0.5)*axis1_norm) + (sprite_height*(row+0.5)*axis2_norm))
+                sprite_center = (position-axis1-axis2) + sprite_scale * \
+                                ((sprite_width*(col+0.5)*axis1_norm) + (sprite_height*(row+0.5)*axis2_norm))
 
-                try:
-                    self._sprite_list.append( arcade.Sprite(
-                        sprite_path, sprite_scale, image_width=sprite_width, image_height=sprite_height,
-                        center_x=sprite_center[0], center_y=sprite_center[1],
-                        angle=numpy.rad2deg(rotation_angle), hit_box_algorithm="Simple"
-                    ))
-                except:
-                    self._sprite_list.append(arcade.Sprite(
-                        "./venv/Lib/site-packages/illumigator/"+sprite_path, sprite_scale, image_width=sprite_width, image_height=sprite_height,
-                        center_x=sprite_center[0], center_y=sprite_center[1],
-                        angle=numpy.rad2deg(rotation_angle), hit_box_algorithm="Simple"
-                    ))
+                self._sprite_list.append(util.load_sprite(
+                    sprite_path, sprite_scale, image_width=sprite_width, image_height=sprite_height,
+                    center_x=sprite_center[0], center_y=sprite_center[1],
+                    angle=numpy.rad2deg(rotation_angle), hit_box_algorithm="Simple"))
 
     def draw(self):
         self._sprite_list.draw(pixelated=True)
-
 
     def move_geometry(self, move_distance: numpy.ndarray = numpy.zeros(2), rotate_angle: float = 0):
         self._position = self._position + move_distance
@@ -78,21 +70,17 @@ class WorldObject:
         for segment in self._geometry_segments:
             segment.move(self._position, move_distance, rotate_angle=rotate_angle)
 
-
     def distance_squared_to_center(self, point_x, point_y):
         return util.distance_squared_ordered_pair(self._position, point_x, point_y)
 
-
     def check_collision(self, sprite: arcade.Sprite):
         return sprite.collides_with_list(self._sprite_list)
-
 
     def apply_object_animation(self, character):
         # Test for sprite collisions
         position_change = self.obj_animation.get_new_position() - self._position
         if not self.move_if_safe(character, move_distance=position_change):  # If move is unsafe
             self.obj_animation.backtrack()
-
 
     def move_if_safe(self, character, move_distance: numpy.ndarray = numpy.zeros(2), rotate_angle: float = 0) -> bool:
         for sprite in self._sprite_list:
@@ -110,7 +98,6 @@ class WorldObject:
         self.move_geometry(move_distance, rotate_angle)
         return True
 
-
     def create_animation(self, travel: numpy.ndarray, dt: float = 0.01):
         self.obj_animation = object_animation.ObjectAnimation(self._position, self._position+travel, dt)
 
@@ -120,13 +107,11 @@ class Wall(WorldObject):
         super().__init__(position, dimensions, rotation_angle, util.WALL_SPRITE_INFO)
 
 
-
 class Mirror(WorldObject):
     def __init__(self, position: numpy.ndarray, rotation_angle: float):
         super().__init__(position, numpy.ones(2), rotation_angle, util.MIRROR_SPRITE_INFO, is_interactable=True)
         self._geometry_segments[0].is_reflective = True
         self._geometry_segments[2].is_reflective = True
-
 
 
 class LightSource(WorldObject):
@@ -135,27 +120,22 @@ class LightSource(WorldObject):
         self._light_rays = [light.LightRay(numpy.zeros(2), numpy.zeros(2)) for _ in range(util.NUM_LIGHT_RAYS)]
         self._geometry_segments = []  # TODO: do this better, don't just overwrite to get rid of geometry
 
-
     def cast_rays(self, world_objects):
         for ray in self._light_rays:
             ray.cast_ray(world_objects)
 
-
     def move(self, move_distance: numpy.ndarray, rotate_angle: float = 0):
         super().move_geometry(move_distance, rotate_angle)
         self.calculate_light_ray_positions()
-
 
     def draw(self):
         for ray in self._light_rays:
             ray.draw()
         super().draw()
 
-
     @abstractmethod
     def calculate_light_ray_positions(self):
         pass
-
 
 
 class RadialLightSource(LightSource):
@@ -163,7 +143,6 @@ class RadialLightSource(LightSource):
         super().__init__(position, rotation_angle, util.PLACEHOLDER_SPRITE_INFO)
         self._angular_spread = angular_spread
         self.calculate_light_ray_positions()
-
 
     def calculate_light_ray_positions(self):
         num_rays = len(self._light_rays)
@@ -175,13 +154,11 @@ class RadialLightSource(LightSource):
             self._light_rays[n]._direction = ray_direction
 
 
-
 class ParallelLightSource(LightSource):
     def __init__(self, position: numpy.ndarray, rotation_angle: float):
         super().__init__(position, rotation_angle, util.PLACEHOLDER_SPRITE_INFO)  # TODO: Use actual sprite
         self._width = util.PLACEHOLDER_SPRITE_INFO[1] * util.PLACEHOLDER_SPRITE_INFO[2]
         self.calculate_light_ray_positions()
-
 
     def calculate_light_ray_positions(self):
         num_rays = len(self._light_rays)
@@ -192,12 +169,10 @@ class ParallelLightSource(LightSource):
             self._light_rays[n]._direction = ray_direction
 
 
-
 class LightReceiver(WorldObject):
     def __init__(self, position: numpy.ndarray, rotation_angle: float):
         super().__init__(position, numpy.ones(2), rotation_angle, util.RECEIVER_SPRITE_INFO, is_receiver=True)
         self.charge = 0
-
 
     def draw(self):
         color = min(255 * self.charge / util.RECEIVER_THRESHOLD, 255)

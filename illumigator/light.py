@@ -23,7 +23,9 @@ class LightRay:
                 if intersection_point is None:
                     continue
 
-                intersection_dist_squared = util.distance_squared(self._origin, intersection_point)
+                intersection_dist_squared = util.distance_squared(
+                    self._origin, intersection_point
+                )
                 if intersection_dist_squared < nearest_distance_squared:
                     nearest_distance_squared = intersection_dist_squared
                     nearest_intersection_worldobject = wo
@@ -35,23 +37,39 @@ class LightRay:
             return
 
         self._end = self._origin + self._direction * math.sqrt(nearest_distance_squared)
-        if nearest_intersection_worldobject._is_receiver:  # Charge receiver when a light ray hits it
+        if (
+            nearest_intersection_worldobject._is_receiver
+        ):  # Charge receiver when a light ray hits it
             nearest_intersection_worldobject.charge += util.LIGHT_INCREMENT
-        elif nearest_intersection_geometry.is_reflective and self._generation < util.MAX_GENERATIONS:  # if the ray hit a mirror, create child and cast it
-            self._generate_child_ray(nearest_intersection_geometry.get_reflected_direction(self))
+        elif (
+            nearest_intersection_geometry.is_reflective
+            and self._generation < util.MAX_GENERATIONS
+        ):  # if the ray hit a mirror, create child and cast it
+            self._generate_child_ray(
+                nearest_intersection_geometry.get_reflected_direction(self)
+            )
             self._child_ray.cast_ray(world_objects)
             return
         self._child_ray = None
 
-
     def _generate_child_ray(self, direction):
         if self._child_ray is None:
-            self._child_ray = LightRay(self._end + direction * 0.001, direction, generation=self._generation + 1)
+            self._child_ray = LightRay(
+                self._end + direction * 0.001,
+                direction,
+                generation=self._generation + 1,
+            )
         else:
             self._child_ray._origin = self._end + direction * 0.001
             self._child_ray._direction = direction
 
     def draw(self):
-        arcade.draw_line(self._origin[0], self._origin[1], self._end[0], self._end[1], arcade.color.WHITE)
+        arcade.draw_line(
+            self._origin[0],
+            self._origin[1],
+            self._end[0],
+            self._end[1],
+            arcade.color.WHITE,
+        )
         if self._child_ray is not None:
             self._child_ray.draw()

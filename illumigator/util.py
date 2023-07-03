@@ -1,10 +1,11 @@
+import os
 from screeninfo import get_monitors, ScreenInfoError
 import arcade
 import numpy
 import math
 
-DEBUG_GEOMETRY: bool = False        # Toggle with G
-DEBUG_LIGHT_SOURCES: bool = False   # Toggle with L
+DEBUG_GEOMETRY: bool = False  # Toggle with G
+DEBUG_LIGHT_SOURCES: bool = False  # Toggle with L
 
 
 # ========================= System Constants =========================
@@ -17,16 +18,19 @@ except ScreenInfoError:
     print("No monitors detected!")
 
 
-
 # ========================= Game Constants =========================
 WINDOW_WIDTH: int = 1280
 WINDOW_HEIGHT: int = 720
 WINDOW_TITLE: str = "IllumiGator"
-COLORS: list[arcade.color] = [arcade.color.AQUAMARINE, arcade.color.BLUE, arcade.color.CHERRY,
-                              arcade.color.DAFFODIL, arcade.color.EGGPLANT]
-ENVIRON_PATH = "assets/"
+COLORS: list[arcade.Color] = [
+    arcade.color.AQUAMARINE,
+    arcade.color.BLUE,
+    arcade.color.CHERRY,
+    arcade.color.DAFFODIL,
+    arcade.color.EGGPLANT,
+]
+ENVIRON_PATH = os.path.join(os.path.split(__file__)[0], "assets/")
 VENV_PATH = "./venv/Lib/site-packages/illumigator/assets/"
-
 
 
 # ========================= Sprite Constants =========================
@@ -38,15 +42,17 @@ RECEIVER_SPRITE_INFO: tuple = ("light_receiver.png", 2, 32, 32)
 PLACEHOLDER_SPRITE_INFO: tuple = ("sprite.png", 0.25, 128, 128)
 
 # Player
-PLAYER_SPRITE_RIGHT = "character_right.png"
-PLAYER_SPRITE_LEFT = "character_left.png"
-
+PLAYER_SPRITE = "0{i}_gator_{direction}.png"
 
 
 # ========================= Script Constants =========================
 # Ray Casting Constants
-MAX_RAY_DISTANCE = math.sqrt(WINDOW_WIDTH ** 2 + WINDOW_HEIGHT ** 2)  # Max distance before ray goes off-screen
-STARTING_DISTANCE_VALUE = WINDOW_WIDTH**2 + WINDOW_HEIGHT**2  # Large number for starting out min distance calculations
+MAX_RAY_DISTANCE = math.sqrt(
+    WINDOW_WIDTH**2 + WINDOW_HEIGHT**2
+)  # Max distance before ray goes off-screen
+STARTING_DISTANCE_VALUE = (
+    WINDOW_WIDTH**2 + WINDOW_HEIGHT**2
+)  # Large number for starting out min distance calculations
 MAX_DISTANCE: float = 1000
 MAX_GENERATIONS: int = 50
 
@@ -59,31 +65,33 @@ LIGHT_INCREMENT: float = 0.009085 / NUM_LIGHT_RAYS
 RECEIVER_THRESHOLD: float = 0.7
 
 # Player Constants
-PLAYER_REACH_DISTANCE_SQUARED: int = 100 ** 2
+PLAYER_REACH_DISTANCE_SQUARED: int = 100**2
 PLAYER_MOVEMENT_SPEED = 10
 OBJECT_ROTATION_AMOUNT: float = 0.004
 
 
-
 # ========================= Physics Functions =========================
 def distance_squared(point1: numpy.array, point2: numpy.array) -> float:
-    dx, dy = point1[0]-point2[0], point1[1]-point2[1]
-    return dx*dx + dy*dy
+    dx, dy = point1[0] - point2[0], point1[1] - point2[1]
+    return dx * dx + dy * dy
 
 
 def distance_squared_ordered_pair(point: numpy.array, x: float, y: float) -> float:
-    dx, dy = point[0]-x, point[1]-y
-    return dx*dx + dy*dy
+    dx, dy = point[0] - x, point[1] - y
+    return dx * dx + dy * dy
 
 
-def rotate_around_center(center: numpy.array, point: numpy.array, angle: float) -> numpy.array:
+def rotate_around_center(
+    center: numpy.array, point: numpy.array, angle: float
+) -> numpy.array:
     relative_point = point - center
-    rotated_point = numpy.array([
-        relative_point[0]*math.cos(angle) - relative_point[1]*math.sin(angle),
-        relative_point[0]*math.sin(angle) + relative_point[1]*math.cos(angle)
-    ])
+    rotated_point = numpy.array(
+        [
+            relative_point[0] * math.cos(angle) - relative_point[1] * math.sin(angle),
+            relative_point[0] * math.sin(angle) + relative_point[1] * math.cos(angle),
+        ]
+    )
     return rotated_point + center
-
 
 
 # ========================= File Handling Functions =========================
@@ -104,18 +112,49 @@ def load_sprite(
     hit_box_algorithm: str | None = "Simple",
     hit_box_detail: float = 4.5,
     texture: arcade.Texture | None = None,
-    angle: float = 0
+    angle: float = 0,
 ) -> arcade.Sprite:
 
     try:
-        return arcade.Sprite(ENVIRON_PATH + filename, scale, image_x, image_y, image_width, image_height, center_x,
-                             center_y, repeat_count_x, repeat_count_y, flipped_horizontally, flipped_vertically,
-                             flipped_diagonally, hit_box_algorithm, hit_box_detail, texture, angle)
+        return arcade.Sprite(
+            ENVIRON_PATH + filename,
+            scale,
+            image_x,
+            image_y,
+            image_width,
+            image_height,
+            center_x,
+            center_y,
+            repeat_count_x,
+            repeat_count_y,
+            flipped_horizontally,
+            flipped_vertically,
+            flipped_diagonally,
+            hit_box_algorithm,
+            hit_box_detail,
+            texture,
+            angle,
+        )
     except FileNotFoundError:
-        return arcade.Sprite(VENV_PATH + filename, scale, image_x, image_y,
-                             image_width, image_height, center_x, center_y, repeat_count_x, repeat_count_y,
-                             flipped_horizontally, flipped_vertically, flipped_diagonally, hit_box_algorithm,
-                             hit_box_detail, texture, angle)
+        return arcade.Sprite(
+            VENV_PATH + filename,
+            scale,
+            image_x,
+            image_y,
+            image_width,
+            image_height,
+            center_x,
+            center_y,
+            repeat_count_x,
+            repeat_count_y,
+            flipped_horizontally,
+            flipped_vertically,
+            flipped_diagonally,
+            hit_box_algorithm,
+            hit_box_detail,
+            texture,
+            angle,
+        )
 
 
 def load_sound(filename: str) -> arcade.Sound:

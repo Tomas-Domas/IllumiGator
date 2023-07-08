@@ -2,10 +2,8 @@ import arcade
 import pyglet.media
 import numpy
 
-from illumigator.menus import draw_title_menu, InGameMenu, WinScreen
 from illumigator.util import WINDOW_WIDTH, WINDOW_HEIGHT
 from illumigator import util
-from illumigator import worldobjects
 
 
 class SpriteLoader:

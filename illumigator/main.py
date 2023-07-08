@@ -14,6 +14,8 @@ class GameObject(arcade.Window):
         self.background_sprite = None
         self.mouse_x = util.WINDOW_WIDTH / 2
         self.mouse_y = util.WINDOW_HEIGHT / 2
+        self.main_menu = None
+        self.options_menu = None
 
         self.set_mouse_visible(False)
         arcade.set_background_color(arcade.color.BLACK)
@@ -34,6 +36,9 @@ class GameObject(arcade.Window):
         self.current_level = level.load_level1()
         # self.current_level = level.load_test_level()
 
+        self.main_menu = menus.MenuView()
+        self.options_menu = menus.OptionsMenu()
+
     def on_update(self, delta_time):
         if self.game_state == "game":
             self.character.update(self.current_level)
@@ -50,7 +55,7 @@ class GameObject(arcade.Window):
         self.clear()
 
         if self.game_state == "menu":
-            menus.draw_title_menu()
+            self.show_view(self.main_menu)
         elif self.game_state == "game" or self.game_state == "paused":
             self.background_sprite.draw()
             self.current_level.draw()
@@ -61,6 +66,9 @@ class GameObject(arcade.Window):
 
         if self.game_state == "win":
             self.win_screen.draw()
+
+        if self.game_state == "options":
+            self.options_menu.draw()
 
     def on_key_press(self, key, key_modifiers):
         if self.game_state == "menu":
@@ -102,6 +110,8 @@ class GameObject(arcade.Window):
                 if self.game_menu.selection == 0:
                     self.game_state = "game"
                 elif self.game_menu.selection == 1:
+                    self.game_state = "options"
+                elif self.game_menu.selection == 2:
                     self.game_state = "menu"
 
         elif self.game_state == "win":
@@ -114,6 +124,21 @@ class GameObject(arcade.Window):
                     self.game_state = "menu"
                 elif self.win_screen.selection == 1:
                     self.setup()
+
+        elif self.game_state == "options":
+            if key == arcade.key.DOWN:
+                self.options_menu.increment_selection()
+            if key == arcade.key.UP:
+                self.options_menu.decrement_selection()
+            if key == arcade.key.ENTER:
+                if self.options_menu.selection == 0:
+                    self.game_state = "game"
+                elif self.options_menu.selection == 1:
+                    self.game_state = "controls"
+                elif self.options_menu.selection == 2:
+                    self.game_state = "audio"
+                elif self.options_menu.selection == 3:
+                    self.game_state = "video"
 
     def on_key_release(self, key, key_modifiers):
         if key == arcade.key.W or key == arcade.key.UP:

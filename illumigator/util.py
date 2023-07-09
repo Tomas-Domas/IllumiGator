@@ -5,7 +5,7 @@ import numpy
 import math
 
 DEBUG_GEOMETRY: bool = True        # Toggle with G
-DEBUG_LIGHT_SOURCES: bool = True   # Toggle with L
+DEBUG_LIGHT_SOURCES: bool = False   # Toggle with L
 
 # ========================= Game Constants =========================
 WINDOW_WIDTH: int = 1280

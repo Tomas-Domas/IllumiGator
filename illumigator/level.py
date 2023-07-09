@@ -73,14 +73,13 @@ class Level:
         for wall in self.wall_list:
             if wall.obj_animation is not None:
                 wall.apply_object_animation(character)
-        for light_source in self.light_sources_list:
-            light_source.cast_rays(self.wall_list + self.mirror_list + self.light_receiver_list +
-                                   self.light_sources_list)
-        if util.DEBUG_LIGHT_SOURCES:
-            for light_source in self.light_sources_list:
-                light_source.move(numpy.array([mouse_x - light_source._position[0], mouse_y - light_source._position[1]]))
         for light_receiver in self.light_receiver_list:
             light_receiver.charge *= util.CHARGE_DECAY
+        for light_source in self.light_sources_list:
+            if util.DEBUG_LIGHT_SOURCES:
+                light_source.move(numpy.array([mouse_x - light_source._position[0], mouse_y - light_source._position[1]]))
+            light_source.cast_rays(self.wall_list + self.mirror_list + self.light_receiver_list +
+                                   self.light_sources_list)
 
     def draw(self):
         for wall in self.wall_list:
@@ -131,12 +130,12 @@ def load_level1() -> Level:  # TODO: Load from JSON files
         light_source_coordinate_list
     )
 
-    # Animated Wall: # TODO: Handle animated walls. For now they're hand-made
+    # Animated Wall: # TODO: Handle animated walls with level generation. For now they're hand-made
     animated_wall = worldobjects.Wall(
         numpy.array([util.WINDOW_WIDTH - 176, util.WINDOW_HEIGHT - 240]),
-        numpy.array([1, 1]), 0
+        numpy.array([1, 2]), 0
     )
-    animated_wall.create_animation(numpy.array([128, 0]), 0.02)
+    animated_wall.create_animation(numpy.array([128, 0]), 0.02, numpy.pi)
     lvl.wall_list.append(animated_wall)
 
     return lvl
@@ -144,7 +143,7 @@ def load_level1() -> Level:  # TODO: Load from JSON files
 def load_test_level():
     wall_coordinate_list = []
     light_source_coordinate_list = [
-        [util.WINDOW_WIDTH / 4, 48, numpy.pi / 2, numpy.pi / 4]
+        [util.WINDOW_WIDTH / 4, 48, numpy.pi / 2, numpy.pi * 2]
     ]
     light_receiver_coordinate_list = []
     mirror_coordinate_list = []
@@ -157,7 +156,10 @@ def load_test_level():
     )
 
     lvl.wall_list[0]._geometry_segments.append(
-        geometry.Arc(numpy.array([300, 300]), 100, 0 * numpy.pi/2, 2 * numpy.pi/2)
+        geometry.Arc(numpy.array([300, 300]), 150, 0, numpy.pi)
+    )
+    lvl.wall_list[0]._geometry_segments.append(
+        geometry.Arc(numpy.array([300, 300]), 150, numpy.pi, numpy.pi)
     )
 
     return lvl

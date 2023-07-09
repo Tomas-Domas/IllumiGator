@@ -67,42 +67,47 @@ class WorldObject:
             for segment in self._geometry_segments:
                 segment.draw()
 
-    def move_geometry(self, move_distance: numpy.ndarray = numpy.zeros(2), rotate_angle: float = 0):
-        self._position = self._position + move_distance
-        self._rotation_angle = self._rotation_angle + rotate_angle
-        for segment in self._geometry_segments:
-            segment.move(self._position, move_distance, rotate_angle=rotate_angle)
-
     def distance_squared_to_center(self, point_x, point_y):
         return util.distance_squared_ordered_pair(self._position, point_x, point_y)
 
     def check_collision(self, sprite: arcade.Sprite):
         return sprite.collides_with_list(self._sprite_list)
 
-    def apply_object_animation(self, character):
-        # Test for sprite collisions
-        position_change = self.obj_animation.get_new_position() - self._position
-        if not self.move_if_safe(character, move_distance=position_change):  # If move is unsafe
-            self.obj_animation.backtrack()
+    def move_geometry(self, move_distance: numpy.ndarray = numpy.zeros(2), rotate_angle: float = 0):
+        for segment in self._geometry_segments:
+            segment.move(self._position, move_distance, rotate_angle=rotate_angle)
+        self._position = self._position + move_distance
+        self._rotation_angle = self._rotation_angle + rotate_angle
 
     def move_if_safe(self, character, move_distance: numpy.ndarray = numpy.zeros(2), rotate_angle: float = 0) -> bool:
         for sprite in self._sprite_list:
-            new_position = numpy.array([sprite.center_x, sprite.center_y]) + move_distance
-            new_position = util.rotate_around_center(self._position, new_position, rotate_angle)
-            sprite.center_x, sprite.center_y = new_position[0], new_position[1]
+            new_position = numpy.array([sprite.center_x, sprite.center_y])
+            new_position = util.rotate_around_center(self._position, new_position, rotate_angle) + move_distance
             sprite.radians += rotate_angle
+            sprite.center_x, sprite.center_y = new_position[0], new_position[1]
         if self.check_collision(character.character_sprite):
             for sprite in self._sprite_list:
-                new_position = numpy.array([sprite.center_x, sprite.center_y]) - move_distance
-                new_position = util.rotate_around_center(self._position, new_position, rotate_angle)
-                sprite.center_x, sprite.center_y = new_position[0], new_position[1]
+                new_position = numpy.array([sprite.center_x, sprite.center_y])
+                new_position = util.rotate_around_center(self._position, new_position, -rotate_angle) - move_distance
                 sprite.radians -= rotate_angle
+                sprite.center_x, sprite.center_y = new_position[0], new_position[1]
             return False
         self.move_geometry(move_distance, rotate_angle)
         return True
 
-    def create_animation(self, travel: numpy.ndarray, dt: float = 0.01):
-        self.obj_animation = object_animation.ObjectAnimation(self._position, self._position+travel, dt)
+    def create_animation(self, travel: numpy.ndarray, dt: float = 0.01, angle_travel: float = 0):
+        self.obj_animation = object_animation.ObjectAnimation(
+            self._position, self._position+travel, dt,
+            angle1=self._rotation_angle, angle2=self._rotation_angle+angle_travel
+        )
+
+    def apply_object_animation(self, character):
+        # Test for sprite collisions
+        animation_data = self.obj_animation.get_new_position()
+        position_change = animation_data[0] - self._position
+        angle_change = animation_data[1] - self._rotation_angle
+        if not self.move_if_safe(character, move_distance=position_change, rotate_angle=angle_change):  # If move is unsafe
+            self.obj_animation.backtrack()
 
 
 class Wall(WorldObject):
@@ -114,7 +119,9 @@ class Mirror(WorldObject):
     def __init__(self, position: numpy.ndarray, rotation_angle: float):
         super().__init__(position, numpy.ones(2), rotation_angle, util.MIRROR_SPRITE_INFO, is_interactable=True)
         self._geometry_segments[0].is_reflective = True
+        self._geometry_segments[0].calculate_normal()
         self._geometry_segments[2].is_reflective = True
+        self._geometry_segments[2].calculate_normal()
 
 
 class LightSource(WorldObject):

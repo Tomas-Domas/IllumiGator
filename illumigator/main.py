@@ -27,8 +27,8 @@ class GameObject(arcade.Window):
         self.win_screen = menus.WinScreen()
         self.character = entity.Character()
 
-        self.current_level = level.load_level1()
-        # self.current_level = level.load_test_level()
+        # self.current_level = level.load_level1()
+        self.current_level = level.load_test_level()
 
 
     def on_update(self, delta_time):

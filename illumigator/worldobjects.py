@@ -19,7 +19,6 @@ class WorldObject:
     obj_animation: object_animation.ObjectAnimation | None
 
     _sprite_list: arcade.SpriteList
-    color: tuple[int, int, int]
 
     def __init__(
         self,
@@ -27,7 +26,6 @@ class WorldObject:
         dimensions: numpy.ndarray,
         rotation_angle: float,
         sprite_info: tuple,
-        color=random.choice(util.COLORS),
         is_interactable=False,
         is_receiver=False,
     ):
@@ -39,7 +37,6 @@ class WorldObject:
         self.obj_animation = None
 
         self._sprite_list = arcade.SpriteList()
-        self.color = color
 
         sprite_path, sprite_scale, sprite_width, sprite_height = sprite_info
 
@@ -188,7 +185,7 @@ class RadialLightSource(LightSource):
 
 class ParallelLightSource(LightSource):
     def __init__(self, position: numpy.ndarray, rotation_angle: float):
-        super().__init__(position, rotation_angle, util.SOURCE_SPRITE_INFO)  # TODO: Use actual sprite
+        super().__init__(position, rotation_angle, util.SOURCE_SPRITE_INFO)
         self._width = util.SOURCE_SPRITE_INFO[1] * util.SOURCE_SPRITE_INFO[2]
         self.calculate_light_ray_positions()
 

@@ -7,8 +7,9 @@ from illumigator import util
 
 
 class Geometry(ABC):
-    is_reflective: bool
-    is_refractive: bool
+    def __init__(self, is_reflective: bool, is_refractive: bool):
+        self.is_reflective = is_reflective
+        self.is_refractive = is_refractive
 
     @abstractmethod
     def draw(self):
@@ -24,12 +25,10 @@ class Geometry(ABC):
 
 
 class Line(Geometry):
-    def __init__(self, point1: numpy.ndarray, point2: numpy.ndarray, is_reflective: bool = False,
-                 is_refractive: bool = False):
+    def __init__(self, point1: numpy.ndarray, point2: numpy.ndarray, is_reflective: bool = False, is_refractive: bool = False):
+        super().__init__(is_reflective, is_refractive)
         self._point1 = point1
         self._point2 = point2
-        self.is_reflective = is_reflective
-        self.is_refractive = is_refractive
 
     def get_intersection(self, ray) -> numpy.ndarray:
         # Don't @ me...    https://en.wikipedia.org/wiki/Line-line_intersection#Given_two_points_on_each_line_segment
@@ -83,10 +82,9 @@ class Line(Geometry):
 
 class Circle(Geometry):
     def __init__(self, center: numpy.ndarray, radius: float, is_reflective: bool = False, is_refractive: bool = False):
+        super().__init__(is_reflective, is_refractive)
         self.center = center
         self.radius = radius
-        self.is_reflective = is_reflective
-        self.is_refractive = is_refractive
 
     def get_intersection(self, ray) -> numpy.ndarray:  # TODO: optimize if necessary
         # Don't @ me...    https://en.wikipedia.org/wiki/Line-sphere_intersection#Calculation_using_vectors_in_3D
@@ -119,13 +117,15 @@ class Circle(Geometry):
 
 
 class Arc(Geometry):
-    def __init__(self, center: numpy.ndarray, radius: float, rotation_angle: float, angular_width: float, is_reflective: bool = False, is_refractive: bool = True):
+    def __init__(self, center: numpy.ndarray, radius: float, rotation_angle: float, angular_width: float,
+                 is_reflective: bool = False, is_refractive: bool = True):
+        super().__init__(is_reflective, is_refractive)
         if angular_width > numpy.pi:
-            print("ERROR: Arc angle cannot be greater than PI! Physics calculations will not work correctly for this object!")
-        self.drawing_start_angle = rotation_angle - angular_width / 2
-        self.drawing_end_angle = rotation_angle + angular_width / 2
-        self.physics_start_angle = self.drawing_start_angle
-        self.physics_end_angle = self.drawing_end_angle
+            raise ValueError("Arc angle cannot be greater than PI")
+        self._drawing_start_angle = rotation_angle - angular_width / 2
+        self._drawing_end_angle = rotation_angle + angular_width / 2
+        self._physics_start_angle = self._drawing_start_angle
+        self._physics_end_angle = self._drawing_end_angle
         self._constrain_physics_angles()
 
         self.center = center
@@ -133,17 +133,16 @@ class Arc(Geometry):
         self.is_reflective = is_reflective
         self.is_refractive = is_refractive
 
-    def _constrain_physics_angles(self):
-        # CONSTRAIN BETWEEN -PI, PI
-        if self.physics_start_angle > numpy.pi:
-            self.physics_start_angle -= 2 * numpy.pi
-        elif self.physics_start_angle < -numpy.pi:
-            self.physics_start_angle += 2 * numpy.pi
+    def _constrain_physics_angles(self):  # Constrain between (-PI, PI)
+        if self._physics_start_angle > numpy.pi:
+            self._physics_start_angle -= 2 * numpy.pi
+        elif self._physics_start_angle < -numpy.pi:
+            self._physics_start_angle += 2 * numpy.pi
 
-        if self.physics_end_angle > numpy.pi:
-            self.physics_end_angle -= 2 * numpy.pi
-        elif self.physics_end_angle < -numpy.pi:
-            self.physics_end_angle += 2 * numpy.pi
+        if self._physics_end_angle > numpy.pi:
+            self._physics_end_angle -= 2 * numpy.pi
+        elif self._physics_end_angle < -numpy.pi:
+            self._physics_end_angle += 2 * numpy.pi
 
     def get_intersection(self, ray) -> numpy.ndarray:  # TODO: optimize if necessary
         # Don't @ me...    https://en.wikipedia.org/wiki/Line-sphere_intersection#Calculation_using_vectors_in_3D
@@ -165,16 +164,16 @@ class Arc(Geometry):
         if intersection_distance1 > 0:
             point1 = ray._origin + intersection_distance1 * ray._direction
             point1_angle = math.atan2(point1[1] - self.center[1], point1[0] - self.center[0])
-            if not ((self.physics_start_angle < point1_angle < self.physics_end_angle) or
-                    (self.physics_start_angle < point1_angle and self.physics_end_angle < 0) or
-                    (self.physics_end_angle > point1_angle and self.physics_start_angle > 0)):
+            if not ((self._physics_start_angle < point1_angle < self._physics_end_angle) or
+                    (self._physics_start_angle < point1_angle and self._physics_end_angle < 0) or
+                    (self._physics_end_angle > point1_angle and self._physics_start_angle > 0)):
                 point1 = None
         if intersection_distance2 > 0:
             point2 = ray._origin + intersection_distance2 * ray._direction
             point2_angle = math.atan2(point2[1] - self.center[1], point2[0] - self.center[0])
-            if not ((self.physics_start_angle < point2_angle < self.physics_end_angle) or
-                    (self.physics_start_angle < point2_angle and self.physics_end_angle < 0) or
-                    (self.physics_end_angle > point2_angle and self.physics_start_angle > 0)):
+            if not ((self._physics_start_angle < point2_angle < self._physics_end_angle) or
+                    (self._physics_start_angle < point2_angle and self._physics_end_angle < 0) or
+                    (self._physics_end_angle > point2_angle and self._physics_start_angle > 0)):
                 point2 = None
 
 
@@ -192,45 +191,36 @@ class Arc(Geometry):
 
     def move(self, world_object_center, move_distance, rotate_angle=0):
         self.center = util.rotate_around_center(world_object_center, self.center, rotate_angle) + move_distance
-        self.drawing_start_angle += rotate_angle
-        self.drawing_end_angle += rotate_angle
-        self.physics_start_angle += rotate_angle
-        self.physics_end_angle += rotate_angle
+        self._drawing_start_angle += rotate_angle
+        self._drawing_end_angle += rotate_angle
+        self._physics_start_angle += rotate_angle
+        self._physics_end_angle += rotate_angle
         self._constrain_physics_angles()
 
     def draw(self):
-        # arcade.draw_circle_outline(self.center[0], self.center[1], self.radius, arcade.color.MAGENTA)
         arcade.draw_arc_outline(
             self.center[0], self.center[1],
             2 * self.radius, 2 * self.radius,
             arcade.color.MAGENTA,
-            self.drawing_start_angle * 180 / numpy.pi, self.drawing_end_angle * 180 / numpy.pi, border_width=2
+            self._drawing_start_angle * 180 / numpy.pi, self._drawing_end_angle * 180 / numpy.pi, border_width=2
         )
 
     def get_refracted_direction(self, ray, point: numpy.ndarray):
         # Determine normal
-        normal: numpy.ndarray = (point - self.center) / self.radius
+        normal = (point - self.center) / self.radius
         # Determine whether coming into or out of shape
-        dot = normal @ ray._direction
+        dot_product = normal @ ray._direction
 
-        if dot < 0:
-            # Determine angle with normal
-            angle = numpy.pi - math.acos(dot)
-            print("coming in: " + str(angle))
-            # Determine new angle
-            new_angle = angle / util.INDEX_OF_REFRACTION
+        if dot_product < 0:  # Ray is coming into the shape
+            # Determine refraction angle with respect to normal
+            angle = (numpy.pi - math.acos(dot_product)) / util.INDEX_OF_REFRACTION
             if util.two_d_cross_product(ray._direction, normal) < 0:
-                new_angle = -new_angle
-            # Make vector with that angle
-            return -util.rotate_around_center(numpy.zeros(2), normal, new_angle)
+                angle = -angle
+            # Create vector with new angle from normal
+            return -util.rotate_around_center(numpy.zeros(2), normal, angle)
 
-        else:
-            # Determine angle with normal
-            angle = numpy.pi - math.acos(-dot)
-            print("going out: " + str(angle))
-            # Determine new angle
-            new_angle = angle * util.INDEX_OF_REFRACTION
+        else:  # Ray is going out of shape
+            angle = (numpy.pi - math.acos(-dot_product)) * util.INDEX_OF_REFRACTION
             if util.two_d_cross_product(ray._direction, normal) > 0:
-                new_angle = -new_angle
-            # Make vector with that angle
-            return util.rotate_around_center(numpy.zeros(2), normal, new_angle)
+                angle = -angle
+            return util.rotate_around_center(numpy.zeros(2), normal, angle)

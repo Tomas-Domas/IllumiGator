@@ -171,7 +171,7 @@ def load_level1() -> Level:  # TODO: Load from JSON files
         light_source_coordinate_list
     )
 
-    # Animated Wall: # TODO: Handle animated walls with level generation. For now they're hand-made
+    # Animated Wall: # TODO: Handle animated walls with level generation. For now, they're hand-made
     animated_wall = worldobjects.Wall(
         numpy.array([util.WINDOW_WIDTH - 176, util.WINDOW_HEIGHT - 240]),
         numpy.array([1, 1]),
@@ -199,10 +199,10 @@ def load_test_level():
     )
 
     lvl.wall_list[0]._geometry_segments.append(
-        geometry.Arc(numpy.array([300, 300]), 150, 0, numpy.pi)
+        geometry.Arc(numpy.array([util.WINDOW_WIDTH/2, util.WINDOW_HEIGHT/2]), 200, numpy.pi/2, numpy.pi)
     )
     lvl.wall_list[0]._geometry_segments.append(
-        geometry.Arc(numpy.array([300, 300]), 150, numpy.pi, numpy.pi)
+        geometry.Arc(numpy.array([util.WINDOW_WIDTH/2, util.WINDOW_HEIGHT/2]), 200, -numpy.pi/2, numpy.pi)
     )
 
     return lvl

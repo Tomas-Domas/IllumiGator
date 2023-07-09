@@ -68,9 +68,17 @@ class Line(Geometry):
 
     def draw(self):
         if self.is_reflective:
-            arcade.draw_line(self._point1[0], self._point1[1], self._point2[0], self._point2[1], arcade.color.WHITE)
+            arcade.draw_line(
+                self._point1[0], self._point1[1],
+                self._point2[0], self._point2[1],
+                arcade.color.WHITE,
+            )
         else:
-            arcade.draw_line(self._point1[0], self._point1[1], self._point2[0], self._point2[1], arcade.color.BLUE)
+            arcade.draw_line(
+                self._point1[0], self._point1[1],
+                self._point2[0], self._point2[1],
+                arcade.color.BLUE,
+            )
 
 
 class Circle(Geometry):
@@ -85,7 +93,8 @@ class Circle(Geometry):
         temp_calculation1 = ray._direction @ (ray._origin - self.center)
         temp_calculation2 = numpy.linalg.norm(ray._origin - self.center)
         nabla = (temp_calculation1 * temp_calculation1) - (
-                (temp_calculation2 * temp_calculation2) - self.radius * self.radius)
+            (temp_calculation2 * temp_calculation2) - self.radius * self.radius
+        )
         if nabla < 0:
             return None
 
@@ -104,7 +113,9 @@ class Circle(Geometry):
         self.center = util.rotate_around_center(world_object_center, self.center, rotate_angle) + move_distance
 
     def draw(self):
-        arcade.draw_circle_outline(self.center[0], self.center[1], self.radius, arcade.color.MAGENTA)
+        arcade.draw_circle_outline(
+            self.center[0], self.center[1], self.radius, arcade.color.MAGENTA
+        )
 
 
 class Arc(Geometry):
@@ -139,7 +150,8 @@ class Arc(Geometry):
         temp_calculation1 = ray._direction @ (ray._origin - self.center)
         temp_calculation2 = numpy.linalg.norm(ray._origin - self.center)
         nabla = (temp_calculation1 * temp_calculation1) - (
-                (temp_calculation2 * temp_calculation2) - self.radius * self.radius)
+            (temp_calculation2 * temp_calculation2) - self.radius * self.radius
+        )
         if nabla < 0:
             return None
 

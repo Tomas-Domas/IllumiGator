@@ -21,9 +21,16 @@ class WorldObject:
     _sprite_list: arcade.SpriteList
     color: tuple[int, int, int]
 
-
-    def __init__(self, position: numpy.ndarray, dimensions: numpy.ndarray, rotation_angle: float, sprite_info: tuple,
-                 color=random.choice(util.COLORS), is_interactable=False, is_receiver=False):
+    def __init__(
+        self,
+        position: numpy.ndarray,
+        dimensions: numpy.ndarray,
+        rotation_angle: float,
+        sprite_info: tuple,
+        color=random.choice(util.COLORS),
+        is_interactable=False,
+        is_receiver=False,
+    ):
         self._position = position
         self._rotation_angle = rotation_angle
         self._is_interactable = is_interactable
@@ -53,13 +60,22 @@ class WorldObject:
 
         for col in range(int(dimensions[0])):
             for row in range(int(dimensions[1])):
-                sprite_center = (position-axis1-axis2) + sprite_scale * \
-                                ((sprite_width*(col+0.5)*axis1_norm) + (sprite_height*(row+0.5)*axis2_norm))
+                sprite_center = (position - axis1 - axis2) + sprite_scale * (
+                        (sprite_width * (col + 0.5) * axis1_norm) + (sprite_height * (row + 0.5) * axis2_norm)
+                )
 
-                self._sprite_list.append(util.load_sprite(
-                    sprite_path, sprite_scale, image_width=sprite_width, image_height=sprite_height,
-                    center_x=sprite_center[0], center_y=sprite_center[1],
-                    angle=numpy.rad2deg(rotation_angle), hit_box_algorithm="Simple"))
+                self._sprite_list.append(
+                    util.load_sprite(
+                        sprite_path,
+                        sprite_scale,
+                        image_width=sprite_width,
+                        image_height=sprite_height,
+                        center_x=sprite_center[0],
+                        center_y=sprite_center[1],
+                        angle=numpy.rad2deg(rotation_angle),
+                        hit_box_algorithm="Simple",
+                    )
+                )
 
     def draw(self):
         self._sprite_list.draw(pixelated=True)
@@ -127,7 +143,10 @@ class Mirror(WorldObject):
 class LightSource(WorldObject):
     def __init__(self, position: numpy.ndarray, rotation_angle: float, sprite_info: tuple):
         super().__init__(position, numpy.ones(2), rotation_angle, sprite_info)
-        self._light_rays = [light.LightRay(numpy.zeros(2), numpy.zeros(2)) for _ in range(util.NUM_LIGHT_RAYS)]
+        self._light_rays = [
+            light.LightRay(numpy.zeros(2), numpy.zeros(2))
+            for _ in range(util.NUM_LIGHT_RAYS)
+        ]
         self._geometry_segments = []  # TODO: do this better, don't just overwrite to get rid of geometry
 
     def cast_rays(self, world_objects):
@@ -158,8 +177,10 @@ class RadialLightSource(LightSource):
     def calculate_light_ray_positions(self):
         num_rays = len(self._light_rays)
         for n in range(num_rays):
-            ray_angle = (n / num_rays) * (self._rotation_angle - self._angular_spread / 2) + (1 - n / num_rays) * (
-                    self._rotation_angle + self._angular_spread / 2)
+            ray_angle = (
+                (n / num_rays) * (self._rotation_angle - self._angular_spread / 2)
+                + (1 - n / num_rays) * (self._rotation_angle + self._angular_spread / 2)
+            )
             ray_direction = numpy.array([math.cos(ray_angle), math.sin(ray_angle)])
             self._light_rays[n]._origin = self._position
             self._light_rays[n]._direction = ray_direction
@@ -173,10 +194,20 @@ class ParallelLightSource(LightSource):
 
     def calculate_light_ray_positions(self):
         num_rays = len(self._light_rays)
-        ray_direction = numpy.array([math.cos(self._rotation_angle), math.sin(self._rotation_angle)])
-        spread_direction = numpy.array([math.cos(self._rotation_angle + 0.5*numpy.pi), math.sin(self._rotation_angle + 0.5*numpy.pi)])
+        ray_direction = numpy.array([
+            math.cos(self._rotation_angle),
+            math.sin(self._rotation_angle)
+        ])
+        spread_direction = numpy.array([
+            math.cos(self._rotation_angle + 0.5 * numpy.pi),
+            math.sin(self._rotation_angle + 0.5 * numpy.pi)
+        ])
         for n in range(num_rays):
-            self._light_rays[n]._origin = self._position - (self._width * (n/(util.NUM_LIGHT_RAYS-1) - 0.5)) * spread_direction
+            self._light_rays[n]._origin = (
+                self._position
+                - (self._width * (n / (util.NUM_LIGHT_RAYS - 1) - 0.5))
+                * spread_direction
+            )
             self._light_rays[n]._direction = ray_direction
 
 

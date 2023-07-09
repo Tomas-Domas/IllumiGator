@@ -20,10 +20,10 @@ class ObjectAnimation:
     def get_new_position(self):
         self.t = self.t + self.dt
         if self.t > 1:
-            self.dt = - self.dt
+            self.dt = -self.dt
             self.t = 1
         if self.t < 0:
-            self.dt = - self.dt
+            self.dt = -self.dt
             self.t = 0
 
         return (
@@ -34,8 +34,8 @@ class ObjectAnimation:
     def backtrack(self):
         self.t = self.t - self.dt
         if self.t > 1:
-            self.dt = - self.dt
+            self.dt = -self.dt
             self.t = 1
         if self.t < 0:
-            self.dt = - self.dt
+            self.dt = -self.dt
             self.t = 0

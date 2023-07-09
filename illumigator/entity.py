@@ -2,27 +2,65 @@ import arcade
 import pyglet.media
 import numpy
 
-from illumigator.menus import draw_title_menu, InGameMenu, WinScreen
 from illumigator.util import WINDOW_WIDTH, WINDOW_HEIGHT
 from illumigator import util
-from illumigator import worldobjects
+
+
+class SpriteLoader:
+    """
+    Sprites manager and Iterator for a specific direction
+    """
+
+    def __init__(self, direction):
+        self.suffix = direction
+        self._sprites = []
+        self._sprite_files = []
+        self._index = -1
+        for i in range(6):
+            fname = util.PLAYER_SPRITE.format(i=i, direction=direction)
+            self._sprite_files.append(fname)
+            sprite = util.load_texture(fname)
+            self._sprites.append(sprite)
+        self.stationary = self._sprites[0]
+
+    def reset(self):
+        self._index = -1
+
+    def get_stationary(self):
+        self.reset()
+        return next(self)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        self._index = (self._index + 1) % len(self._sprites)
+        return self._sprites[self._index]
+
 
 class Character:
-    def __init__(self,
-                 scale_factor=2,
-                 image_width=24,
-                 image_height=24,
-                 center_x=WINDOW_WIDTH // 2,
-                 center_y=WINDOW_HEIGHT // 2):
+    def __init__(
+        self,
+        scale_factor=2,
+        image_width=24,
+        image_height=24,
+        center_x=WINDOW_WIDTH // 2,
+        center_y=WINDOW_HEIGHT // 2,
+    ):
 
-        self.textures = [
-            util.load_texture(util.PLAYER_SPRITE_RIGHT),
-            util.load_texture(util.PLAYER_SPRITE_LEFT)
-        ]
+        self.left_character_loader = SpriteLoader("left")
+        self.right_character_loader = SpriteLoader("right")
 
-        self.character_sprite = util.load_sprite(util.PLAYER_SPRITE_RIGHT, scale_factor, image_width=image_width,
-                                                 image_height=image_height, center_x=center_x, center_y=center_y,
-                                                 hit_box_algorithm="Simple")
+        self.character_sprite = util.load_sprite(
+            self.right_character_loader._sprite_files[0],
+            scale_factor,
+            image_width=image_width,
+            image_height=image_height,
+            center_x=center_x,
+            center_y=center_y,
+            hit_box_algorithm="Simple",
+        )
+
         self.left = False
         self.right = False
         self.up = False
@@ -46,24 +84,41 @@ class Character:
 
         self.rotate_surroundings(level)
         if self.rotation_factor < 3.00:
-            self.rotation_factor += 1/15
+            self.rotation_factor += 1 / 15
 
     def walk(self, level):
         direction = numpy.zeros(2)
         if self.right:
-            self.character_sprite.texture = self.textures[0]
+            self.character_sprite.texture = next(self.right_character_loader)
             direction[0] += 1
         if self.left:
-            self.character_sprite.texture = self.textures[1]
+            self.character_sprite.texture = next(self.left_character_loader)
             direction[0] -= 1
+
+        dir_is_right = "_right.png" in self.character_sprite.texture.name
+        if self.up or self.down:
+            if dir_is_right:
+                self.character_sprite.texture = next(self.right_character_loader)
+            else:
+                self.character_sprite.texture = next(self.left_character_loader)
         if self.up:
             direction[1] += 1
         if self.down:
             direction[1] -= 1
 
+        if not self.up and not self.down and not self.left and not self.right:
+            if dir_is_right:
+                self.right_character_loader.reset()
+                self.character_sprite.texture = next(self.right_character_loader)
+            else:
+                self.left_character_loader.reset()
+                self.character_sprite.texture = next(self.left_character_loader)
+
         direction_mag = numpy.linalg.norm(direction)
         if direction_mag > 0:
-            direction = direction * util.PLAYER_MOVEMENT_SPEED / direction_mag  # Normalize and scale with speed
+            direction = (
+                direction * util.PLAYER_MOVEMENT_SPEED / direction_mag
+            )  # Normalize and scale with speed
 
             # Checking if x movement is valid
             self.character_sprite.center_x += direction[0]
@@ -85,14 +140,26 @@ class Character:
                 arcade.stop_sound(self.player)
 
     def rotate_surroundings(self, level):
-        closest_distance_squared = util.STARTING_DISTANCE_VALUE  # arbitrarily large number
+        closest_distance_squared = (
+            util.STARTING_DISTANCE_VALUE
+        )  # arbitrarily large number
         closest_mirror = None
         for mirror in level.mirror_list:
-            distance = mirror.distance_squared_to_center(self.character_sprite.center_x, self.character_sprite.center_y)
+            distance = mirror.distance_squared_to_center(
+                self.character_sprite.center_x, self.character_sprite.center_y
+            )
             if distance < closest_distance_squared:
                 closest_mirror = mirror
                 closest_distance_squared = distance
 
-        if closest_mirror is not None and closest_distance_squared <= util.PLAYER_REACH_DISTANCE_SQUARED:
-            closest_mirror.move_if_safe(self, numpy.zeros(2),
-                                        self.rotation_dir * util.OBJECT_ROTATION_AMOUNT * (2 ** self.rotation_factor))
+        if (
+            closest_mirror is not None
+            and closest_distance_squared <= util.PLAYER_REACH_DISTANCE_SQUARED
+        ):
+            closest_mirror.move_if_safe(
+                self,
+                numpy.zeros(2),
+                self.rotation_dir
+                * util.OBJECT_ROTATION_AMOUNT
+                * (2**self.rotation_factor),
+            )

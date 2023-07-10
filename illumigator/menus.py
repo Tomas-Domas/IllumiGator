@@ -32,15 +32,16 @@ class MenuView(arcade.View):
         )
 
 
-class OptionsMenu:
-    def __init__(self, selection=0):
+class GenericMenu:
+    def __init__(self, title, options, selection=0):
+        self.title = title
+        self.options = options
         self._selection = selection
-        self.options = ("RETURN", "CONTROLS", "AUDIO", "VIDEO")
 
     def draw(self):
         dy = 0
         arcade.draw_text(
-            "OPTIONS",
+            self.title,
             x_midpoint,
             y_midpoint + util.WINDOW_HEIGHT // 4,
             arcade.color.WHITE,

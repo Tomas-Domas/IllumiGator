@@ -7,15 +7,18 @@ class GameObject(arcade.Window):
     def __init__(self):
         super().__init__(util.WINDOW_WIDTH, util.WINDOW_HEIGHT, util.WINDOW_TITLE)
         self.game_state = None
-        self.game_menu = None
-        self.win_screen = None
         self.character = None
         self.current_level = None
         self.background_sprite = None
         self.mouse_x = util.WINDOW_WIDTH / 2
         self.mouse_y = util.WINDOW_HEIGHT / 2
+
+        # ========================= Menus =========================
         self.main_menu = None
+        self.win_screen = None
         self.options_menu = None
+        self.game_menu = None
+        self.video_menu = None
 
         self.set_mouse_visible(False)
         arcade.set_background_color(arcade.color.BLACK)
@@ -29,15 +32,17 @@ class GameObject(arcade.Window):
             center_y=util.WINDOW_HEIGHT / 2,
         )
         self.background_sprite.alpha = 100
-        self.game_menu = menus.InGameMenu()
-        self.win_screen = menus.WinScreen()
         self.character = entity.Character()
 
         self.current_level = level.load_level1()
         # self.current_level = level.load_test_level()
 
+        # ========================= Menus =========================
         self.main_menu = menus.MenuView()
-        self.options_menu = menus.OptionsMenu()
+        self.game_menu = menus.InGameMenu()
+        self.win_screen = menus.WinScreen()
+        self.options_menu = menus.GenericMenu("OPTIONS", ("RETURN", "CONTROLS", "AUDIO", "VIDEO"))
+        self.video_menu = menus.GenericMenu("VIDEO", ("RETURN", "720p", "1080p", "1440p", "2160p (4K)"))
 
     def on_update(self, delta_time):
         if self.game_state == "game":
@@ -69,6 +74,9 @@ class GameObject(arcade.Window):
 
         if self.game_state == "options":
             self.options_menu.draw()
+
+        if self.game_state == "video":
+            self.video_menu.draw()
 
     def on_key_press(self, key, key_modifiers):
         if self.game_state == "menu":
@@ -139,6 +147,29 @@ class GameObject(arcade.Window):
                     self.game_state = "audio"
                 elif self.options_menu.selection == 3:
                     self.game_state = "video"
+
+        elif self.game_state == "video":
+            if key == arcade.key.DOWN:
+                self.video_menu.increment_selection()
+            if key == arcade.key.UP:
+                self.video_menu.decrement_selection()
+            if key == arcade.key.ENTER:
+                if self.video_menu.selection == 0:
+                    self.game_state = "options"
+                if self.video_menu.selection == 1:
+                    util.WINDOW_WIDTH = 1280
+                    util.WINDOW_HEIGHT = 720
+                if self.video_menu.selection == 2:
+                    util.WINDOW_WIDTH = 1920
+                    util.WINDOW_HEIGHT = 1080
+                if self.video_menu.selection == 3:
+                    util.WINDOW_WIDTH = 2560
+                    util.WINDOW_HEIGHT = 1440
+                if self.video_menu.selection == 4:
+                    util.WINDOW_WIDTH = 3840
+                    util.WINDOW_HEIGHT = 2160
+                self.current_level = level.load_level1()  # TODO: new scale
+                super().set_size(util.WINDOW_WIDTH, util.WINDOW_HEIGHT)
 
     def on_key_release(self, key, key_modifiers):
         if key == arcade.key.W or key == arcade.key.UP:

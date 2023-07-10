@@ -11,6 +11,8 @@ class Level:
         light_receiver_coordinate_list: list[list] = None,
         light_source_coordinate_list: list[list] = None,
         name="default",
+        #TODO: implement scaling option for loading level
+        scale=1
     ):
         self.background = None
         self.name = name

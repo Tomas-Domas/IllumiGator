@@ -32,11 +32,13 @@ class MenuView(arcade.View):
         )
 
 
+# TODO: Fix text-scaling/positioning
 class GenericMenu:
-    def __init__(self, title, options, selection=0):
+    def __init__(self, title, options, selection=0, scale=1):
         self.title = title
         self.options = options
         self._selection = selection
+        self._scale = scale
 
     def draw(self):
         dy = 0
@@ -45,7 +47,7 @@ class GenericMenu:
             x_midpoint,
             y_midpoint + util.WINDOW_HEIGHT // 4,
             arcade.color.WHITE,
-            48,
+            48 * self._scale,
             anchor_x="center",
             anchor_y="top",
         )
@@ -54,9 +56,9 @@ class GenericMenu:
             if index == self._selection:
                 color = arcade.color.RED
             arcade.draw_text(
-                option, x_midpoint, y_midpoint - dy, color, 24, anchor_x="center"
+                option, x_midpoint, y_midpoint - dy, color, 24 * self._scale, anchor_x="center"
             )
-            dy += 50
+            dy += 50 * self._scale
 
     def increment_selection(self):
         self._selection = (
@@ -67,6 +69,14 @@ class GenericMenu:
         self._selection = (
             len(self.options) - 1 if self._selection == 0 else self._selection - 1
         )
+
+    @property
+    def scale(self):
+        return self._scale
+
+    @scale.setter
+    def scale(self, scale):
+        _scale = scale
 
     @property
     def selection(self):

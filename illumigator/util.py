@@ -15,6 +15,11 @@ WINDOW_TITLE: str = "IllumiGator"
 ENVIRON_PATH = os.path.join(os.path.split(__file__)[0], "assets/")
 VENV_PATH = "./venv/Lib/site-packages/illumigator/assets/"
 
+for m in get_monitors():
+    if m.is_primary:
+        SCREEN_WIDTH = m.width
+        SCREEN_HEIGHT = m.height
+
 
 # ========================= Sprite Constants =========================
 # World Objects

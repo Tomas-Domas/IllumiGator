@@ -6,12 +6,15 @@ from illumigator import entity, level, menus, util
 class GameObject(arcade.Window):
     def __init__(self):
         super().__init__(util.WINDOW_WIDTH, util.WINDOW_HEIGHT, util.WINDOW_TITLE)
-        self.game_state = None
         self.character = None
         self.current_level = None
         self.background_sprite = None
         self.mouse_x = util.WINDOW_WIDTH / 2
         self.mouse_y = util.WINDOW_HEIGHT / 2
+
+        # ========================= State =========================
+        self.game_state = None
+        self.is_fullscreen = False
 
         # ========================= Menus =========================
         self.main_menu = None
@@ -42,7 +45,7 @@ class GameObject(arcade.Window):
         self.game_menu = menus.InGameMenu()
         self.win_screen = menus.WinScreen()
         self.options_menu = menus.GenericMenu("OPTIONS", ("RETURN", "CONTROLS", "AUDIO", "VIDEO"))
-        self.video_menu = menus.GenericMenu("VIDEO", ("RETURN", "720p", "1080p", "1440p", "2160p (4K)"))
+        self.video_menu = menus.GenericMenu("VIDEO", ("RETURN", "720p", "1080p", "1440p", "2160p (4K)", "FULLSCREEN"))
 
     def on_update(self, delta_time):
         if self.game_state == "game":
@@ -154,22 +157,40 @@ class GameObject(arcade.Window):
             if key == arcade.key.UP:
                 self.video_menu.decrement_selection()
             if key == arcade.key.ENTER:
-                if self.video_menu.selection == 0:
-                    self.game_state = "options"
-                if self.video_menu.selection == 1:
-                    util.WINDOW_WIDTH = 1280
-                    util.WINDOW_HEIGHT = 720
-                if self.video_menu.selection == 2:
-                    util.WINDOW_WIDTH = 1920
-                    util.WINDOW_HEIGHT = 1080
-                if self.video_menu.selection == 3:
-                    util.WINDOW_WIDTH = 2560
-                    util.WINDOW_HEIGHT = 1440
-                if self.video_menu.selection == 4:
-                    util.WINDOW_WIDTH = 3840
-                    util.WINDOW_HEIGHT = 2160
-                self.current_level = level.load_level1()  # TODO: new scale
-                super().set_size(util.WINDOW_WIDTH, util.WINDOW_HEIGHT)
+                if self.video_menu.selection != 5:
+                    if self.video_menu.selection == 0:
+                        self.game_state = "options"
+                    if not self.is_fullscreen:
+                        scale_factor = 1
+                        if self.video_menu.selection == 1:
+                            scale_factor = util.WINDOW_HEIGHT / 720
+                            util.WINDOW_WIDTH = 1280
+                            util.WINDOW_HEIGHT = 720
+                        if self.video_menu.selection == 2:
+                            scale_factor = util.WINDOW_HEIGHT / 1080
+                            util.WINDOW_WIDTH = 1920
+                            util.WINDOW_HEIGHT = 1080
+                        if self.video_menu.selection == 3:
+                            scale_factor = util.WINDOW_HEIGHT / 1440
+                            util.WINDOW_WIDTH = 2560
+                            util.WINDOW_HEIGHT = 1440
+                        if self.video_menu.selection == 4:
+                            scale_factor = util.WINDOW_HEIGHT / 2160
+                            util.WINDOW_WIDTH = 3840
+                            util.WINDOW_HEIGHT = 2160
+                        self.options_menu.scale = scale_factor
+                        self.video_menu.scale = scale_factor
+                        self.current_level = level.load_level1()  # TODO: new scale
+                        super().set_size(util.WINDOW_WIDTH, util.WINDOW_HEIGHT)
+                elif self.video_menu.selection == 5:
+                    scale_factor = util.SCREEN_HEIGHT / util.WINDOW_HEIGHT
+                    util.WINDOW_WIDTH = util.SCREEN_WIDTH
+                    util.WINDOW_HEIGHT = util.SCREEN_HEIGHT
+                    self.options_menu.scale = scale_factor
+                    self.video_menu.scale = scale_factor
+                    print(scale_factor)
+                    self.is_fullscreen = not self.is_fullscreen
+                    super().set_fullscreen(self.is_fullscreen)
 
     def on_key_release(self, key, key_modifiers):
         if key == arcade.key.W or key == arcade.key.UP:

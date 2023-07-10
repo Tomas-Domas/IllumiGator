@@ -14,13 +14,15 @@ class Geometry(ABC):
     @abstractmethod
     def draw(self):
         pass
-
     @abstractmethod
     def get_intersection(self, ray) -> tuple:
         pass
-
     @abstractmethod
     def move(self, world_object_center, move_distance, rotate_angle=0):
+        pass
+
+    @abstractmethod
+    def scale(self, scale_factor):
         pass
 
 
@@ -57,6 +59,10 @@ class Line(Geometry):
         self._point2 = util.rotate_around_center(world_object_center, self._point2, rotate_angle) + move_distance
         if self.is_reflective or self.is_refractive:
             self.calculate_normal()
+
+    def scale(self, scale_factor):
+        self._point1 *= scale_factor
+        self._point2 *= scale_factor
 
     def calculate_normal(self):
         normal_unscaled = numpy.array([-(self._point2[1] - self._point1[1]), self._point2[0] - self._point1[0]])
@@ -109,6 +115,10 @@ class Circle(Geometry):
 
     def move(self, world_object_center, move_distance, rotate_angle=0):
         self.center = util.rotate_around_center(world_object_center, self.center, rotate_angle) + move_distance
+
+    def scale(self, scale_factor):
+        self.center *= scale_factor
+        self.radius *= scale_factor
 
     def draw(self):
         arcade.draw_circle_outline(
@@ -196,6 +206,10 @@ class Arc(Geometry):
         self._physics_start_angle += rotate_angle
         self._physics_end_angle += rotate_angle
         self._constrain_physics_angles()
+
+    def scale(self, scale_factor):
+        self.center *= scale_factor
+        self.radius *= scale_factor
 
     def draw(self):
         arcade.draw_arc_outline(

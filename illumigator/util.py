@@ -21,6 +21,7 @@ for m in get_monitors():
         SCREEN_HEIGHT = m.height
 
 
+
 # ========================= Sprite Constants =========================
 # World Objects
 WALL_SPRITE_INFO: tuple = ("wall.png", 2, 16, 16)  # path, scale, width, height
@@ -31,6 +32,7 @@ PLACEHOLDER_SPRITE_INFO: tuple = ("sprite.png", 0.25, 128, 128)
 
 # Player
 PLAYER_SPRITE = "0{i}_gator_{direction}.png"
+
 
 
 # ========================= Script Constants =========================
@@ -50,21 +52,16 @@ LIGHT_INCREMENT: float = 0.009085 / NUM_LIGHT_RAYS
 RECEIVER_THRESHOLD: float = 0.7
 
 # Player Constants
-PLAYER_REACH_DISTANCE_SQUARED: int = 100**2
+PLAYER_REACH_DISTANCE_SQUARED: int = 200**2
 PLAYER_MOVEMENT_SPEED = 10
 OBJECT_ROTATION_AMOUNT: float = 0.004
+
 
 
 # ========================= Physics Functions =========================
 def distance_squared(point1: numpy.ndarray, point2: numpy.ndarray) -> float:
     dx, dy = point1[0] - point2[0], point1[1] - point2[1]
     return dx * dx + dy * dy
-
-
-def distance_squared_ordered_pair(point: numpy.ndarray, x: float, y: float) -> float:
-    dx, dy = point[0] - x, point[1] - y
-    return dx * dx + dy * dy
-
 
 def rotate_around_center(center: numpy.ndarray, point: numpy.ndarray, angle: float) -> numpy.ndarray:
     relative_point = point - center
@@ -76,7 +73,6 @@ def rotate_around_center(center: numpy.ndarray, point: numpy.ndarray, angle: flo
 
 def two_d_cross_product(vector1: numpy.ndarray, vector2: numpy.ndarray):
     return vector1[0]*vector2[1] - vector1[1]*vector2[0]
-
 
 
 

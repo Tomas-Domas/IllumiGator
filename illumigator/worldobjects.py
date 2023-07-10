@@ -1,7 +1,6 @@
 from abc import abstractmethod
 import arcade
 import numpy
-import random
 import math
 
 from illumigator import light
@@ -15,8 +14,9 @@ class WorldObject:
     _rotation_angle: float
     _is_interactable: bool
     _is_receiver: bool
-    _geometry_segments: list[geometry.Geometry] | None
+    _geometry_segments: list[geometry.Geometry]
     obj_animation: object_animation.ObjectAnimation | None
+    _scale_factor: float = 1
 
     _sprite_list: arcade.SpriteList
 
@@ -74,6 +74,19 @@ class WorldObject:
                     )
                 )
 
+    def scale(self, scale_factor):
+        self._scale_factor = scale_factor
+        self._position = self._position * scale_factor
+        for segment in self._geometry_segments:
+            segment.scale(scale_factor)
+        for sprite in self._sprite_list:
+            sprite.center_y *= scale_factor
+            sprite.center_x *= scale_factor
+            sprite.width *= scale_factor
+            sprite.height *= scale_factor
+        if self.obj_animation is not None:
+            self.obj_animation.scale(scale_factor)
+
     def draw(self):
         self._sprite_list.draw(pixelated=True)
         if util.DEBUG_GEOMETRY:
@@ -81,7 +94,7 @@ class WorldObject:
                 segment.draw()
 
     def distance_squared_to_center(self, point_x, point_y):
-        return util.distance_squared_ordered_pair(self._position, point_x, point_y)
+        return util.distance_squared(self._position, numpy.array([point_x, point_y]))
 
     def check_collision(self, sprite: arcade.Sprite):
         return sprite.collides_with_list(self._sprite_list)
@@ -94,14 +107,12 @@ class WorldObject:
 
     def move_if_safe(self, character, move_distance: numpy.ndarray = numpy.zeros(2), rotate_angle: float = 0) -> bool:
         for sprite in self._sprite_list:
-            new_position = numpy.array([sprite.center_x, sprite.center_y])
-            new_position = util.rotate_around_center(self._position, new_position, rotate_angle) + move_distance
+            new_position = util.rotate_around_center(self._position, numpy.array([sprite.center_x, sprite.center_y]), rotate_angle) + move_distance
             sprite.radians += rotate_angle
             sprite.center_x, sprite.center_y = new_position[0], new_position[1]
         if self.check_collision(character.character_sprite):
             for sprite in self._sprite_list:
-                new_position = numpy.array([sprite.center_x, sprite.center_y])
-                new_position = util.rotate_around_center(self._position, new_position, -rotate_angle) - move_distance
+                new_position = util.rotate_around_center(self._position, numpy.array([sprite.center_x, sprite.center_y]) - move_distance, -rotate_angle)
                 sprite.radians -= rotate_angle
                 sprite.center_x, sprite.center_y = new_position[0], new_position[1]
             return False
@@ -154,6 +165,11 @@ class LightSource(WorldObject):
         super().move_geometry(move_distance, rotate_angle)
         self._sprite_list.move(move_distance[0], move_distance[1])
         self.calculate_light_ray_positions()
+
+    def scale(self, scale_factor):
+        super().scale(scale_factor)
+        for ray in self._light_rays:
+            ray._origin *= scale_factor
 
     def draw(self):
         for ray in self._light_rays:

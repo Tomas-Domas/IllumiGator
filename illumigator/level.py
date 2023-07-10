@@ -11,11 +11,11 @@ class Level:
         light_receiver_coordinate_list: list[list] = None,
         light_source_coordinate_list: list[list] = None,
         name="default",
-        #TODO: implement scaling option for loading level
-        scale=1
+        scale_factor=1
     ):
         self.background = None
         self.name = name
+        self.scale_factor = 1
 
         self.mirror_list = []
         self.light_receiver_list = []
@@ -24,10 +24,12 @@ class Level:
         wall_size = util.WALL_SPRITE_INFO[1] * util.WALL_SPRITE_INFO[2]
         self.wall_list: list[worldobjects.WorldObject] = [
             worldobjects.Wall(
-                numpy.array(
-                    [wall_size * 0.5, util.WINDOW_HEIGHT * 0.5 - wall_size * 0.25]
-                ),
-                numpy.array([1, util.WINDOW_HEIGHT // wall_size + 1]),
+                numpy.array([
+                    wall_size * 0.5, util.WINDOW_HEIGHT * 0.5 - wall_size * 0.25
+                ]),
+                numpy.array([
+                    1, util.WINDOW_HEIGHT // wall_size + 1
+                ]),
                 0,
             ),
             worldobjects.Wall(
@@ -102,6 +104,20 @@ class Level:
                         light_source_coordinates[2],
                     )
                 )
+
+        self.scale_to_new_resolution(scale_factor)
+
+
+    def scale_to_new_resolution(self, new_scale_factor: float):
+        # To properly scale to a new resolution, the game object must be returned to the "normalized" size
+        # by dividing by the old scale factor and multiplying by the new one. Done in one step with true_scale_factor
+        true_scale_factor = new_scale_factor / self.scale_factor
+        full_list = self.wall_list + self.mirror_list + self.light_receiver_list + self.light_sources_list
+        for world_object in full_list:
+            world_object.scale(true_scale_factor)
+        self.scale_factor = new_scale_factor
+
+
 
     def update(self, character: entity.Character, mouse_x, mouse_y):
         for wall in self.wall_list:

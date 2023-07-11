@@ -20,7 +20,7 @@ class GameObject(arcade.Window):
         self.win_screen = None
         self.options_menu = None
         self.game_menu = None
-        self.video_menu = None
+        self.controls_menu = None
 
         self.set_mouse_visible(False)
         arcade.set_background_color(arcade.color.BLACK)
@@ -40,10 +40,12 @@ class GameObject(arcade.Window):
         # self.current_level = level.load_test_level()
 
         # ========================= Menus =========================
+        arcade.text_pyglet.load_font("assets/PressStart2P-Regular.ttf")
         self.main_menu = menus.MenuView()
         self.game_menu = menus.InGameMenu()
         self.win_screen = menus.WinScreen()
         self.options_menu = menus.GenericMenu("OPTIONS", ("RETURN", "CONTROLS", "AUDIO", "FULLSCREEN"))
+        self.controls_menu = menus.ControlsMenu()
 
     def on_update(self, delta_time):
         if self.game_state == "game":
@@ -78,6 +80,9 @@ class GameObject(arcade.Window):
 
         if self.game_state == "video":
             self.video_menu.draw()
+
+        if self.game_state == "controls":
+            self.controls_menu.draw()
 
     def on_key_press(self, key, key_modifiers):
 
@@ -145,13 +150,17 @@ class GameObject(arcade.Window):
                 self.options_menu.decrement_selection()
             if key == arcade.key.ENTER:
                 if self.options_menu.selection == 0:
-                    self.game_state = "game"
+                    self.game_state = "paused"
                 elif self.options_menu.selection == 1:
                     self.game_state = "controls"
                 elif self.options_menu.selection == 2:
                     self.game_state = "audio"
                 elif self.options_menu.selection == 3:
                     self.set_fullscreen(not self.fullscreen)
+
+        elif self.game_state == "controls":
+            if key -- arcade.key.ESCAPE:
+                self.game_state = "options"
 
     def on_key_release(self, key, key_modifiers):
         if key == arcade.key.W or key == arcade.key.UP:

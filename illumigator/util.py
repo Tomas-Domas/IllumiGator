@@ -21,7 +21,6 @@ DEBUG_GEOMETRY: bool = True        # Toggle with G
 DEBUG_LIGHT_SOURCES: bool = False   # Toggle with L
 
 
-
 # ========================= Asset Constants =========================
 # World Objects
 WALL_SPRITE_INFO: tuple = ("wall.png", 2.5, 16, 16)  # path, scale, width, height
@@ -38,7 +37,12 @@ PLAYER_SPRITE = "0{i}_gator_{direction}.png"
 ENVIRON_PATH = os.path.join(os.path.split(__file__)[0], "assets/")
 VENV_PATH = "./venv/Lib/site-packages/illumigator/assets/"
 
-
+# Fonts
+MENU_FONT = "Press Start 2P"
+BODY_FONT_SIZE = 12
+H3_FONT_SIZE = 24
+H2_FONT_SIZE = 36
+H1_FONT_SIZE = 48
 
 # ========================= Script Constants =========================
 # Ray Casting Constants

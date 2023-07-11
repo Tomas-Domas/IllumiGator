@@ -8,9 +8,13 @@ class GameObject(arcade.Window):
         super().__init__(util.WORLD_WIDTH, util.WORLD_HEIGHT, util.WINDOW_TITLE, resizable=True)
         self.character = None
         self.current_level = None
+
+        # ========================= Window =========================
+        arcade.set_background_color(arcade.color.BLACK)
         self.background_sprite = None
         self.mouse_x = util.WORLD_WIDTH // 2
         self.mouse_y = util.WORLD_HEIGHT // 2
+        self.set_mouse_visible(False)
 
         # ========================= State =========================
         self.game_state = None
@@ -21,9 +25,6 @@ class GameObject(arcade.Window):
         self.options_menu = None
         self.game_menu = None
         self.controls_menu = None
-
-        self.set_mouse_visible(False)
-        arcade.set_background_color(arcade.color.BLACK)
 
     def setup(self):
         self.game_state = "menu"
@@ -39,8 +40,10 @@ class GameObject(arcade.Window):
         self.current_level = level.load_level1()
         # self.current_level = level.load_test_level()
 
-        # ========================= Menus =========================
+        # ========================= Fonts =========================
         arcade.text_pyglet.load_font("assets/PressStart2P-Regular.ttf")
+
+        # ========================= Menus =========================
         self.main_menu = menus.MenuView()
         self.game_menu = menus.InGameMenu()
         self.win_screen = menus.WinScreen()
@@ -120,9 +123,9 @@ class GameObject(arcade.Window):
         elif self.game_state == "paused":
             if key == arcade.key.ESCAPE:
                 self.game_state = "game"
-            if key == arcade.key.DOWN:
+            if key == arcade.key.S or key == arcade.key.DOWN:
                 self.game_menu.increment_selection()
-            if key == arcade.key.UP:
+            if key == arcade.key.W or key == arcade.key.UP:
                 self.game_menu.decrement_selection()
             if key == arcade.key.ENTER:
                 if self.game_menu.selection == 0:
@@ -133,9 +136,9 @@ class GameObject(arcade.Window):
                     self.setup()
 
         elif self.game_state == "win":
-            if key == arcade.key.DOWN:
+            if key == arcade.key.S or key == arcade.key.DOWN:
                 self.win_screen.increment_selection()
-            if key == arcade.key.UP:
+            if key == arcade.key.W or key == arcade.key.UP:
                 self.win_screen.decrement_selection()
             if key == arcade.key.ENTER:
                 if self.win_screen.selection == 0:
@@ -144,9 +147,9 @@ class GameObject(arcade.Window):
                     self.setup()
 
         elif self.game_state == "options":
-            if key == arcade.key.DOWN:
+            if key == arcade.key.S or key == arcade.key.DOWN:
                 self.options_menu.increment_selection()
-            if key == arcade.key.UP:
+            if key == arcade.key.W or key == arcade.key.UP:
                 self.options_menu.decrement_selection()
             if key == arcade.key.ENTER:
                 if self.options_menu.selection == 0:
@@ -159,7 +162,11 @@ class GameObject(arcade.Window):
                     self.set_fullscreen(not self.fullscreen)
 
         elif self.game_state == "controls":
-            if key -- arcade.key.ESCAPE:
+            if key == arcade.key.ESCAPE:
+                self.game_state = "options"
+
+        elif self.game_state == "audio":
+            if key == arcade.key.ESCAPE:
                 self.game_state = "options"
 
     def on_key_release(self, key, key_modifiers):

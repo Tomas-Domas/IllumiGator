@@ -96,6 +96,7 @@ class Character:
         self.character_sprite.center_y = c_y
         # Makes sure character is facing right upon reset.
         self.right_character_loader.reset()
+        self.status = None
         self.character_sprite.texture = next(self.right_character_loader)
 
     def walk(self, level):
@@ -242,3 +243,10 @@ class Enemy(Character):
                 if arcade.check_for_collision(self.character_sprite, player.character_sprite):
                     player.kill()
 
+    def reset_pos(self, c_x, c_y):
+        self.character_sprite.center_x = c_x
+        self.character_sprite.center_y = c_y
+        # Makes sure character is facing right upon reset.
+        self.right_character_loader.reset()
+        self.state = "asleep"
+        self.character_sprite.texture = next(self.right_character_loader)

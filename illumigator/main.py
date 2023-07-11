@@ -146,6 +146,7 @@ class GameObject(arcade.Window):
                 elif self.game_menu.selection == 1:
                     self.current_level = level.load_level1()
                     self.character.reset_pos(util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2)
+                    self.enemy.reset_pos(util.WORLD_WIDTH - 200, util.WORLD_HEIGHT - 200)
                     self.game_state = "game"
                 elif self.game_menu.selection == 2:
                     self.game_state = "options"
@@ -163,6 +164,7 @@ class GameObject(arcade.Window):
                 if self.win_screen.selection == 1:
                     self.current_level = level.load_level1()
                     self.character.reset_pos(util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2)
+                    self.enemy.reset_pos(util.WORLD_WIDTH - 200, util.WORLD_HEIGHT - 200)
                     self.game_state = "game"
                 elif self.win_screen.selection == 2:
                     self.setup()

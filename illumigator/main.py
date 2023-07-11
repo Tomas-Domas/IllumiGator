@@ -81,6 +81,13 @@ class GameObject(arcade.Window):
             self.video_menu.draw()
 
     def on_key_press(self, key, key_modifiers):
+
+        if key == arcade.key.F11:
+            util.WINDOW_WIDTH = util.SCREEN_WIDTH
+            util.WINDOW_HEIGHT = util.SCREEN_HEIGHT
+            self.set_fullscreen(not self.fullscreen)
+            arcade.set_viewport(0, 1280, 0, 720)
+
         if self.game_state == "menu":
             if key == arcade.key.ENTER:
                 self.game_state = "game"

@@ -97,7 +97,7 @@ class GenericMenu:
 class InGameMenu:
     def __init__(self, selection=0):
         self._selection = selection
-        self.options = ("RESUME", "OPTIONS", "QUIT TO MENU")
+        self.options = ("RESUME", "RESTART", "OPTIONS", "QUIT TO MENU")
 
     def draw(self):
         dy = 0
@@ -151,7 +151,7 @@ class InGameMenu:
 class WinScreen:
     def __init__(self, selection=0):
         self._selection = selection
-        self.options = ("CONTINUE?", "QUIT TO MENU")
+        self.options = ("CONTINUE?", "RETRY", "QUIT TO MENU")
 
     def draw(self):
         dy = 0
@@ -170,13 +170,14 @@ class WinScreen:
             48,
             anchor_x="center",
             anchor_y="top",
+            font_name=util.WIN_FONT
         )
         for index, option in enumerate(self.options):
             color = arcade.color.BLACK
             if index == self._selection:
                 color = arcade.color.YELLOW
             arcade.draw_text(
-                option, x_midpoint, y_midpoint - dy, color, 24, anchor_x="center"
+                option, x_midpoint, y_midpoint - dy, color, 24, anchor_x="center", font_name=util.WIN_FONT
             )
             dy += 50
 

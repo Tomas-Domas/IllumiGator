@@ -162,3 +162,10 @@ class Character:
                 * util.OBJECT_ROTATION_AMOUNT
                 * (2**self.rotation_factor),
             )
+
+    def reset_pos(self, c_x, c_y):
+        self.character_sprite.center_x = c_x
+        self.character_sprite.center_y = c_y
+        # Makes sure character is facing right upon reset.
+        self.right_character_loader.reset()
+        self.character_sprite.texture = next(self.right_character_loader)

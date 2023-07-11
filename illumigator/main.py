@@ -42,6 +42,7 @@ class GameObject(arcade.Window):
 
         # ========================= Fonts =========================
         arcade.text_pyglet.load_font("assets/PressStart2P-Regular.ttf")
+        arcade.text_pyglet.load_font("assets/AtlantisInternational.ttf")
 
         # ========================= Menus =========================
         self.main_menu = menus.MenuView()
@@ -49,6 +50,7 @@ class GameObject(arcade.Window):
         self.win_screen = menus.WinScreen()
         self.options_menu = menus.GenericMenu("OPTIONS", ("RETURN", "CONTROLS", "AUDIO", "FULLSCREEN"))
         self.controls_menu = menus.ControlsMenu()
+    # def reload(self):
 
     def on_update(self, delta_time):
         if self.game_state == "game":
@@ -131,8 +133,12 @@ class GameObject(arcade.Window):
                 if self.game_menu.selection == 0:
                     self.game_state = "game"
                 elif self.game_menu.selection == 1:
-                    self.game_state = "options"
+                    self.current_level = level.load_level1()
+                    self.character.reset_pos(util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2)
+                    self.game_state = "game"
                 elif self.game_menu.selection == 2:
+                    self.game_state = "options"
+                elif self.game_menu.selection == 3:
                     self.setup()
 
         elif self.game_state == "win":
@@ -143,7 +149,11 @@ class GameObject(arcade.Window):
             if key == arcade.key.ENTER:
                 if self.win_screen.selection == 0:
                     self.game_state = "menu"
-                elif self.win_screen.selection == 1:
+                if self.win_screen.selection == 1:
+                    self.current_level = level.load_level1()
+                    self.character.reset_pos(util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2)
+                    self.game_state = "game"
+                elif self.win_screen.selection == 2:
                     self.setup()
 
         elif self.game_state == "options":

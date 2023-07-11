@@ -183,12 +183,22 @@ def load_level1() -> Level:  # TODO: Load from JSON files
 
 
 def load_test_level():
-    wall_coordinate_list = []
-    light_source_coordinate_list = [
-        [1280 / 4, 48, numpy.pi / 2, numpy.pi * 2]
+    mirror_coordinate_list = [
+        [3.5 * WALL_SIZE, 14.5 * WALL_SIZE, -numpy.pi / 4],
+        [8.5 * WALL_SIZE, 4.5 * WALL_SIZE, numpy.pi / 2],
+        [18.5 * WALL_SIZE, 14.5 * WALL_SIZE, 0],
+        [22.5 * WALL_SIZE, 4.5 * WALL_SIZE, 0]
     ]
-    light_receiver_coordinate_list = []
-    mirror_coordinate_list = []
+    wall_coordinate_list = [
+
+    ]
+    light_receiver_coordinate_list = [
+
+    ]
+    light_source_coordinate_list = [
+        # A 4th argument will make RadialLightSource with that angular spread instead of ParallelLightSource
+        [3.5 * WALL_SIZE, 1.5 * WALL_SIZE, numpy.pi / 2]
+    ]
 
     lvl = Level(
         wall_coordinate_list,
@@ -197,11 +207,9 @@ def load_test_level():
         light_source_coordinate_list
     )
 
-    lvl.wall_list[0]._geometry_segments.append(
-        geometry.Arc(numpy.array([1280/2, 720/2]), 200, numpy.pi/2, numpy.pi)
-    )
-    lvl.wall_list[0]._geometry_segments.append(
-        geometry.Arc(numpy.array([1280/2, 720/2]), 200, -numpy.pi/2, numpy.pi)
-    )
+    lvl.wall_list.append(worldobjects.Lens(
+        numpy.array([8.5 * WALL_SIZE, 4.5 * WALL_SIZE]),
+        0
+    ))
 
     return lvl

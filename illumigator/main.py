@@ -1,4 +1,5 @@
 import arcade
+import numpy
 
 from illumigator import entity, level, menus, util
 from util import WORLD_WIDTH, WORLD_HEIGHT, WINDOW_TITLE

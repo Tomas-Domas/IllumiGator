@@ -22,9 +22,7 @@ class WorldObject:
     def __init__(
         self,
         position: numpy.ndarray,
-        dimensions: numpy.ndarray,
         rotation_angle: float,
-        sprite_info: tuple,
         is_interactable=False,
         is_receiver=False,
     ):
@@ -37,21 +35,28 @@ class WorldObject:
 
         self._sprite_list = arcade.SpriteList()
 
+
+
+    def initialize_sprites_and_geometry(
+            self,
+            position: numpy.ndarray,
+            rotation_angle: float,
+            sprite_info: tuple,
+            dimensions: numpy.ndarray = numpy.ones(2),
+            disable_geometry=False
+    ):
         sprite_path, sprite_scale, sprite_width, sprite_height = sprite_info
-        side_lengths = numpy.array([
-            sprite_width  * sprite_scale * dimensions[0],
-            sprite_height * sprite_scale * dimensions[1]
-        ])
         axis1_norm = numpy.array([math.cos(rotation_angle), math.sin(rotation_angle)])
         axis2_norm = numpy.array([-math.sin(rotation_angle), math.cos(rotation_angle)])
-        axis1 = 0.5 * side_lengths[0] * axis1_norm
-        axis2 = 0.5 * side_lengths[1] * axis2_norm
-        self._geometry_segments = [
-            geometry.Line(position - axis1 - axis2, position - axis1 + axis2),
-            geometry.Line(position - axis1 + axis2, position + axis1 + axis2),
-            geometry.Line(position + axis1 + axis2, position + axis1 - axis2),
-            geometry.Line(position + axis1 - axis2, position - axis1 - axis2),
-        ]
+        axis1 = 0.5 * sprite_width * sprite_scale * dimensions[0] * axis1_norm
+        axis2 = 0.5 * sprite_height * sprite_scale * dimensions[1] * axis2_norm
+        if disable_geometry is False:
+            self._geometry_segments = [
+                geometry.Line(position - axis1 - axis2, position - axis1 + axis2),
+                geometry.Line(position - axis1 + axis2, position + axis1 + axis2),
+                geometry.Line(position + axis1 + axis2, position + axis1 - axis2),
+                geometry.Line(position + axis1 - axis2, position - axis1 - axis2),
+            ]
 
         for col in range(int(dimensions[0])):
             for row in range(int(dimensions[1])):
@@ -123,26 +128,38 @@ class WorldObject:
 
 class Wall(WorldObject):
     def __init__(self, position: numpy.ndarray, dimensions: numpy.ndarray, rotation_angle: float):
-        super().__init__(position, dimensions, rotation_angle, util.WALL_SPRITE_INFO)
+        super().__init__(position, rotation_angle)
+        self.initialize_sprites_and_geometry(position, rotation_angle, util.WALL_SPRITE_INFO, dimensions=dimensions)
 
 
 class Mirror(WorldObject):
     def __init__(self, position: numpy.ndarray, rotation_angle: float):
-        super().__init__(position, numpy.ones(2), rotation_angle, util.MIRROR_SPRITE_INFO, is_interactable=True)
+        super().__init__(position, rotation_angle, is_interactable=True)
+        self.initialize_sprites_and_geometry(position, rotation_angle, util.MIRROR_SPRITE_INFO)
         self._geometry_segments[0].is_reflective = True
         self._geometry_segments[0].calculate_normal()
         self._geometry_segments[2].is_reflective = True
         self._geometry_segments[2].calculate_normal()
 
+class Lens(WorldObject):
+    def __init__(self, position: numpy.ndarray, rotation_angle: float):
+        super().__init__(position, rotation_angle)
+        # self.initialize_sprites_and_geometry(position, rotation_angle, util.PLACEHOLDER_SPRITE_INFO, disable_geometry=True)
+        radius_of_curvature = util.PLACEHOLDER_SPRITE_INFO[1] * util.PLACEHOLDER_SPRITE_INFO[2]
+        coverage_angle = numpy.pi/4
+        short_axis = numpy.array([math.cos(rotation_angle), math.sin(rotation_angle)]) * math.cos(coverage_angle/2) * radius_of_curvature
+        self._geometry_segments = [
+            geometry.Arc(position-short_axis, radius_of_curvature, rotation_angle, coverage_angle),
+            geometry.Arc(position+short_axis, radius_of_curvature, numpy.pi+rotation_angle, coverage_angle)
+        ]
 
 class LightSource(WorldObject):
-    def __init__(self, position: numpy.ndarray, rotation_angle: float, sprite_info: tuple):
-        super().__init__(position, numpy.ones(2), rotation_angle, sprite_info)
+    def __init__(self, position: numpy.ndarray, rotation_angle: float):
+        super().__init__(position, rotation_angle)
         self._light_rays = [
             light.LightRay(numpy.zeros(2), numpy.zeros(2))
             for _ in range(util.NUM_LIGHT_RAYS)
         ]
-        self._geometry_segments = []  # TODO: do this better, don't just overwrite to get rid of geometry
 
     def cast_rays(self, world_objects):
         for ray in self._light_rays:
@@ -167,7 +184,8 @@ class LightSource(WorldObject):
 
 class RadialLightSource(LightSource):
     def __init__(self, position: numpy.ndarray, rotation_angle: float, angular_spread: float):
-        super().__init__(position, rotation_angle, util.SOURCE_SPRITE_INFO)
+        super().__init__(position, rotation_angle)
+        self.initialize_sprites_and_geometry(position, rotation_angle, util.SOURCE_SPRITE_INFO, disable_geometry=True)
         self._angular_spread = angular_spread
         self.calculate_light_ray_positions()
 
@@ -185,7 +203,8 @@ class RadialLightSource(LightSource):
 
 class ParallelLightSource(LightSource):
     def __init__(self, position: numpy.ndarray, rotation_angle: float):
-        super().__init__(position, rotation_angle, util.SOURCE_SPRITE_INFO)
+        super().__init__(position, rotation_angle)
+        self.initialize_sprites_and_geometry(position, rotation_angle, util.SOURCE_SPRITE_INFO, disable_geometry=True)
         self._width = util.SOURCE_SPRITE_INFO[1] * util.SOURCE_SPRITE_INFO[2]
         self.calculate_light_ray_positions()
 
@@ -210,7 +229,8 @@ class ParallelLightSource(LightSource):
 
 class LightReceiver(WorldObject):
     def __init__(self, position: numpy.ndarray, rotation_angle: float):
-        super().__init__(position, numpy.ones(2), rotation_angle, util.RECEIVER_SPRITE_INFO, is_receiver=True)
+        super().__init__(position, rotation_angle, is_receiver=True)
+        self.initialize_sprites_and_geometry(position, rotation_angle, util.RECEIVER_SPRITE_INFO)
         self.charge = 0
 
     def draw(self):

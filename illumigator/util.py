@@ -4,6 +4,8 @@ import arcade
 import numpy
 import math
 
+
+
 # ========================= Game Constants =========================
 # Window
 WORLD_WIDTH: int = 1280  # Width of the game for calculating coordinates and positions
@@ -19,6 +21,7 @@ for m in get_monitors():
 # Debug
 DEBUG_GEOMETRY: bool = True        # Toggle with G
 DEBUG_LIGHT_SOURCES: bool = False   # Toggle with L
+
 
 
 # ========================= Asset Constants =========================
@@ -45,15 +48,17 @@ H3_FONT_SIZE = 24
 H2_FONT_SIZE = 36
 H1_FONT_SIZE = 48
 
+
+
 # ========================= Script Constants =========================
 # Ray Casting Constants
 STARTING_DISTANCE_VALUE = WORLD_WIDTH ** 2 + WORLD_HEIGHT ** 2  # Large number for starting out min distance calculations
 MAX_RAY_DISTANCE = math.sqrt(STARTING_DISTANCE_VALUE)  # Max distance before ray goes off-screen
 MAX_GENERATIONS: int = 50
-INDEX_OF_REFRACTION: float = 1.5
+INDEX_OF_REFRACTION: float = 2
 
 # Light Source Constants
-NUM_LIGHT_RAYS: int = 10
+NUM_LIGHT_RAYS: int = 15
 
 # Light Receiver Constants
 CHARGE_DECAY: float = 0.991

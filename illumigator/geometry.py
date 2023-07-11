@@ -123,27 +123,26 @@ class Arc(Geometry):
         super().__init__(is_reflective, is_refractive)
         if angular_width > numpy.pi:
             raise ValueError("Arc angle cannot be greater than PI")
-        self._drawing_start_angle = rotation_angle - angular_width / 2
-        self._drawing_end_angle = rotation_angle + angular_width / 2
-        self._physics_start_angle = self._drawing_start_angle
-        self._physics_end_angle = self._drawing_end_angle
-        self._constrain_physics_angles()
+        self._start_angle = rotation_angle - angular_width / 2
+        self._end_angle = rotation_angle + angular_width / 2
+        self._constrain_angles()
 
         self.center = center
         self.radius = radius
         self.is_reflective = is_reflective
         self.is_refractive = is_refractive
 
-    def _constrain_physics_angles(self):  # Constrain between (-PI, PI)
-        if self._physics_start_angle > numpy.pi:
-            self._physics_start_angle -= 2 * numpy.pi
-        elif self._physics_start_angle < -numpy.pi:
-            self._physics_start_angle += 2 * numpy.pi
+    def _constrain_angles(self):  # Constrain between (0, 2PI) and in increasing order
+        if self._start_angle > numpy.pi:
+            self._start_angle -= 2 * numpy.pi
+        elif self._start_angle < -numpy.pi:
+            self._start_angle += 2 * numpy.pi
 
-        if self._physics_end_angle > numpy.pi:
-            self._physics_end_angle -= 2 * numpy.pi
-        elif self._physics_end_angle < -numpy.pi:
-            self._physics_end_angle += 2 * numpy.pi
+        if self._end_angle > numpy.pi:
+            self._end_angle -= 2 * numpy.pi
+        elif self._end_angle < -numpy.pi:
+            self._end_angle += 2 * numpy.pi
+
 
     def get_intersection(self, ray) -> numpy.ndarray:  # TODO: optimize if necessary
         # Don't @ me...    https://en.wikipedia.org/wiki/Line-sphere_intersection#Calculation_using_vectors_in_3D
@@ -159,22 +158,29 @@ class Arc(Geometry):
         intersection_distance1 = -nabla_sqrt - temp_calculation1
         intersection_distance2 = nabla_sqrt - temp_calculation1
 
-        point1, point1_angle = None, None
-        point2, point2_angle = None, None
+        point1: numpy.ndarray = None
+        point2: numpy.ndarray = None
+        point1_angle, point2_angle = None, None
 
         if intersection_distance1 > 0:
             point1 = ray._origin + intersection_distance1 * ray._direction
             point1_angle = math.atan2(point1[1] - self.center[1], point1[0] - self.center[0])
-            if not ((self._physics_start_angle < point1_angle < self._physics_end_angle) or
-                    (self._physics_start_angle < point1_angle and self._physics_end_angle < 0) or
-                    (self._physics_end_angle > point1_angle and self._physics_start_angle > 0)):
+            if not (
+                (self._start_angle < point1_angle < self._end_angle) or (
+                    self._end_angle < self._start_angle and
+                    (0 <= self._start_angle <= point1_angle or point1_angle <= self._end_angle <= 0)
+                )
+            ):
                 point1 = None
         if intersection_distance2 > 0:
             point2 = ray._origin + intersection_distance2 * ray._direction
             point2_angle = math.atan2(point2[1] - self.center[1], point2[0] - self.center[0])
-            if not ((self._physics_start_angle < point2_angle < self._physics_end_angle) or
-                    (self._physics_start_angle < point2_angle and self._physics_end_angle < 0) or
-                    (self._physics_end_angle > point2_angle and self._physics_start_angle > 0)):
+            if not (
+                (self._start_angle < point2_angle < self._end_angle) or (
+                    self._end_angle < self._start_angle and
+                    (0 <= self._start_angle <= point2_angle or point2_angle <= self._end_angle <= 0)
+                )
+            ):
                 point2 = None
 
 
@@ -192,20 +198,33 @@ class Arc(Geometry):
 
     def move(self, world_object_center, move_distance, rotate_angle=0):
         self.center = util.rotate_around_center(world_object_center, self.center, rotate_angle) + move_distance
-        self._drawing_start_angle += rotate_angle
-        self._drawing_end_angle += rotate_angle
-        self._physics_start_angle += rotate_angle
-        self._physics_end_angle += rotate_angle
-        self._constrain_physics_angles()
+        self._start_angle += rotate_angle
+        self._end_angle += rotate_angle
+        self._start_angle += rotate_angle
+        self._end_angle += rotate_angle
+        self._constrain_angles()
 
 
     def draw(self):
-        arcade.draw_arc_outline(
-            self.center[0], self.center[1],
-            2 * self.radius, 2 * self.radius,
-            arcade.color.MAGENTA,
-            self._drawing_start_angle * 180 / numpy.pi, self._drawing_end_angle * 180 / numpy.pi, border_width=2
-        )
+        if self._start_angle < self._end_angle:
+            arcade.draw_arc_outline(
+                self.center[0], self.center[1],
+                2 * self.radius, 2 * self.radius,
+                arcade.color.MAGENTA,
+                self._start_angle * 180 / numpy.pi,
+                self._end_angle * 180 / numpy.pi,
+                border_width=3, num_segments=512
+            )
+        else:
+            arcade.draw_arc_outline(
+                self.center[0], self.center[1],
+                2 * self.radius, 2 * self.radius,
+                arcade.color.MAGENTA,
+                self._start_angle * 180 / numpy.pi,
+                self._end_angle * 180 / numpy.pi + 360,
+                border_width=3, num_segments=512
+            )
+
 
     def get_refracted_direction(self, ray, point: numpy.ndarray):
         # Determine normal

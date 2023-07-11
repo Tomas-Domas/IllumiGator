@@ -1,11 +1,13 @@
 import arcade
 
 from illumigator import entity, level, menus, util
+from util import WORLD_WIDTH, WORLD_HEIGHT, WINDOW_TITLE
 
 
 class GameObject(arcade.Window):
     def __init__(self):
-        super().__init__(util.WORLD_WIDTH, util.WORLD_HEIGHT, util.WINDOW_TITLE, resizable=True)
+        super().__init__(WORLD_WIDTH, WORLD_HEIGHT, WINDOW_TITLE, resizable=True)
+        self.enemy = None
         self.character = None
         self.current_level = None
         self.background_sprite = None
@@ -30,11 +32,12 @@ class GameObject(arcade.Window):
         self.background_sprite = util.load_sprite(
             "flowers.jpg",
             0.333333,
-            center_x=util.WORLD_WIDTH // 2,
-            center_y=util.WORLD_HEIGHT // 2,
+            center_x=WORLD_WIDTH // 2,
+            center_y=WORLD_HEIGHT // 2,
         )
         self.background_sprite.alpha = 100
         self.character = entity.Character()
+        self.enemy = entity.Enemy()
 
         self.current_level = level.load_level1()
         # self.current_level = level.load_test_level()
@@ -50,13 +53,17 @@ class GameObject(arcade.Window):
     def on_update(self, delta_time):
         if self.game_state == "game":
             self.character.update(self.current_level)
+            self.enemy.update(self.current_level, self.character)
             self.current_level.update(
                 self.character, self.mouse_x, self.mouse_y
             )  # Pass mouse coords for debugging purposes
             if any(
-                light_receiver.charge >= util.RECEIVER_THRESHOLD
-                for light_receiver in self.current_level.light_receiver_list
+                    light_receiver.charge >= util.RECEIVER_THRESHOLD
+                    for light_receiver in self.current_level.light_receiver_list
             ):
+                self.game_state = "win"
+
+            if self.character.status == "dead":
                 self.game_state = "win"
 
     def on_draw(self):
@@ -68,12 +75,15 @@ class GameObject(arcade.Window):
             self.background_sprite.draw()
             self.current_level.draw()
             self.character.draw()
+            self.enemy.draw()
 
             if self.game_state == "paused":
                 self.game_menu.draw()
 
         if self.game_state == "win":
             self.win_screen.draw()
+
+        # if self.game_state == "game_over":
 
         if self.game_state == "options":
             self.options_menu.draw()
@@ -179,12 +189,13 @@ class GameObject(arcade.Window):
             self.character.rotation_dir += 1
 
     def on_resize(self, width: float, height: float):
-        min_ratio = min(width / util.WORLD_WIDTH, height / util.WORLD_HEIGHT)
+        min_ratio = min(width / WORLD_WIDTH, height / WORLD_HEIGHT)
         window_width = width / min_ratio
         window_height = height / min_ratio
-        width_difference = (window_width - util.WORLD_WIDTH) / 2
-        height_difference = (window_height - util.WORLD_HEIGHT) / 2
-        arcade.set_viewport(-width_difference, util.WORLD_WIDTH + width_difference, -height_difference, util.WORLD_HEIGHT + height_difference)
+        width_difference = (window_width - WORLD_WIDTH) / 2
+        height_difference = (window_height - WORLD_HEIGHT) / 2
+        arcade.set_viewport(-width_difference, WORLD_WIDTH + width_difference, -height_difference, WORLD_HEIGHT +
+                            height_difference)
 
     def on_mouse_motion(self, x: int, y: int, dx: int, dy: int):
         self.mouse_x, self.mouse_y = x, y

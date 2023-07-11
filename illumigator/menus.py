@@ -206,10 +206,11 @@ class ControlsMenu:
             util.load_sprite("key.png", 1,
                              center_x=util.WORLD_WIDTH // 4 + index*64, center_y=util.WORLD_HEIGHT // 2 - 64).draw()
 
-        util.load_sprite("key.png", 1, center_x=util.WORLD_WIDTH // 4, center_y=util.WORLD_HEIGHT // 2 - 164).draw()
+        util.load_sprite("arrow.png", 1, center_x=util.WORLD_WIDTH // 4, center_y=util.WORLD_HEIGHT // 2 - 164).draw()
         for index in range(-1, 2):
-            util.load_sprite("key.png", 1,
-                             center_x=util.WORLD_WIDTH // 4 + index * 64, center_y=util.WORLD_HEIGHT // 2 - 228).draw()
+            util.load_sprite("arrow.png", 1,
+                             center_x=util.WORLD_WIDTH // 4 + index * 64, center_y=util.WORLD_HEIGHT // 2 - 228,
+                             angle=90 + (index + 1) * 90).draw()
 
         # ========================= Rotation Key Sprites =========================
         util.load_sprite("key.png", 1, center_x=util.WORLD_WIDTH * 3 // 4 - 32, center_y=util.WORLD_HEIGHT // 2).draw()

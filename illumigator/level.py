@@ -11,11 +11,9 @@ class Level:
         light_receiver_coordinate_list: list[list] = None,
         light_source_coordinate_list: list[list] = None,
         name="default",
-        scale_factor=1
     ):
         self.background = None
         self.name = name
-        self.scale_factor = 1
 
         self.mirror_list = []
         self.light_receiver_list = []
@@ -25,26 +23,26 @@ class Level:
         self.wall_list: list[worldobjects.WorldObject] = [
             worldobjects.Wall(
                 numpy.array([
-                    wall_size * 0.5, util.WINDOW_HEIGHT * 0.5 - wall_size * 0.25
+                    wall_size * 0.5, 360 - wall_size * 0.25
                 ]),
                 numpy.array([
-                    1, util.WINDOW_HEIGHT // wall_size + 1
+                    1, 720 // wall_size + 1
                 ]),
                 0,
             ),
             worldobjects.Wall(
-                numpy.array([util.WINDOW_WIDTH - wall_size * 0.5, util.WINDOW_HEIGHT * 0.5 - wall_size * 0.25]),
-                numpy.array([1, util.WINDOW_HEIGHT // wall_size + 1]),
+                numpy.array([1280 - wall_size * 0.5, 720 / 2 - wall_size * 0.25]),
+                numpy.array([1, 720 // wall_size + 1]),
                 0,
             ),
             worldobjects.Wall(
-                numpy.array([util.WINDOW_WIDTH * 0.5, wall_size * 0.5]),
-                numpy.array([util.WINDOW_WIDTH // wall_size - 2, 1]),
+                numpy.array([1280 * 0.5, wall_size * 0.5]),
+                numpy.array([1280 // wall_size - 2, 1]),
                 0,
             ),
             worldobjects.Wall(
-                numpy.array([util.WINDOW_WIDTH * 0.5, util.WINDOW_HEIGHT - wall_size * 0.5]),
-                numpy.array([util.WINDOW_WIDTH // wall_size - 2, 1]),
+                numpy.array([1280 * 0.5, 720 - wall_size * 0.5]),
+                numpy.array([1280 // wall_size - 2, 1]),
                 0,
             ),
         ]
@@ -105,18 +103,6 @@ class Level:
                     )
                 )
 
-        self.scale_to_new_resolution(scale_factor)
-
-
-    def scale_to_new_resolution(self, new_scale_factor: float):
-        # To properly scale to a new resolution, the game object must be returned to the "normalized" size
-        # by dividing by the old scale factor and multiplying by the new one. Done in one step with true_scale_factor
-        true_scale_factor = new_scale_factor / self.scale_factor
-        full_list = self.wall_list + self.mirror_list + self.light_receiver_list + self.light_sources_list
-        for world_object in full_list:
-            world_object.scale(true_scale_factor)
-        self.scale_factor = new_scale_factor
-
 
 
     def update(self, character: entity.Character, mouse_x, mouse_y):
@@ -164,22 +150,22 @@ class Level:
 
 def load_level1() -> Level:  # TODO: Load from JSON files
     mirror_coordinate_list = [
-        [util.WINDOW_WIDTH / 4, (util.WINDOW_HEIGHT / 3) * 2, -numpy.pi / 4],
-        [(util.WINDOW_WIDTH / 2) + 50, util.WINDOW_HEIGHT - 100, 0],
-        [util.WINDOW_WIDTH / 2, util.WINDOW_HEIGHT / 4, numpy.pi / 2],
-        [((util.WINDOW_WIDTH / 4) * 3) + 20, util.WINDOW_HEIGHT / 5, 0]
+        [1280 / 4, (720 / 3) * 2, -numpy.pi / 4],
+        [(1280 / 2) + 50, 720 - 100, 0],
+        [1280 / 2, 720 / 4, numpy.pi / 2],
+        [((1280 / 4) * 3) + 20, 720 / 5, 0]
     ]
     wall_coordinate_list = [
         [784, 176, 1, 9, 0],
-        [496, util.WINDOW_HEIGHT - 176, 1, 9, 0],
-        [880, util.WINDOW_HEIGHT - 176, 1, 9, 0]
+        [496, 720 - 176, 1, 9, 0],
+        [880, 720 - 176, 1, 9, 0]
     ]
     light_receiver_coordinate_list = [
-        [util.WINDOW_WIDTH - 128, util.WINDOW_HEIGHT - 128, 0],
+        [1280 - 128, 720 - 128, 0],
     ]
     light_source_coordinate_list = [
         # A 4th argument will make RadialLightSource with that angular spread instead of ParallelLightSource
-        [util.WINDOW_WIDTH / 4, 48, numpy.pi / 2]
+        [1280 / 4, 48, numpy.pi / 2]
     ]
 
     lvl = Level(
@@ -191,7 +177,7 @@ def load_level1() -> Level:  # TODO: Load from JSON files
 
     # Animated Wall: # TODO: Handle animated walls with level generation. For now, they're hand-made
     animated_wall = worldobjects.Wall(
-        numpy.array([util.WINDOW_WIDTH - 176, util.WINDOW_HEIGHT - 240]),
+        numpy.array([1280 - 176, 720 - 240]),
         numpy.array([1, 1]),
         0,
     )
@@ -204,7 +190,7 @@ def load_level1() -> Level:  # TODO: Load from JSON files
 def load_test_level():
     wall_coordinate_list = []
     light_source_coordinate_list = [
-        [util.WINDOW_WIDTH / 4, 48, numpy.pi / 2, numpy.pi * 2]
+        [1280 / 4, 48, numpy.pi / 2, numpy.pi * 2]
     ]
     light_receiver_coordinate_list = []
     mirror_coordinate_list = []
@@ -217,10 +203,10 @@ def load_test_level():
     )
 
     lvl.wall_list[0]._geometry_segments.append(
-        geometry.Arc(numpy.array([util.WINDOW_WIDTH/2, util.WINDOW_HEIGHT/2]), 200, numpy.pi/2, numpy.pi)
+        geometry.Arc(numpy.array([1280/2, 720/2]), 200, numpy.pi/2, numpy.pi)
     )
     lvl.wall_list[0]._geometry_segments.append(
-        geometry.Arc(numpy.array([util.WINDOW_WIDTH/2, util.WINDOW_HEIGHT/2]), 200, -numpy.pi/2, numpy.pi)
+        geometry.Arc(numpy.array([1280/2, 720/2]), 200, -numpy.pi/2, numpy.pi)
     )
 
     return lvl

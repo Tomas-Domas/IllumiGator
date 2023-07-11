@@ -17,9 +17,6 @@ class ObjectAnimation:
         self.angle1 = angle1
         self.angle2 = angle2
 
-    def scale(self, scale_factor):
-        self.endpoint1 = self.endpoint1 * scale_factor
-        self.endpoint2 = self.endpoint2 * scale_factor
 
     def get_new_position(self):
         self.t = self.t + self.dt

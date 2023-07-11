@@ -123,7 +123,7 @@ class GameObject(arcade.Window):
                 elif self.game_menu.selection == 1:
                     self.game_state = "options"
                 elif self.game_menu.selection == 2:
-                    self.game_state = "menu"
+                    self.setup()
 
         elif self.game_state == "win":
             if key == arcade.key.DOWN:
@@ -157,39 +157,31 @@ class GameObject(arcade.Window):
             if key == arcade.key.UP:
                 self.video_menu.decrement_selection()
             if key == arcade.key.ENTER:
-                if self.video_menu.selection == 5:
-                    scale_factor = util.SCREEN_HEIGHT / 720
-                    util.WINDOW_WIDTH = util.SCREEN_WIDTH
-                    util.WINDOW_HEIGHT = util.SCREEN_HEIGHT
-                    super().set_fullscreen(True)
-                    self.options_menu.scale = scale_factor
-                    self.video_menu.scale = scale_factor
-                    self.current_level.scale_to_new_resolution(scale_factor)
-                elif self.video_menu.selection == 0:
+                print("before:", self.width, self.height)
+                if self.video_menu.selection == 0:
                     self.game_state = "options"
-                else:
-                    scale_factor = 1
+                elif self.video_menu.selection <= 4:
+                    self.set_fullscreen(False)
                     if self.video_menu.selection == 1:
-                        scale_factor = 1
                         util.WINDOW_WIDTH = 1280
                         util.WINDOW_HEIGHT = 720
                     elif self.video_menu.selection == 2:
-                        scale_factor = 1080 / 720
                         util.WINDOW_WIDTH = 1920
                         util.WINDOW_HEIGHT = 1080
                     elif self.video_menu.selection == 3:
-                        scale_factor = 1440 / 720
                         util.WINDOW_WIDTH = 2560
                         util.WINDOW_HEIGHT = 1440
                     elif self.video_menu.selection == 4:
-                        scale_factor = 2160 / 720
                         util.WINDOW_WIDTH = 3840
                         util.WINDOW_HEIGHT = 2160
-                    super().set_fullscreen(False)
-                    super().set_size(util.WINDOW_WIDTH, util.WINDOW_HEIGHT)
-                    self.options_menu.scale = scale_factor
-                    self.video_menu.scale = scale_factor
-                    self.current_level.scale_to_new_resolution(scale_factor)
+                    self.set_size(util.WINDOW_WIDTH, util.WINDOW_HEIGHT)
+                elif self.video_menu.selection == 5:
+                    util.WINDOW_WIDTH = util.SCREEN_WIDTH
+                    util.WINDOW_HEIGHT = util.SCREEN_HEIGHT
+                    self.set_fullscreen(True)
+                arcade.set_viewport(0, 1280, 0, 720)
+
+
 
     def on_key_release(self, key, key_modifiers):
         if key == arcade.key.W or key == arcade.key.UP:

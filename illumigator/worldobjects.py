@@ -16,7 +16,6 @@ class WorldObject:
     _is_receiver: bool
     _geometry_segments: list[geometry.Geometry]
     obj_animation: object_animation.ObjectAnimation | None
-    _scale_factor: float = 1
 
     _sprite_list: arcade.SpriteList
 
@@ -74,18 +73,7 @@ class WorldObject:
                     )
                 )
 
-    def scale(self, scale_factor):
-        self._scale_factor = scale_factor
-        self._position = self._position * scale_factor
-        for segment in self._geometry_segments:
-            segment.scale(scale_factor)
-        for sprite in self._sprite_list:
-            sprite.center_y *= scale_factor
-            sprite.center_x *= scale_factor
-            sprite.width *= scale_factor
-            sprite.height *= scale_factor
-        if self.obj_animation is not None:
-            self.obj_animation.scale(scale_factor)
+
 
     def draw(self):
         self._sprite_list.draw(pixelated=True)
@@ -166,10 +154,7 @@ class LightSource(WorldObject):
         self._sprite_list.move(move_distance[0], move_distance[1])
         self.calculate_light_ray_positions()
 
-    def scale(self, scale_factor):
-        super().scale(scale_factor)
-        for ray in self._light_rays:
-            ray._origin *= scale_factor
+
 
     def draw(self):
         for ray in self._light_rays:

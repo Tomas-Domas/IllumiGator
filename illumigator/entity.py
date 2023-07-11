@@ -44,12 +44,12 @@ class SpriteLoader:
 
 class Character:
     def __init__(
-        self,
-        scale_factor=2,
-        image_width=24,
-        image_height=24,
-        center_x=WORLD_WIDTH // 2,
-        center_y=WORLD_HEIGHT // 2,
+            self,
+            scale_factor=2,
+            image_width=24,
+            image_height=24,
+            center_x=WORLD_WIDTH // 2,
+            center_y=WORLD_HEIGHT // 2,
     ):
 
         self.status = None
@@ -91,6 +91,13 @@ class Character:
         if self.rotation_factor < 3.00:
             self.rotation_factor += 1 / 15
 
+    def reset_pos(self, c_x, c_y):
+        self.character_sprite.center_x = c_x
+        self.character_sprite.center_y = c_y
+        # Makes sure character is facing right upon reset.
+        self.right_character_loader.reset()
+        self.character_sprite.texture = next(self.right_character_loader)
+
     def walk(self, level):
         direction = numpy.zeros(2)
         if self.right:
@@ -122,7 +129,7 @@ class Character:
         direction_mag = numpy.linalg.norm(direction)
         if direction_mag > 0:
             direction = (
-                direction * PLAYER_MOVEMENT_SPEED / direction_mag
+                    direction * PLAYER_MOVEMENT_SPEED / direction_mag
             )  # Normalize and scale with speed
 
             # Checking if x movement is valid
@@ -198,9 +205,10 @@ class Enemy(Character):
             center_y=center_y,
             hit_box_algorithm="Simple",
         )
+
     def update(self, level, player):
         dist = numpy.sqrt((self.character_sprite.center_x - player.character_sprite.center_x) ** 2
-                         + (self.character_sprite.center_y - player.character_sprite.center_y) ** 2)
+                          + (self.character_sprite.center_y - player.character_sprite.center_y) ** 2)
 
         if self.state == "asleep" and dist < 300:
             self.state = "aggro"
@@ -234,9 +242,3 @@ class Enemy(Character):
                 if arcade.check_for_collision(self.character_sprite, player.character_sprite):
                     player.kill()
 
-    def reset_pos(self, c_x, c_y):
-        self.character_sprite.center_x = c_x
-        self.character_sprite.center_y = c_y
-        # Makes sure character is facing right upon reset.
-        self.right_character_loader.reset()
-        self.character_sprite.texture = next(self.right_character_loader)

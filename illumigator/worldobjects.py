@@ -38,7 +38,6 @@ class WorldObject:
         self._sprite_list = arcade.SpriteList()
 
         sprite_path, sprite_scale, sprite_width, sprite_height = sprite_info
-
         side_lengths = numpy.array([
             sprite_width  * sprite_scale * dimensions[0],
             sprite_height * sprite_scale * dimensions[1]

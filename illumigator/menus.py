@@ -2,8 +2,8 @@ import arcade
 
 from illumigator import util
 
-x_midpoint = util.WINDOW_WIDTH // 2
-y_midpoint = util.WINDOW_HEIGHT // 2
+x_midpoint = util.WORLD_WIDTH // 2
+y_midpoint = util.WORLD_HEIGHT // 2
 
 
 class MenuView(arcade.View):
@@ -44,7 +44,7 @@ class GenericMenu:
         arcade.draw_text(
             self.title,
             x_midpoint,
-            y_midpoint + util.WINDOW_HEIGHT // 4,
+            y_midpoint + util.WORLD_HEIGHT // 4,
             arcade.color.WHITE,
             48,
             anchor_x="center",
@@ -84,14 +84,14 @@ class InGameMenu:
         arcade.draw_rectangle_filled(
             x_midpoint,
             y_midpoint,
-            util.WINDOW_WIDTH // 3,
-            util.WINDOW_HEIGHT // 2,
+            util.WORLD_WIDTH // 3,
+            util.WORLD_HEIGHT // 2,
             arcade.color.BLACK,
         )
         arcade.draw_text(
             "PAUSED",
             x_midpoint,
-            y_midpoint + util.WINDOW_HEIGHT // 4,
+            y_midpoint + util.WORLD_HEIGHT // 4,
             arcade.color.WHITE,
             48,
             anchor_x="center",
@@ -131,14 +131,14 @@ class WinScreen:
         arcade.draw_rectangle_filled(
             x_midpoint,
             y_midpoint,
-            util.WINDOW_WIDTH // 3,
-            util.WINDOW_HEIGHT // 2,
+            util.WORLD_WIDTH // 3,
+            util.WORLD_HEIGHT // 2,
             arcade.color.WHITE,
         )
         arcade.draw_text(
             "YOU WIN!",
             x_midpoint,
-            y_midpoint + util.WINDOW_HEIGHT // 4,
+            y_midpoint + util.WORLD_HEIGHT // 4,
             arcade.color.BLACK,
             48,
             anchor_x="center",

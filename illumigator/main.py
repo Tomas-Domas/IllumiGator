@@ -5,16 +5,15 @@ from illumigator import entity, level, menus, util
 
 class GameObject(arcade.Window):
     def __init__(self):
-        super().__init__(util.WINDOW_WIDTH, util.WINDOW_HEIGHT, util.WINDOW_TITLE, resizable=True)
+        super().__init__(util.WORLD_WIDTH, util.WORLD_HEIGHT, util.WINDOW_TITLE, resizable=True)
         self.character = None
         self.current_level = None
         self.background_sprite = None
-        self.mouse_x = util.WINDOW_WIDTH / 2
-        self.mouse_y = util.WINDOW_HEIGHT / 2
+        self.mouse_x = util.WORLD_WIDTH // 2
+        self.mouse_y = util.WORLD_HEIGHT // 2
 
         # ========================= State =========================
         self.game_state = None
-        self.is_fullscreen = False
 
         # ========================= Menus =========================
         self.main_menu = None
@@ -31,8 +30,8 @@ class GameObject(arcade.Window):
         self.background_sprite = util.load_sprite(
             "flowers.jpg",
             0.333333,
-            center_x=util.WINDOW_WIDTH / 2,
-            center_y=util.WINDOW_HEIGHT / 2,
+            center_x=util.WORLD_WIDTH // 2,
+            center_y=util.WORLD_HEIGHT // 2,
         )
         self.background_sprite.alpha = 100
         self.character = entity.Character()
@@ -83,10 +82,7 @@ class GameObject(arcade.Window):
     def on_key_press(self, key, key_modifiers):
 
         if key == arcade.key.F11:
-            util.WINDOW_WIDTH = util.SCREEN_WIDTH
-            util.WINDOW_HEIGHT = util.SCREEN_HEIGHT
             self.set_fullscreen(not self.fullscreen)
-            arcade.set_viewport(0, 1280, 0, 720)
 
         if self.game_state == "menu":
             if key == arcade.key.ENTER:
@@ -155,10 +151,7 @@ class GameObject(arcade.Window):
                 elif self.options_menu.selection == 2:
                     self.game_state = "audio"
                 elif self.options_menu.selection == 3:
-                    util.WINDOW_WIDTH = util.SCREEN_WIDTH
-                    util.WINDOW_HEIGHT = util.SCREEN_HEIGHT
                     self.set_fullscreen(not self.fullscreen)
-                    arcade.set_viewport(0, 1280, 0, 720)
 
     def on_key_release(self, key, key_modifiers):
         if key == arcade.key.W or key == arcade.key.UP:
@@ -175,6 +168,14 @@ class GameObject(arcade.Window):
             self.character.rotation_dir -= 1
         if key == arcade.key.E:
             self.character.rotation_dir += 1
+
+    def on_resize(self, width: float, height: float):
+        min_ratio = min(width / util.WORLD_WIDTH, height / util.WORLD_HEIGHT)
+        window_width = width / min_ratio
+        window_height = height / min_ratio
+        width_difference = (window_width - util.WORLD_WIDTH) / 2
+        height_difference = (window_height - util.WORLD_HEIGHT) / 2
+        arcade.set_viewport(-width_difference, util.WORLD_WIDTH + width_difference, -height_difference, util.WORLD_HEIGHT + height_difference)
 
     def on_mouse_motion(self, x: int, y: int, dx: int, dy: int):
         self.mouse_x, self.mouse_y = x, y

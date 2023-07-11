@@ -1,6 +1,7 @@
 import numpy
 
 from illumigator import worldobjects, geometry, entity, util
+from util import WALL_SIZE
 
 
 class Level:
@@ -18,31 +19,25 @@ class Level:
         self.mirror_list = []
         self.light_receiver_list = []
         self.light_sources_list = []
-
-        wall_size = util.WALL_SPRITE_INFO[1] * util.WALL_SPRITE_INFO[2]
         self.wall_list: list[worldobjects.WorldObject] = [
             worldobjects.Wall(
-                numpy.array([
-                    wall_size * 0.5, 360 - wall_size * 0.25
-                ]),
-                numpy.array([
-                    1, 720 // wall_size + 1
-                ]),
+                numpy.array([ WALL_SIZE/2, 720/2 ]),
+                numpy.array([ 1, 720/WALL_SIZE ]),
                 0,
             ),
             worldobjects.Wall(
-                numpy.array([1280 - wall_size * 0.5, 720 / 2 - wall_size * 0.25]),
-                numpy.array([1, 720 // wall_size + 1]),
+                numpy.array([ 1280 - WALL_SIZE/2, 720/2 ]),
+                numpy.array([ 1, 720/WALL_SIZE ]),
                 0,
             ),
             worldobjects.Wall(
-                numpy.array([1280 * 0.5, wall_size * 0.5]),
-                numpy.array([1280 // wall_size - 2, 1]),
+                numpy.array([ 1280/2, WALL_SIZE/2 ]),
+                numpy.array([ 1280/WALL_SIZE - 2, 1 ]),
                 0,
             ),
             worldobjects.Wall(
-                numpy.array([1280 * 0.5, 720 - wall_size * 0.5]),
-                numpy.array([1280 // wall_size - 2, 1]),
+                numpy.array([ 1280/2, 720 - WALL_SIZE/2 ]),
+                numpy.array([ 1280/WALL_SIZE - 2, 1 ]),
                 0,
             ),
         ]
@@ -150,22 +145,22 @@ class Level:
 
 def load_level1() -> Level:  # TODO: Load from JSON files
     mirror_coordinate_list = [
-        [1280 / 4, (720 / 3) * 2, -numpy.pi / 4],
-        [(1280 / 2) + 50, 720 - 100, 0],
-        [1280 / 2, 720 / 4, numpy.pi / 2],
-        [((1280 / 4) * 3) + 20, 720 / 5, 0]
+        [ 3.5*WALL_SIZE, 14.5*WALL_SIZE, -numpy.pi/4],
+        [ 8.5*WALL_SIZE, 4.5*WALL_SIZE, numpy.pi / 2],
+        [ 18.5*WALL_SIZE, 14.5*WALL_SIZE, 0],
+        [ 22.5*WALL_SIZE, 4.5*WALL_SIZE, 0]
     ]
     wall_coordinate_list = [
-        [784, 176, 1, 9, 0],
-        [496, 720 - 176, 1, 9, 0],
-        [880, 720 - 176, 1, 9, 0]
+        [8.5*WALL_SIZE, 13.5*WALL_SIZE, 1, 7, 0],
+        [18.5*WALL_SIZE, 4.5*WALL_SIZE, 1, 7, 0],
+        [22.5*WALL_SIZE, 13.5*WALL_SIZE, 1, 7, 0]
     ]
     light_receiver_coordinate_list = [
-        [1280 - 128, 720 - 128, 0],
+        [29.5*WALL_SIZE, 15.5*WALL_SIZE, 0],
     ]
     light_source_coordinate_list = [
         # A 4th argument will make RadialLightSource with that angular spread instead of ParallelLightSource
-        [1280 / 4, 48, numpy.pi / 2]
+        [3.5*WALL_SIZE, 1.5*WALL_SIZE, numpy.pi / 2]
     ]
 
     lvl = Level(
@@ -177,11 +172,11 @@ def load_level1() -> Level:  # TODO: Load from JSON files
 
     # Animated Wall: # TODO: Handle animated walls with level generation. For now, they're hand-made
     animated_wall = worldobjects.Wall(
-        numpy.array([1280 - 176, 720 - 240]),
+        numpy.array([27.5*WALL_SIZE, 11.5*WALL_SIZE]),
         numpy.array([1, 1]),
         0,
     )
-    animated_wall.create_animation(numpy.array([128, 0]), 0.02, numpy.pi)
+    animated_wall.create_animation(numpy.array([1*WALL_SIZE, 0]), 0.025, numpy.pi)
     lvl.wall_list.append(animated_wall)
 
     return lvl

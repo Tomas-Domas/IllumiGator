@@ -2,7 +2,6 @@ import arcade
 import pyglet.media
 import numpy
 
-from illumigator.util import WINDOW_WIDTH, WINDOW_HEIGHT
 from illumigator import util
 
 
@@ -44,8 +43,8 @@ class Character:
         scale_factor=2,
         image_width=24,
         image_height=24,
-        center_x=WINDOW_WIDTH // 2,
-        center_y=WINDOW_HEIGHT // 2,
+        center_x=util.WORLD_WIDTH // 2,
+        center_y=util.WORLD_HEIGHT // 2,
     ):
 
         self.left_character_loader = SpriteLoader("left")

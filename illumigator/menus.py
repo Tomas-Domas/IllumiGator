@@ -97,7 +97,7 @@ class GenericMenu:
 class InGameMenu:
     def __init__(self, selection=0):
         self._selection = selection
-        self.options = ("RESUME", "OPTIONS", "QUIT TO MENU")
+        self.options = ("RESUME", "RESTART", "OPTIONS", "QUIT TO MENU")
 
     def draw(self):
         dy = 0
@@ -151,7 +151,7 @@ class InGameMenu:
 class WinScreen:
     def __init__(self, selection=0):
         self._selection = selection
-        self.options = ("CONTINUE?", "QUIT TO MENU")
+        self.options = ("CONTINUE?", "RETRY", "QUIT TO MENU")
 
     def draw(self):
         dy = 0
@@ -170,13 +170,14 @@ class WinScreen:
             48,
             anchor_x="center",
             anchor_y="top",
+            font_name=util.WIN_FONT
         )
         for index, option in enumerate(self.options):
             color = arcade.color.BLACK
             if index == self._selection:
                 color = arcade.color.YELLOW
             arcade.draw_text(
-                option, x_midpoint, y_midpoint - dy, color, 24, anchor_x="center"
+                option, x_midpoint, y_midpoint - dy, color, 24, anchor_x="center", font_name=util.WIN_FONT
             )
             dy += 50
 
@@ -206,10 +207,11 @@ class ControlsMenu:
             util.load_sprite("key.png", 1,
                              center_x=util.WORLD_WIDTH // 4 + index*64, center_y=util.WORLD_HEIGHT // 2 - 64).draw()
 
-        util.load_sprite("key.png", 1, center_x=util.WORLD_WIDTH // 4, center_y=util.WORLD_HEIGHT // 2 - 164).draw()
+        util.load_sprite("arrow.png", 1, center_x=util.WORLD_WIDTH // 4, center_y=util.WORLD_HEIGHT // 2 - 164).draw()
         for index in range(-1, 2):
-            util.load_sprite("key.png", 1,
-                             center_x=util.WORLD_WIDTH // 4 + index * 64, center_y=util.WORLD_HEIGHT // 2 - 228).draw()
+            util.load_sprite("arrow.png", 1,
+                             center_x=util.WORLD_WIDTH // 4 + index * 64, center_y=util.WORLD_HEIGHT // 2 - 228,
+                             angle=90 + (index + 1) * 90).draw()
 
         # ========================= Rotation Key Sprites =========================
         util.load_sprite("key.png", 1, center_x=util.WORLD_WIDTH * 3 // 4 - 32, center_y=util.WORLD_HEIGHT // 2).draw()

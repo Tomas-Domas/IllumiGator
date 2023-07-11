@@ -39,6 +39,7 @@ VENV_PATH = "./venv/Lib/site-packages/illumigator/assets/"
 
 # Fonts
 MENU_FONT = "Press Start 2P"
+WIN_FONT = "AtlantisInternational"
 BODY_FONT_SIZE = 12
 H3_FONT_SIZE = 24
 H2_FONT_SIZE = 36

@@ -315,32 +315,5 @@ def make_level1():
     # lvl.wall_list.append(animated_wall)
 
 
-def load_test_level():
-    mirror_coordinate_list = [
-        [3.5 * WALL_SIZE, 14.5 * WALL_SIZE, -numpy.pi / 4],
-        [8.5 * WALL_SIZE, 4.5 * WALL_SIZE, numpy.pi / 2],
-        [18.5 * WALL_SIZE, 14.5 * WALL_SIZE, 0],
-        [22.5 * WALL_SIZE, 4.5 * WALL_SIZE, 0],
-    ]
-    wall_coordinate_list = []
-    light_receiver_coordinate_list = []
-    light_source_coordinate_list = [
-        # A 4th argument will make RadialLightSource with that angular spread instead of ParallelLightSource
-        [3.5 * WALL_SIZE, 1.5 * WALL_SIZE, numpy.pi / 2]
-    ]
-
-    lvl = Level(
-        wall_coordinate_list,
-        mirror_coordinate_list,
-        light_receiver_coordinate_list,
-        light_source_coordinate_list,
-    )
-
-    lvl.wall_list.append(
-        worldobjects.Lens(numpy.array([8.5 * WALL_SIZE, 4.5 * WALL_SIZE]), 0)
-    )
-
-    return lvl
-
 if __name__ == '__main__':
     make_level1()

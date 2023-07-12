@@ -28,9 +28,9 @@ class Slider:
     def update(self):
 
         if self.left:
-            self.pos = self.pos - 0.02
+            self.pos = self.pos - 0.01
         if self.right:
-            self.pos = self.pos + 0.02
+            self.pos = self.pos + 0.01
 
         self.cursor.center_x = (self.center_x - self.slider_width // 2) + self._pos * self.slider_width
 
@@ -44,7 +44,11 @@ class Slider:
 
     @pos.setter
     def pos(self, pos):
-        if not pos < 0 and not pos > 1:
+        if pos < 0:
+            self._pos = 0
+        elif pos > 1:
+            self._pos = 1
+        else:
             self._pos = pos
 
 
@@ -237,18 +241,17 @@ class ControlsMenu:
 
 
 class AudioMenu:
-    def __init__(self, master_volume):
-        self.slider = Slider(util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2, 2, master_volume)
+    def __init__(self, label_list: (), volume_list: (), selection=0):
+        self._selection = selection
+        self.slider_list = []
+        self.label_list = label_list
+        self.volume_list = volume_list
+
+        for index in range(0, len(volume_list)):
+            self.slider_list.append(
+                Slider(util.WORLD_WIDTH // 2, int(util.WORLD_HEIGHT * 0.66 - index * 150), 2, self.volume_list[index]))
 
     def draw(self):
-        arcade.draw_text("MASTER VOLUME: " + str(int(self.slider.pos * 100)),
-                         self.slider.center_x,
-                         self.slider.center_y + 50,
-                         font_size=util.H3_FONT_SIZE,
-                         color=arcade.color.BLUE,
-                         anchor_x="center",
-                         font_name=util.MENU_FONT
-                         )
         arcade.draw_text("PRESS ESCAPE TO RETURN",
                          util.WORLD_WIDTH // 2,
                          util.WORLD_HEIGHT - util.H3_FONT_SIZE,
@@ -258,7 +261,38 @@ class AudioMenu:
                          color=arcade.color.RED,
                          font_name=util.MENU_FONT
                          )
-        self.slider.draw()
+
+        for index in range(0, len(self.label_list)):
+            arcade.draw_text(self.label_list[index] + ": " + str(int(self.slider_list[index].pos * 100)),
+                             self.slider_list[index].center_x,
+                             self.slider_list[index].center_y + 50,
+                             font_size=util.H3_FONT_SIZE,
+                             color=arcade.color.BLUE,
+                             anchor_x="center",
+                             font_name=util.MENU_FONT
+                             )
+
+        for index, slider in enumerate(self.slider_list):
+            if index == self._selection:
+                slider.slider.color = arcade.color.RED
+            else:
+                slider.slider.color = arcade.color.WHITE
+            slider.draw()
 
     def update(self):
-        self.slider.update()
+        for slider in self.slider_list:
+            slider.update()
+
+    def increment_selection(self):
+        self._selection = (
+            0 if self._selection == len(self.slider_list) - 1 else self._selection + 1
+        )
+
+    def decrement_selection(self):
+        self._selection = (
+            len(self.slider_list) - 1 if self._selection == 0 else self._selection - 1
+        )
+
+    @property
+    def selection(self):
+        return self._selection

@@ -30,6 +30,10 @@ class GameObject(arcade.Window):
         self.controls_menu = None
         self.audio_menu = None
 
+        # ========================= Settings =========================
+        self.settings = util.load_data("config.json")
+        self.master_volume = self.settings["master_volume"]
+
     def setup(self):
         self.game_state = "menu"
         self.background_sprite = util.load_sprite(
@@ -50,12 +54,12 @@ class GameObject(arcade.Window):
         arcade.text_pyglet.load_font("assets/AtlantisInternational.ttf")
 
         # ========================= Menus =========================
-        self.main_menu = menus.MenuView()
+        self.main_menu = menus.MainMenu()
         self.game_menu = menus.InGameMenu()
         self.win_screen = menus.WinScreen()
         self.options_menu = menus.GenericMenu("OPTIONS", ("RETURN", "CONTROLS", "AUDIO", "FULLSCREEN"))
         self.controls_menu = menus.ControlsMenu()
-        self.audio_menu = menus.AudioMenu()
+        self.audio_menu = menus.AudioMenu(master_volume=self.master_volume)
     # def reload(self):
 
     def on_update(self, delta_time):
@@ -81,7 +85,7 @@ class GameObject(arcade.Window):
         self.clear()
 
         if self.game_state == "menu":
-            self.show_view(self.main_menu)
+            self.main_menu.draw()
         elif self.game_state == "game" or self.game_state == "paused":
             self.background_sprite.draw()
             self.current_level.draw()
@@ -106,6 +110,7 @@ class GameObject(arcade.Window):
             self.controls_menu.draw()
 
         if self.game_state == "audio":
+            self.master_volume = self.audio_menu.slider.pos
             self.audio_menu.draw()
 
     def on_key_press(self, key, key_modifiers):
@@ -117,6 +122,9 @@ class GameObject(arcade.Window):
             if key == arcade.key.ENTER:
                 self.game_state = "game"
             if key == arcade.key.ESCAPE:
+                self.settings["master_volume"] = self.master_volume
+                print(self.settings["master_volume"])
+                util.write_data("config.json", self.settings)
                 arcade.close_window()
 
         elif self.game_state == "game":
@@ -237,6 +245,12 @@ class GameObject(arcade.Window):
 
     def on_mouse_motion(self, x: int, y: int, dx: int, dy: int):
         self.mouse_x, self.mouse_y = x, y
+
+    def on_close(self):
+        self.settings["master_volume"] = self.master_volume
+        print(self.settings["master_volume"])
+        util.write_data("config.json", self.settings)
+        arcade.close_window()
 
 
 def main():

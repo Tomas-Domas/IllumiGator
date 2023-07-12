@@ -20,9 +20,8 @@ for m in get_monitors():
         SCREEN_HEIGHT = m.height
 
 # Debug
-DEBUG_GEOMETRY: bool = True        # Toggle with G
-DEBUG_LIGHT_SOURCES: bool = False   # Toggle with L
-
+DEBUG_GEOMETRY: bool = True  # Toggle with G
+DEBUG_LIGHT_SOURCES: bool = False  # Toggle with L
 
 
 # ========================= Asset Constants =========================
@@ -52,11 +51,14 @@ H2_FONT_SIZE = 36
 H1_FONT_SIZE = 48
 
 
-
 # ========================= Script Constants =========================
 # Ray Casting Constants
-STARTING_DISTANCE_VALUE = WORLD_WIDTH ** 2 + WORLD_HEIGHT ** 2  # Large number for starting out min distance calculations
-MAX_RAY_DISTANCE = math.sqrt(STARTING_DISTANCE_VALUE)  # Max distance before ray goes off-screen
+STARTING_DISTANCE_VALUE = (
+    WORLD_WIDTH**2 + WORLD_HEIGHT**2
+)  # Large number for starting out min distance calculations
+MAX_RAY_DISTANCE = math.sqrt(
+    STARTING_DISTANCE_VALUE
+)  # Max distance before ray goes off-screen
 MAX_GENERATIONS: int = 50
 INDEX_OF_REFRACTION: float = 2
 
@@ -74,23 +76,27 @@ PLAYER_MOVEMENT_SPEED = 10
 OBJECT_ROTATION_AMOUNT: float = 0.004
 
 
-
 # ========================= Physics Functions =========================
 def distance_squared(point1: numpy.ndarray, point2: numpy.ndarray) -> float:
     dx, dy = point1[0] - point2[0], point1[1] - point2[1]
     return dx * dx + dy * dy
 
-def rotate_around_center(center: numpy.ndarray, point: numpy.ndarray, angle: float) -> numpy.ndarray:
+
+def rotate_around_center(
+    center: numpy.ndarray, point: numpy.ndarray, angle: float
+) -> numpy.ndarray:
     relative_point = point - center
-    rotated_point = numpy.array([
-        relative_point[0]*math.cos(angle) - relative_point[1]*math.sin(angle),
-        relative_point[0]*math.sin(angle) + relative_point[1]*math.cos(angle)
-    ])
+    rotated_point = numpy.array(
+        [
+            relative_point[0] * math.cos(angle) - relative_point[1] * math.sin(angle),
+            relative_point[0] * math.sin(angle) + relative_point[1] * math.cos(angle),
+        ]
+    )
     return rotated_point + center
 
-def two_d_cross_product(vector1: numpy.ndarray, vector2: numpy.ndarray):
-    return vector1[0]*vector2[1] - vector1[1]*vector2[0]
 
+def two_d_cross_product(vector1: numpy.ndarray, vector2: numpy.ndarray):
+    return vector1[0] * vector2[1] - vector1[1] * vector2[0]
 
 
 # ========================= File Handling Functions =========================
@@ -111,7 +117,7 @@ def load_sprite(
     hit_box_algorithm: Union[str, None] = "Simple",
     hit_box_detail: float = 4.5,
     texture: Union[arcade.Texture, None] = None,
-    angle: float = 0
+    angle: float = 0,
 ) -> arcade.Sprite:
 
     try:
@@ -132,7 +138,7 @@ def load_sprite(
             hit_box_algorithm,
             hit_box_detail,
             texture,
-            angle
+            angle,
         )
     except FileNotFoundError:
         return arcade.Sprite(
@@ -152,7 +158,7 @@ def load_sprite(
             hit_box_algorithm,
             hit_box_detail,
             texture,
-            angle
+            angle,
         )
 
 
@@ -191,4 +197,3 @@ def write_data(filename: str, obj: dict) -> None:
     else:
         with open(VENV_DATA_PATH + filename, "w") as outfile:
             outfile.write(json_obj)
-

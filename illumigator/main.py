@@ -2,7 +2,12 @@ import arcade
 import numpy
 
 from illumigator import entity, level, menus, util
-from util import WORLD_WIDTH, WORLD_HEIGHT, WINDOW_TITLE
+from illumigator.util import (
+    ENVIRON_ASSETS_PATH,
+    WORLD_WIDTH,
+    WORLD_HEIGHT,
+    WINDOW_TITLE,
+)
 
 
 class GameObject(arcade.Window):
@@ -50,16 +55,19 @@ class GameObject(arcade.Window):
         # self.current_level = level.load_test_level()
 
         # ========================= Fonts =========================
-        arcade.text_pyglet.load_font("assets/PressStart2P-Regular.ttf")
-        arcade.text_pyglet.load_font("assets/AtlantisInternational.ttf")
+        arcade.text_pyglet.load_font(ENVIRON_ASSETS_PATH + "PressStart2P-Regular.ttf")
+        arcade.text_pyglet.load_font(ENVIRON_ASSETS_PATH + "AtlantisInternational.ttf")
 
         # ========================= Menus =========================
         self.main_menu = menus.MainMenu()
         self.game_menu = menus.InGameMenu()
         self.win_screen = menus.WinScreen()
-        self.options_menu = menus.GenericMenu("OPTIONS", ("RETURN", "CONTROLS", "AUDIO", "FULLSCREEN"))
+        self.options_menu = menus.GenericMenu(
+            "OPTIONS", ("RETURN", "CONTROLS", "AUDIO", "FULLSCREEN")
+        )
         self.controls_menu = menus.ControlsMenu()
         self.audio_menu = menus.AudioMenu(master_volume=self.master_volume)
+
     # def reload(self):
 
     def on_update(self, delta_time):
@@ -70,8 +78,8 @@ class GameObject(arcade.Window):
                 self.character, self.mouse_x, self.mouse_y
             )  # Pass mouse coords for debugging purposes
             if any(
-                    light_receiver.charge >= util.RECEIVER_THRESHOLD
-                    for light_receiver in self.current_level.light_receiver_list
+                light_receiver.charge >= util.RECEIVER_THRESHOLD
+                for light_receiver in self.current_level.light_receiver_list
             ):
                 self.game_state = "win"
 
@@ -161,8 +169,12 @@ class GameObject(arcade.Window):
                     self.game_state = "game"
                 elif self.game_menu.selection == 1:
                     self.current_level = level.load_level1()
-                    self.character.reset_pos(util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2)
-                    self.enemy.reset_pos(util.WORLD_WIDTH - 200, util.WORLD_HEIGHT - 200)
+                    self.character.reset_pos(
+                        util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2
+                    )
+                    self.enemy.reset_pos(
+                        util.WORLD_WIDTH - 200, util.WORLD_HEIGHT - 200
+                    )
                     self.game_state = "game"
                 elif self.game_menu.selection == 2:
                     self.game_state = "options"
@@ -179,8 +191,12 @@ class GameObject(arcade.Window):
                     self.game_state = "menu"
                 if self.win_screen.selection == 1:
                     self.current_level = level.load_level1()
-                    self.character.reset_pos(util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2)
-                    self.enemy.reset_pos(util.WORLD_WIDTH - 200, util.WORLD_HEIGHT - 200)
+                    self.character.reset_pos(
+                        util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2
+                    )
+                    self.enemy.reset_pos(
+                        util.WORLD_WIDTH - 200, util.WORLD_HEIGHT - 200
+                    )
                     self.game_state = "game"
                 elif self.win_screen.selection == 2:
                     self.setup()
@@ -240,8 +256,12 @@ class GameObject(arcade.Window):
         window_height = height / min_ratio
         width_difference = (window_width - WORLD_WIDTH) / 2
         height_difference = (window_height - WORLD_HEIGHT) / 2
-        arcade.set_viewport(-width_difference, WORLD_WIDTH + width_difference, -height_difference, WORLD_HEIGHT +
-                            height_difference)
+        arcade.set_viewport(
+            -width_difference,
+            WORLD_WIDTH + width_difference,
+            -height_difference,
+            WORLD_HEIGHT + height_difference,
+        )
 
     def on_mouse_motion(self, x: int, y: int, dx: int, dy: int):
         self.mouse_x, self.mouse_y = x, y

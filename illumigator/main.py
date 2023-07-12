@@ -7,7 +7,9 @@ from illumigator.util import (
     WORLD_WIDTH,
     WORLD_HEIGHT,
     WINDOW_TITLE,
+    LEVELS_FILE
 )
+
 
 
 class GameObject(arcade.Window):
@@ -15,6 +17,7 @@ class GameObject(arcade.Window):
         super().__init__(WORLD_WIDTH, WORLD_HEIGHT, WINDOW_TITLE, resizable=True)
         self.enemy = None
         self.character = None
+        self.level_loader = level.load_levels(LEVELS_FILE)
         self.current_level = None
 
         # ========================= Window =========================
@@ -51,7 +54,7 @@ class GameObject(arcade.Window):
         self.character = entity.Character()
         self.enemy = entity.Enemy()
 
-        self.current_level = level.load_level1()
+        self.current_level = next(self.level_loader)
         # self.current_level = level.load_test_level()
 
         # ========================= Fonts =========================
@@ -168,7 +171,8 @@ class GameObject(arcade.Window):
                 if self.game_menu.selection == 0:
                     self.game_state = "game"
                 elif self.game_menu.selection == 1:
-                    self.current_level = level.load_level1()
+                    self.level_loader = level.load_levels(LEVELS_FILE)
+                    self.current_level = next(level)
                     self.character.reset_pos(
                         util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2
                     )
@@ -188,9 +192,11 @@ class GameObject(arcade.Window):
                 self.win_screen.decrement_selection()
             if key == arcade.key.ENTER:
                 if self.win_screen.selection == 0:
+                    self.current_level = next(level)
                     self.game_state = "menu"
                 if self.win_screen.selection == 1:
-                    self.current_level = level.load_level1()
+                    self.level_loader = level.load_levels(LEVELS_FILE)
+                    self.current_level = next(level)
                     self.character.reset_pos(
                         util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2
                     )

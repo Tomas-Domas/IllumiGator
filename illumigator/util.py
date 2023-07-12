@@ -41,6 +41,7 @@ ENVIRON_ASSETS_PATH = os.path.join(os.path.split(__file__)[0], "assets/")
 VENV_ASSETS_PATH = "./venv/Lib/site-packages/illumigator/assets/"
 ENVIRON_DATA_PATH = os.path.join(os.path.split(__file__)[0], "data/")
 VENV_DATA_PATH = "./venv/Lib/site-packages/illumigator/data/"
+LEVELS_FILE =  os.path.join(os.path.split(__file__)[0], "levels.json")
 
 # Fonts
 MENU_FONT = "Press Start 2P"

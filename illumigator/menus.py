@@ -48,8 +48,9 @@ class Slider:
             self._pos = pos
 
 
-class MenuView(arcade.View):
-    def on_show_view(self):
+class MainMenu():
+    @staticmethod
+    def draw():
         arcade.draw_text(
             "Illumi",
             x_midpoint,
@@ -327,11 +328,11 @@ class ControlsMenu:
 
 
 class AudioMenu:
-    def __init__(self):
-        self.slider = Slider(util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2, 2, 1)
+    def __init__(self, master_volume):
+        self.slider = Slider(util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2, 2, master_volume)
 
     def draw(self):
-        arcade.draw_text("SLIDER POS: " + str(int(self.slider.pos * 100)),
+        arcade.draw_text("MASTER VOLUME: " + str(int(self.slider.pos * 100)),
                          self.slider.center_x,
                          self.slider.center_y + 50,
                          font_size=util.H3_FONT_SIZE,

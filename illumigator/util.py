@@ -4,7 +4,7 @@ import arcade
 import numpy
 import math
 
-
+import json
 
 # ========================= Game Constants =========================
 # Window
@@ -37,8 +37,10 @@ WALL_SIZE = WALL_SPRITE_INFO[1] * WALL_SPRITE_INFO[2]
 PLAYER_SPRITE = "0{i}_gator_{direction}.png"
 
 # Paths
-ENVIRON_PATH = os.path.join(os.path.split(__file__)[0], "assets/")
-VENV_PATH = "./venv/Lib/site-packages/illumigator/assets/"
+ENVIRON_ASSETS_PATH = os.path.join(os.path.split(__file__)[0], "assets/")
+VENV_ASSETS_PATH = "./venv/Lib/site-packages/illumigator/assets/"
+ENVIRON_DATA_PATH = os.path.join(os.path.split(__file__)[0], "data/")
+VENV_DATA_PATH = "./venv/Lib/site-packages/illumigator/data/"
 
 # Fonts
 MENU_FONT = "Press Start 2P"
@@ -113,7 +115,7 @@ def load_sprite(
 
     try:
         return arcade.Sprite(
-            ENVIRON_PATH + filename,
+            ENVIRON_ASSETS_PATH + filename,
             scale,
             image_x,
             image_y,
@@ -133,7 +135,7 @@ def load_sprite(
         )
     except FileNotFoundError:
         return arcade.Sprite(
-            VENV_PATH + filename,
+            VENV_ASSETS_PATH + filename,
             scale,
             image_x,
             image_y,
@@ -155,13 +157,37 @@ def load_sprite(
 
 def load_sound(filename: str) -> arcade.Sound:
     try:
-        return arcade.load_sound(ENVIRON_PATH + filename)
+        return arcade.load_sound(ENVIRON_ASSETS_PATH + filename)
     except FileNotFoundError:
-        return arcade.load_sound(VENV_PATH + filename)
+        return arcade.load_sound(VENV_ASSETS_PATH + filename)
 
 
 def load_texture(filename: str) -> arcade.Texture:
     try:
-        return arcade.load_texture(ENVIRON_PATH + filename)
+        return arcade.load_texture(ENVIRON_ASSETS_PATH + filename)
     except FileNotFoundError:
-        return arcade.load_texture(VENV_PATH + filename)
+        return arcade.load_texture(VENV_ASSETS_PATH + filename)
+
+
+def load_data(filename: str) -> dict:
+    try:
+        file = open(ENVIRON_DATA_PATH + filename)
+    except FileNotFoundError:
+        file = open(VENV_DATA_PATH)
+
+    obj = json.load(file)
+    file.close()
+    return obj
+
+
+def write_data(filename: str, obj: dict) -> None:
+
+    json_obj = json.dumps(obj)
+
+    if os.path.isfile(ENVIRON_DATA_PATH + filename):
+        with open(ENVIRON_DATA_PATH + filename, "w") as outfile:
+            outfile.write(json_obj)
+    else:
+        with open(VENV_DATA_PATH + filename, "w") as outfile:
+            outfile.write(json_obj)
+

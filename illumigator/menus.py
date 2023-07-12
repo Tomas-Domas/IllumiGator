@@ -6,6 +6,48 @@ x_midpoint = util.WORLD_WIDTH // 2
 y_midpoint = util.WORLD_HEIGHT // 2
 
 
+class Slider:
+    def __init__(self,
+                 center_x=0,
+                 center_y=0,
+                 scale=1,
+                 pos=1):
+        self._pos = pos
+        self.center_x = center_x
+        self.center_y = center_y
+        self.scale = scale
+
+        self.slider_width = 128 * scale
+        self.rel_cursor_pos = (center_x - self.slider_width // 2) + pos * self.slider_width
+        self.slider = util.load_sprite("slider.png", scale=scale, center_x=center_x, center_y=center_y)
+        self.cursor = util.load_sprite("cursor.png", scale=scale, center_x=self.rel_cursor_pos, center_y=center_y)
+
+        self.left = False
+        self.right = False
+
+    def update(self):
+
+        if self.left:
+            self.pos = self.pos - 0.02
+        if self.right:
+            self.pos = self.pos + 0.02
+
+        self.cursor.center_x = (self.center_x - self.slider_width // 2) + self._pos * self.slider_width
+
+    def draw(self):
+        self.slider.draw()
+        self.cursor.draw()
+
+    @property
+    def pos(self):
+        return self._pos
+
+    @pos.setter
+    def pos(self, pos):
+        if not pos < 0 and not pos > 1:
+            self._pos = pos
+
+
 class MenuView(arcade.View):
     def on_show_view(self):
         arcade.draw_text(
@@ -283,3 +325,30 @@ class ControlsMenu:
                          font_name=util.MENU_FONT
                          )
 
+
+class AudioMenu:
+    def __init__(self):
+        self.slider = Slider(util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2, 2, 1)
+
+    def draw(self):
+        arcade.draw_text("SLIDER POS: " + str(int(self.slider.pos * 100)),
+                         self.slider.center_x,
+                         self.slider.center_y + 50,
+                         font_size=util.H3_FONT_SIZE,
+                         color=arcade.color.BLUE,
+                         anchor_x="center",
+                         font_name=util.MENU_FONT
+                         )
+        arcade.draw_text("PRESS ESCAPE TO RETURN",
+                         util.WORLD_WIDTH // 2,
+                         util.WORLD_HEIGHT - util.H3_FONT_SIZE,
+                         font_size=util.H3_FONT_SIZE,
+                         anchor_x="center",
+                         anchor_y="top",
+                         color=arcade.color.RED,
+                         font_name=util.MENU_FONT
+                         )
+        self.slider.draw()
+
+    def update(self):
+        self.slider.update()

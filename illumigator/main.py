@@ -28,6 +28,7 @@ class GameObject(arcade.Window):
         self.options_menu = None
         self.game_menu = None
         self.controls_menu = None
+        self.audio_menu = None
 
     def setup(self):
         self.game_state = "menu"
@@ -54,6 +55,7 @@ class GameObject(arcade.Window):
         self.win_screen = menus.WinScreen()
         self.options_menu = menus.GenericMenu("OPTIONS", ("RETURN", "CONTROLS", "AUDIO", "FULLSCREEN"))
         self.controls_menu = menus.ControlsMenu()
+        self.audio_menu = menus.AudioMenu()
     # def reload(self):
 
     def on_update(self, delta_time):
@@ -71,6 +73,9 @@ class GameObject(arcade.Window):
 
             if self.character.status == "dead":
                 self.game_state = "win"
+
+        if self.game_state == "audio":
+            self.audio_menu.update()
 
     def on_draw(self):
         self.clear()
@@ -99,6 +104,9 @@ class GameObject(arcade.Window):
 
         if self.game_state == "controls":
             self.controls_menu.draw()
+
+        if self.game_state == "audio":
+            self.audio_menu.draw()
 
     def on_key_press(self, key, key_modifiers):
 
@@ -191,6 +199,10 @@ class GameObject(arcade.Window):
         elif self.game_state == "audio":
             if key == arcade.key.ESCAPE:
                 self.game_state = "options"
+            if key == arcade.key.LEFT:
+                self.audio_menu.slider.left = True
+            if key == arcade.key.RIGHT:
+                self.audio_menu.slider.right = True
 
     def on_key_release(self, key, key_modifiers):
         if key == arcade.key.W or key == arcade.key.UP:
@@ -207,6 +219,12 @@ class GameObject(arcade.Window):
             self.character.rotation_dir -= 1
         if key == arcade.key.E:
             self.character.rotation_dir += 1
+
+        if self.game_state == "audio":
+            if key == arcade.key.LEFT:
+                self.audio_menu.slider.left = False
+            if key == arcade.key.RIGHT:
+                self.audio_menu.slider.right = False
 
     def on_resize(self, width: float, height: float):
         min_ratio = min(width / WORLD_WIDTH, height / WORLD_HEIGHT)

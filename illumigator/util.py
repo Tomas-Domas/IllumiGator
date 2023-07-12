@@ -1,4 +1,5 @@
 import os
+from typing import Union
 from screeninfo import get_monitors, ScreenInfoError
 import arcade
 import numpy
@@ -94,7 +95,7 @@ def two_d_cross_product(vector1: numpy.ndarray, vector2: numpy.ndarray):
 
 # ========================= File Handling Functions =========================
 def load_sprite(
-    filename: str | None = None,
+    filename: Union[str, None] = None,
     scale: float = 1,
     image_x: float = 0,
     image_y: float = 0,
@@ -107,9 +108,9 @@ def load_sprite(
     flipped_horizontally: bool = False,
     flipped_vertically: bool = False,
     flipped_diagonally: bool = False,
-    hit_box_algorithm: str | None = "Simple",
+    hit_box_algorithm: Union[str, None] = "Simple",
     hit_box_detail: float = 4.5,
-    texture: arcade.Texture | None = None,
+    texture: Union[arcade.Texture, None] = None,
     angle: float = 0
 ) -> arcade.Sprite:
 

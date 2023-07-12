@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from typing import Union
 import arcade
 import numpy
 import math
@@ -15,7 +16,7 @@ class WorldObject:
     _is_interactable: bool
     _is_receiver: bool
     _geometry_segments: list[geometry.Geometry]
-    obj_animation: object_animation.ObjectAnimation | None
+    obj_animation: Union[object_animation.ObjectAnimation, None]
 
     _sprite_list: arcade.SpriteList
 

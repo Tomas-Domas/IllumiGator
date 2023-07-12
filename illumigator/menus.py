@@ -48,7 +48,7 @@ class Slider:
             self._pos = pos
 
 
-class MainMenu():
+class MainMenu:
     @staticmethod
     def draw():
         arcade.draw_text(
@@ -90,13 +90,24 @@ class MainMenu():
 
 
 class GenericMenu:
-    def __init__(self, title, options, selection=0):
+    def __init__(self, title, options, selection=0, overlay=False):
         self.title = title
         self.options = options
         self._selection = selection
+        self.overlay = overlay
 
     def draw(self):
         dy = 0
+        if self.overlay:
+            arcade.draw_rectangle_filled(
+                x_midpoint,
+                y_midpoint,
+                util.WORLD_WIDTH // 3,
+                util.WORLD_HEIGHT // 2,
+                arcade.color.BLACK,
+            )
+        else:
+            arcade.set_background_color(arcade.color.BLACK)
         arcade.draw_text(
             self.title,
             x_midpoint,
@@ -119,108 +130,6 @@ class GenericMenu:
                 util.H3_FONT_SIZE,
                 anchor_x="center",
                 font_name=util.MENU_FONT
-            )
-            dy += 50
-
-    def increment_selection(self):
-        self._selection = (
-            0 if self._selection == len(self.options) - 1 else self._selection + 1
-        )
-
-    def decrement_selection(self):
-        self._selection = (
-            len(self.options) - 1 if self._selection == 0 else self._selection - 1
-        )
-
-    @property
-    def selection(self):
-        return self._selection
-
-
-class InGameMenu:
-    def __init__(self, selection=0):
-        self._selection = selection
-        self.options = ("RESUME", "RESTART", "OPTIONS", "QUIT TO MENU")
-
-    def draw(self):
-        dy = 0
-        arcade.draw_rectangle_filled(
-            x_midpoint,
-            y_midpoint,
-            util.WORLD_WIDTH // 3,
-            util.WORLD_HEIGHT // 2,
-            arcade.color.BLACK,
-        )
-        arcade.draw_text(
-            "PAUSED",
-            x_midpoint,
-            y_midpoint + util.WORLD_HEIGHT // 4,
-            arcade.color.WHITE,
-            util.H2_FONT_SIZE,
-            anchor_x="center",
-            anchor_y="top",
-            font_name=util.MENU_FONT
-        )
-        for index, option in enumerate(self.options):
-            color = arcade.color.WHITE
-            if index == self._selection:
-                color = arcade.color.RED
-            arcade.draw_text(
-                option,
-                x_midpoint,
-                y_midpoint - dy,
-                color,
-                util.H3_FONT_SIZE,
-                anchor_x="center",
-                font_name=util.MENU_FONT
-            )
-            dy += 50
-
-    def increment_selection(self):
-        self._selection = (
-            0 if self._selection == len(self.options) - 1 else self._selection + 1
-        )
-
-    def decrement_selection(self):
-        self._selection = (
-            len(self.options) - 1 if self._selection == 0 else self._selection - 1
-        )
-
-    @property
-    def selection(self):
-        return self._selection
-
-
-class WinScreen:
-    def __init__(self, selection=0):
-        self._selection = selection
-        self.options = ("CONTINUE?", "RETRY", "QUIT TO MENU")
-
-    def draw(self):
-        dy = 0
-        arcade.draw_rectangle_filled(
-            x_midpoint,
-            y_midpoint,
-            util.WORLD_WIDTH // 3,
-            util.WORLD_HEIGHT // 2,
-            arcade.color.WHITE,
-        )
-        arcade.draw_text(
-            "YOU WIN!",
-            x_midpoint,
-            y_midpoint + util.WORLD_HEIGHT // 4,
-            arcade.color.BLACK,
-            48,
-            anchor_x="center",
-            anchor_y="top",
-            font_name=util.WIN_FONT
-        )
-        for index, option in enumerate(self.options):
-            color = arcade.color.BLACK
-            if index == self._selection:
-                color = arcade.color.YELLOW
-            arcade.draw_text(
-                option, x_midpoint, y_midpoint - dy, color, 24, anchor_x="center", font_name=util.WIN_FONT
             )
             dy += 50
 

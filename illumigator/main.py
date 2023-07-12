@@ -62,8 +62,8 @@ class GameObject(arcade.Window):
 
         # ========================= Menus =========================
         self.main_menu = menus.MainMenu()
-        self.game_menu = menus.InGameMenu()
-        self.win_screen = menus.WinScreen()
+        self.game_menu = menus.GenericMenu("PAUSED", ("RESUME", "RESTART", "OPTIONS", "QUIT TO MENU"), overlay=True)
+        self.win_screen = menus.GenericMenu("YOU WIN", ("CONTINUE", "RETRY", "QUIT TO MENU"))
         self.options_menu = menus.GenericMenu("OPTIONS", ("RETURN", "CONTROLS", "AUDIO", "FULLSCREEN"))
         self.controls_menu = menus.ControlsMenu()
         self.audio_menu = menus.AudioMenu(master_volume=self.master_volume)

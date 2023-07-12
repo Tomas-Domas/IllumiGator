@@ -50,6 +50,7 @@ class Character:
             image_height=24,
             center_x=WORLD_WIDTH // 2,
             center_y=WORLD_HEIGHT // 2,
+            walking_volume=1
     ):
 
         self.status = None
@@ -78,10 +79,13 @@ class Character:
         self.walking_sound = util.load_sound("new_walk.wav")
         self.rotation_factor = 0
 
+        self.walking_volume = walking_volume
+
     def draw(self):
         self.character_sprite.draw(pixelated=True)
 
-    def update(self, level):
+    def update(self, level, walking_volume):
+        self.walking_volume = walking_volume
         self.walk(level)
         if self.rotation_dir == 0:
             self.rotation_factor = 0
@@ -145,7 +149,7 @@ class Character:
 
             # Check if sound should be played
             if not arcade.Sound.is_playing(self.walking_sound, self.player):
-                self.player = arcade.play_sound(self.walking_sound)
+                self.player = arcade.play_sound(self.walking_sound, self.walking_volume)
 
         else:
             # Check if sound should be stopped

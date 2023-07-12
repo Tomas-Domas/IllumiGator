@@ -184,7 +184,7 @@ def write_data(filename: str, obj: dict) -> None:
 
     json_obj = json.dumps(obj)
 
-    if os.path.isfile(ENVIRON_DATA_PATH + filename):
+    if os.path.exists(ENVIRON_DATA_PATH):
         with open(ENVIRON_DATA_PATH + filename, "w") as outfile:
             outfile.write(json_obj)
     else:

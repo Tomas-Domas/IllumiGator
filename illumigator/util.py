@@ -45,7 +45,7 @@ LEVELS_FILE =  os.path.join(os.path.split(__file__)[0], "levels.json")
 
 # Fonts
 MENU_FONT = "Press Start 2P"
-WIN_FONT = "AtlantisInternational"
+WIN_FONT = "Atlantis International"
 BODY_FONT_SIZE = 12
 H3_FONT_SIZE = 24
 H2_FONT_SIZE = 36

@@ -1,5 +1,4 @@
 import arcade
-import numpy
 
 from illumigator import entity, level, menus, util
 from util import WORLD_WIDTH, WORLD_HEIGHT, WINDOW_TITLE
@@ -35,7 +34,9 @@ class GameObject(arcade.Window):
 
         # ========================= Settings =========================
         self.settings = util.load_data("config.json")
-        self.master_volume = self.settings["master_volume"]
+        self.master_volume = self.settings["volume"]["master"]
+        self.music_volume = self.settings["volume"]["music"] * self.master_volume
+        self.effects_volume = self.settings["volume"]["effects"] * self.master_volume
 
     def setup(self):
         self.game_state = "menu"
@@ -46,7 +47,7 @@ class GameObject(arcade.Window):
             center_y=WORLD_HEIGHT // 2,
         )
         self.background_sprite.alpha = 100
-        self.character = entity.Character()
+        self.character = entity.Character(walking_volume=self.effects_volume)
         self.enemy = entity.Enemy()
 
         self.current_level = level.load_level1()
@@ -66,12 +67,13 @@ class GameObject(arcade.Window):
         self.win_screen = menus.GenericMenu("YOU WIN", ("CONTINUE", "RETRY", "QUIT TO MENU"))
         self.options_menu = menus.GenericMenu("OPTIONS", ("RETURN", "CONTROLS", "AUDIO", "FULLSCREEN"))
         self.controls_menu = menus.ControlsMenu()
-        self.audio_menu = menus.AudioMenu(master_volume=self.master_volume)
+        self.audio_menu = menus.AudioMenu(("MASTER", "MUSIC", "EFFECTS"),
+                                          (self.master_volume, self.music_volume, self.effects_volume))
     # def reload(self):
 
     def on_update(self, delta_time):
         if self.game_state == "game":
-            self.character.update(self.current_level)
+            self.character.update(self.current_level, self.effects_volume)
             self.enemy.update(self.current_level, self.character)
             self.current_level.update(
                 self.character, self.mouse_x, self.mouse_y
@@ -100,8 +102,9 @@ class GameObject(arcade.Window):
             self.enemy.draw()
 
             if self.music_player is None:
-                self.music_player = arcade.play_sound(self.background_music, looping=True)
+                self.music_player = arcade.play_sound(self.background_music, self.music_volume, looping=True)
             else:
+                self.music_player.volume = self.music_volume
                 self.music_player.play()
 
             if self.game_state == "paused":
@@ -124,10 +127,15 @@ class GameObject(arcade.Window):
             self.controls_menu.draw()
 
         if self.game_state == "audio":
-            self.master_volume = self.audio_menu.slider.pos
+            self.master_volume = self.audio_menu.slider_list[0].pos
+            self.music_volume = self.audio_menu.slider_list[1].pos * self.master_volume
+            self.effects_volume = self.audio_menu.slider_list[2].pos * self.master_volume
             self.audio_menu.draw()
 
     def on_key_press(self, key, key_modifiers):
+
+        if self.game_state == "paused" or self.game_state == "win" or self.game_state == "options":
+            arcade.play_sound(self.menu_sound, self.effects_volume)
 
         if key == arcade.key.F11:
             self.set_fullscreen(not self.fullscreen)
@@ -136,8 +144,9 @@ class GameObject(arcade.Window):
             if key == arcade.key.ENTER:
                 self.game_state = "game"
             if key == arcade.key.ESCAPE:
-                self.settings["master_volume"] = self.master_volume
-                print(self.settings["master_volume"])
+                self.settings["volume"]["master"] = self.master_volume
+                self.settings["volume"]["music"] = self.music_volume
+                self.settings["volume"]["effects"] = self.effects_volume
                 util.write_data("config.json", self.settings)
                 arcade.close_window()
 
@@ -164,7 +173,6 @@ class GameObject(arcade.Window):
                 self.character.rotation_dir -= 1
 
         elif self.game_state == "paused":
-            arcade.play_sound(self.menu_sound)
             if key == arcade.key.ESCAPE:
                 self.game_state = "game"
             if key == arcade.key.S or key == arcade.key.DOWN:
@@ -186,7 +194,6 @@ class GameObject(arcade.Window):
                     self.setup()
 
         elif self.game_state == "win":
-            arcade.play_sound(self.menu_sound)
             if key == arcade.key.S or key == arcade.key.DOWN:
                 self.win_screen.increment_selection()
             if key == arcade.key.W or key == arcade.key.UP:
@@ -204,7 +211,6 @@ class GameObject(arcade.Window):
                     self.setup()
 
         elif self.game_state == "options":
-            arcade.play_sound(self.menu_sound)
             if key == arcade.key.S or key == arcade.key.DOWN:
                 self.options_menu.increment_selection()
             if key == arcade.key.W or key == arcade.key.UP:
@@ -227,9 +233,13 @@ class GameObject(arcade.Window):
             if key == arcade.key.ESCAPE:
                 self.game_state = "options"
             if key == arcade.key.LEFT:
-                self.audio_menu.slider.left = True
+                self.audio_menu.slider_list[self.audio_menu.selection].left = True
             if key == arcade.key.RIGHT:
-                self.audio_menu.slider.right = True
+                self.audio_menu.slider_list[self.audio_menu.selection].right = True
+            if key == arcade.key.UP:
+                self.audio_menu.decrement_selection()
+            if key == arcade.key.DOWN:
+                self.audio_menu.increment_selection()
 
     def on_key_release(self, key, key_modifiers):
         if key == arcade.key.W or key == arcade.key.UP:
@@ -240,7 +250,7 @@ class GameObject(arcade.Window):
             self.character.down = False
         if key == arcade.key.D or key == arcade.key.RIGHT:
             self.character.right = False
-        self.character.update(self.current_level)
+        self.character.update(self.current_level, self.effects_volume)
 
         if key == arcade.key.Q:
             self.character.rotation_dir -= 1
@@ -249,9 +259,9 @@ class GameObject(arcade.Window):
 
         if self.game_state == "audio":
             if key == arcade.key.LEFT:
-                self.audio_menu.slider.left = False
+                self.audio_menu.slider_list[self.audio_menu.selection].left = False
             if key == arcade.key.RIGHT:
-                self.audio_menu.slider.right = False
+                self.audio_menu.slider_list[self.audio_menu.selection].right = False
 
     def on_resize(self, width: float, height: float):
         min_ratio = min(width / WORLD_WIDTH, height / WORLD_HEIGHT)
@@ -266,8 +276,9 @@ class GameObject(arcade.Window):
         self.mouse_x, self.mouse_y = x, y
 
     def on_close(self):
-        self.settings["master_volume"] = self.master_volume
-        print(self.settings["master_volume"])
+        self.settings["volume"]["master"] = self.master_volume
+        self.settings["volume"]["music"] = self.music_volume
+        self.settings["volume"]["effects"] = self.effects_volume
         util.write_data("config.json", self.settings)
         arcade.close_window()
 

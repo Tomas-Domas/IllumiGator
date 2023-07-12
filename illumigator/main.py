@@ -11,6 +11,9 @@ class GameObject(arcade.Window):
         self.enemy = None
         self.character = None
         self.current_level = None
+        self.menu_sound = None
+        self.background_music = None
+        self.music_player = None
 
         # ========================= Window =========================
         arcade.set_background_color(arcade.color.BLACK)
@@ -48,6 +51,10 @@ class GameObject(arcade.Window):
 
         self.current_level = level.load_level1()
         # self.current_level = level.load_test_level()
+
+        # ========================= Sounds =========================
+        self.menu_sound = util.load_sound("retro_blip.wav")
+        self.background_music = util.load_sound("sprazara.mp3")
 
         # ========================= Fonts =========================
         arcade.text_pyglet.load_font("assets/PressStart2P-Regular.ttf")
@@ -92,11 +99,18 @@ class GameObject(arcade.Window):
             self.character.draw()
             self.enemy.draw()
 
+            if self.music_player is None:
+                self.music_player = arcade.play_sound(self.background_music, looping=True)
+            else:
+                self.music_player.play()
+
             if self.game_state == "paused":
+                self.music_player.pause()
                 self.game_menu.draw()
 
         if self.game_state == "win":
             self.win_screen.draw()
+            self.music_player.pause()
 
         # if self.game_state == "game_over":
 
@@ -150,6 +164,7 @@ class GameObject(arcade.Window):
                 self.character.rotation_dir -= 1
 
         elif self.game_state == "paused":
+            arcade.play_sound(self.menu_sound)
             if key == arcade.key.ESCAPE:
                 self.game_state = "game"
             if key == arcade.key.S or key == arcade.key.DOWN:
@@ -167,9 +182,11 @@ class GameObject(arcade.Window):
                 elif self.game_menu.selection == 2:
                     self.game_state = "options"
                 elif self.game_menu.selection == 3:
+                    self.music_player.seek(0.0)
                     self.setup()
 
         elif self.game_state == "win":
+            arcade.play_sound(self.menu_sound)
             if key == arcade.key.S or key == arcade.key.DOWN:
                 self.win_screen.increment_selection()
             if key == arcade.key.W or key == arcade.key.UP:
@@ -183,9 +200,11 @@ class GameObject(arcade.Window):
                     self.enemy.reset_pos(util.WORLD_WIDTH - 200, util.WORLD_HEIGHT - 200)
                     self.game_state = "game"
                 elif self.win_screen.selection == 2:
+                    self.music_player.seek(0.0)
                     self.setup()
 
         elif self.game_state == "options":
+            arcade.play_sound(self.menu_sound)
             if key == arcade.key.S or key == arcade.key.DOWN:
                 self.options_menu.increment_selection()
             if key == arcade.key.W or key == arcade.key.UP:

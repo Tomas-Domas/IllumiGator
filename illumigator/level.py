@@ -199,7 +199,148 @@ def load_levels(file: str):
     levels = sorted(levels, key=sort_levels_fn)
     i = 0
     while True:
-        yield Level(**levels[i].dict())
+        lvl = Level(**levels[i].dict())
+
+        # Animated Wall: # TODO: Handle animated walls with level generation. For now, they're hand-made
+        animated_wall = worldobjects.Wall(
+            numpy.array([27.5 * WALL_SIZE, 11.5 * WALL_SIZE]),
+            numpy.array([1, 1]),
+            0,
+        )
+        animated_wall.create_animation(numpy.array([1 * WALL_SIZE, 0]), 0.025, numpy.pi)
+        lvl.wall_list.append(animated_wall)
+        yield lvl
         i = (i + 1) % len(levels)
 
 
+
+class LevelMaker:
+    def __init__(self):
+        """
+        Class for easy generation of levels with code.
+        Example:
+            `
+                new_levels = LevelMaker()
+                new_levels.add_level(
+                    wall_coordinate_list=[[1, 3], [3,5]],
+                    mirror_coordinate_list=[[1, 3], [3,5]],
+                    light_receiver_coordinate_list=[[1, 3], [3,5]],
+                    light_source_coordinate_list=[[1, 3], [3,5]],
+                    name="level1"
+                    )
+
+                new_levels.add_level(
+                    wall_coordinate_list=[[1, 3], [3,5]],
+                    mirror_coordinate_list=[[1, 3], [3,5]],
+                    light_receiver_coordinate_list=[[1, 3], [3,5]],
+                    light_source_coordinate_list=[[1, 3], [3,5]],
+                    name="level2"
+                    )
+
+                new_levels.export() # or new_levels.export("new_levels.json")
+
+            `
+        """
+        self.levels_def: List[Level] = []
+        self.levels_order = None
+
+    def add_level(
+        self,
+        wall_coordinate_list: List[List[float]],
+        mirror_coordinate_list: List[List[float]],
+        light_receiver_coordinate_list: List[List[float]],
+        light_source_coordinate_list: List[List[float]],
+        name="default",
+    ):
+        lvl = LevelDef(
+            wall_coordinate_list=wall_coordinate_list,
+            mirror_coordinate_list=mirror_coordinate_list,
+            light_receiver_coordinate_list=light_receiver_coordinate_list,
+            light_source_coordinate_list=light_source_coordinate_list,
+            name=name,
+        )
+        self.levels_def.append(lvl)
+
+    def set_level_order(self, orders: Union[None, List[str]]):
+        self.levels_order = orders
+
+    def export(self, filename: str= util.LEVELS_FILE):
+        print(self.levels_def)
+        json_data = LevelsJson(
+            levels_definition=self.levels_def, level_order=self.levels_order
+        )
+        with open(filename, "w") as f:
+            f.write(json_data.json())
+
+
+def make_level1():
+    mirror_coordinate_list = [
+        [3.5 * WALL_SIZE, 14.5 * WALL_SIZE, -numpy.pi / 4],
+        [8.5 * WALL_SIZE, 4.5 * WALL_SIZE, numpy.pi / 2],
+        [18.5 * WALL_SIZE, 14.5 * WALL_SIZE, 0],
+        [22.5 * WALL_SIZE, 4.5 * WALL_SIZE, 0],
+    ]
+    wall_coordinate_list = [
+        [8.5 * WALL_SIZE, 13.5 * WALL_SIZE, 1, 7, 0],
+        [18.5 * WALL_SIZE, 4.5 * WALL_SIZE, 1, 7, 0],
+        [22.5 * WALL_SIZE, 13.5 * WALL_SIZE, 1, 7, 0],
+    ]
+    light_receiver_coordinate_list = [
+        [29.5 * WALL_SIZE, 15.5 * WALL_SIZE, 0],
+    ]
+    light_source_coordinate_list = [
+        # A 4th argument will make RadialLightSource with that angular spread instead of ParallelLightSource
+        [3.5 * WALL_SIZE, 1.5 * WALL_SIZE, numpy.pi / 2]
+    ]
+
+    new_levels = LevelMaker()
+    new_levels.add_level(
+        wall_coordinate_list=wall_coordinate_list,
+        mirror_coordinate_list=mirror_coordinate_list,
+        light_receiver_coordinate_list=light_receiver_coordinate_list,
+        light_source_coordinate_list=light_source_coordinate_list,
+        name="level1"
+        )
+    new_levels.export()
+    
+    
+
+    # Animated Wall: # TODO: Handle animated walls with level generation. For now, they're hand-made
+    animated_wall = worldobjects.Wall(
+        numpy.array([27.5 * WALL_SIZE, 11.5 * WALL_SIZE]),
+        numpy.array([1, 1]),
+        0,
+    )
+    animated_wall.create_animation(numpy.array([1 * WALL_SIZE, 0]), 0.025, numpy.pi)
+    # lvl.wall_list.append(animated_wall)
+
+
+def load_test_level():
+    mirror_coordinate_list = [
+        [3.5 * WALL_SIZE, 14.5 * WALL_SIZE, -numpy.pi / 4],
+        [8.5 * WALL_SIZE, 4.5 * WALL_SIZE, numpy.pi / 2],
+        [18.5 * WALL_SIZE, 14.5 * WALL_SIZE, 0],
+        [22.5 * WALL_SIZE, 4.5 * WALL_SIZE, 0],
+    ]
+    wall_coordinate_list = []
+    light_receiver_coordinate_list = []
+    light_source_coordinate_list = [
+        # A 4th argument will make RadialLightSource with that angular spread instead of ParallelLightSource
+        [3.5 * WALL_SIZE, 1.5 * WALL_SIZE, numpy.pi / 2]
+    ]
+
+    lvl = Level(
+        wall_coordinate_list,
+        mirror_coordinate_list,
+        light_receiver_coordinate_list,
+        light_source_coordinate_list,
+    )
+
+    lvl.wall_list.append(
+        worldobjects.Lens(numpy.array([8.5 * WALL_SIZE, 4.5 * WALL_SIZE]), 0)
+    )
+
+    return lvl
+
+if __name__ == '__main__':
+    make_level1()

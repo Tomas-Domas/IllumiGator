@@ -172,7 +172,7 @@ class GameObject(arcade.Window):
                     self.game_state = "game"
                 elif self.game_menu.selection == 1:
                     self.level_loader = level.load_levels(LEVELS_FILE)
-                    self.current_level = next(level)
+                    self.current_level = next(self.level_loader)
                     self.character.reset_pos(
                         util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2
                     )
@@ -192,11 +192,11 @@ class GameObject(arcade.Window):
                 self.win_screen.decrement_selection()
             if key == arcade.key.ENTER:
                 if self.win_screen.selection == 0:
-                    self.current_level = next(level)
+                    self.current_level = next(self.level_loader)
                     self.game_state = "menu"
                 if self.win_screen.selection == 1:
                     self.level_loader = level.load_levels(LEVELS_FILE)
-                    self.current_level = next(level)
+                    self.current_level = next(self.level_loader)
                     self.character.reset_pos(
                         util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2
                     )

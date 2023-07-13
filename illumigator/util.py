@@ -1,3 +1,4 @@
+
 import os
 from screeninfo import get_monitors, ScreenInfoError
 import arcade
@@ -169,11 +170,12 @@ def load_texture(filename: str) -> arcade.Texture:
         return arcade.load_texture(VENV_ASSETS_PATH + filename)
 
 
-def load_data(filename: str) -> dict:
+def load_data(filename: str, is_level=False) -> dict:
     try:
-        file = open(ENVIRON_DATA_PATH + filename)
+        file = open(ENVIRON_DATA_PATH + ("levels/level_" if is_level else "") + filename)
+        print(ENVIRON_DATA_PATH + ("levels/level_" if is_level else "") + filename)
     except FileNotFoundError:
-        file = open(VENV_DATA_PATH)
+        file = open(VENV_DATA_PATH + ("levels/level_" if is_level else "") + filename)
 
     obj = json.load(file)
     file.close()

@@ -34,6 +34,7 @@ class GameObject(arcade.Window):
 
         # ========================= Settings =========================
         self.settings = util.load_data("config.json")
+        self.current_level_id = str(self.settings["current_level"]) + ".json"
         self.master_volume = self.settings["volume"]["master"]
         self.music_volume = self.settings["volume"]["music"] * self.master_volume
         self.effects_volume = self.settings["volume"]["effects"] * self.master_volume
@@ -50,8 +51,7 @@ class GameObject(arcade.Window):
         self.character = entity.Character(walking_volume=self.effects_volume)
         self.enemy = entity.Enemy()
 
-        self.current_level = level.load_level1()
-        # self.current_level = level.load_test_level()
+        self.current_level = level.load_level(util.load_data(self.current_level_id, True))
 
         # ========================= Sounds =========================
         self.menu_sound = util.load_sound("retro_blip.wav")
@@ -183,7 +183,7 @@ class GameObject(arcade.Window):
                 if self.game_menu.selection == 0:
                     self.game_state = "game"
                 elif self.game_menu.selection == 1:
-                    self.current_level = level.load_level1()
+                    self.current_level = level.load_level(util.load_data(self.current_level_id, True))
                     self.character.reset_pos(util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2)
                     self.enemy.reset_pos(util.WORLD_WIDTH - 200, util.WORLD_HEIGHT - 200)
                     self.game_state = "game"
@@ -202,7 +202,7 @@ class GameObject(arcade.Window):
                 if self.win_screen.selection == 0:
                     self.game_state = "menu"
                 if self.win_screen.selection == 1:
-                    self.current_level = level.load_level1()
+                    self.current_level = level.load_level(util.load_data(self.current_level_id, True))
                     self.character.reset_pos(util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2)
                     self.enemy.reset_pos(util.WORLD_WIDTH - 200, util.WORLD_HEIGHT - 200)
                     self.game_state = "game"

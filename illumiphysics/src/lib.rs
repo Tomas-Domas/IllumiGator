@@ -1,4 +1,3 @@
-mod geometry;
 mod light;
 
 use std::num::FpCategory::Nan;

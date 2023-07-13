@@ -134,7 +134,7 @@ class Character:
         direction_mag = numpy.linalg.norm(direction)
         if direction_mag > 0:
             direction = (
-                    direction * PLAYER_MOVEMENT_SPEED / direction_mag
+                direction * PLAYER_MOVEMENT_SPEED / direction_mag
             )  # Normalize and scale with speed
 
             # Checking if x movement is valid
@@ -174,26 +174,26 @@ class Character:
                 closest_distance_squared = distance
 
         if (
-                closest_mirror is not None
-                and closest_distance_squared <= util.PLAYER_REACH_DISTANCE_SQUARED
+            closest_mirror is not None
+            and closest_distance_squared <= util.PLAYER_REACH_DISTANCE_SQUARED
         ):
             closest_mirror.move_if_safe(
                 self,
                 numpy.zeros(2),
                 self.rotation_dir
                 * util.OBJECT_ROTATION_AMOUNT
-                * (2 ** self.rotation_factor),
+                * (2**self.rotation_factor),
             )
 
 
 class Enemy(Character):
     def __init__(
-            self,
-            scale_factor=2,
-            image_width=24,
-            image_height=24,
-            center_x=WORLD_WIDTH - 200,
-            center_y=WORLD_HEIGHT - 200,
+        self,
+        scale_factor=2,
+        image_width=24,
+        image_height=24,
+        center_x=WORLD_WIDTH - 200,
+        center_y=WORLD_HEIGHT - 200,
     ):
         super().__init__(scale_factor, image_width, image_height, center_x, center_y)
         self.state = "asleep"
@@ -212,19 +212,27 @@ class Enemy(Character):
         )
 
     def update(self, level, player):
-        dist = numpy.sqrt((self.character_sprite.center_x - player.character_sprite.center_x) ** 2
-                          + (self.character_sprite.center_y - player.character_sprite.center_y) ** 2)
+        dist = numpy.sqrt(
+            (self.character_sprite.center_x - player.character_sprite.center_x) ** 2
+            + (self.character_sprite.center_y - player.character_sprite.center_y) ** 2
+        )
 
         if self.state == "asleep" and dist < 300:
             self.state = "aggro"
 
         if self.state == "aggro":
-            direction = numpy.array([player.character_sprite.center_x - self.character_sprite.center_x,
-                                     player.character_sprite.center_y - self.character_sprite.center_y])
+            direction = numpy.array(
+                [
+                    player.character_sprite.center_x - self.character_sprite.center_x,
+                    player.character_sprite.center_y - self.character_sprite.center_y,
+                ]
+            )
 
             direction_mag = numpy.linalg.norm(direction)
             if direction_mag > 0:
-                direction = direction * PLAYER_MOVEMENT_SPEED / direction_mag  # Normalize and scale with speed
+                direction = (
+                    direction * PLAYER_MOVEMENT_SPEED / direction_mag
+                )  # Normalize and scale with speed
 
                 prev_x = self.character_sprite.center_x
                 prev_y = self.character_sprite.center_y
@@ -244,7 +252,9 @@ class Enemy(Character):
                         self.character_sprite.center_x -= 2 * perp_direction[0]
                         self.character_sprite.center_y -= 2 * perp_direction[1]
 
-                if arcade.check_for_collision(self.character_sprite, player.character_sprite):
+                if arcade.check_for_collision(
+                    self.character_sprite, player.character_sprite
+                ):
                     player.kill()
 
     def reset_pos(self, c_x, c_y):

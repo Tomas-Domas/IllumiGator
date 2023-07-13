@@ -1,4 +1,5 @@
 import os
+from typing import Union
 from screeninfo import get_monitors, ScreenInfoError
 import arcade
 import numpy
@@ -19,9 +20,8 @@ for m in get_monitors():
         SCREEN_HEIGHT = m.height
 
 # Debug
-DEBUG_GEOMETRY: bool = True        # Toggle with G
-DEBUG_LIGHT_SOURCES: bool = False   # Toggle with L
-
+DEBUG_GEOMETRY: bool = True  # Toggle with G
+DEBUG_LIGHT_SOURCES: bool = False  # Toggle with L
 
 
 # ========================= Asset Constants =========================
@@ -41,6 +41,7 @@ ENVIRON_ASSETS_PATH = os.path.join(os.path.split(__file__)[0], "assets/")
 VENV_ASSETS_PATH = "./venv/Lib/site-packages/illumigator/assets/"
 ENVIRON_DATA_PATH = os.path.join(os.path.split(__file__)[0], "data/")
 VENV_DATA_PATH = "./venv/Lib/site-packages/illumigator/data/"
+LEVELS_FILE =  os.path.join(os.path.split(__file__)[0], "levels.json")
 
 # Fonts
 MENU_FONT = "Press Start 2P"
@@ -51,11 +52,14 @@ H2_FONT_SIZE = 36
 H1_FONT_SIZE = 48
 
 
-
 # ========================= Script Constants =========================
 # Ray Casting Constants
-STARTING_DISTANCE_VALUE = WORLD_WIDTH ** 2 + WORLD_HEIGHT ** 2  # Large number for starting out min distance calculations
-MAX_RAY_DISTANCE = math.sqrt(STARTING_DISTANCE_VALUE)  # Max distance before ray goes off-screen
+STARTING_DISTANCE_VALUE = (
+    WORLD_WIDTH**2 + WORLD_HEIGHT**2
+)  # Large number for starting out min distance calculations
+MAX_RAY_DISTANCE = math.sqrt(
+    STARTING_DISTANCE_VALUE
+)  # Max distance before ray goes off-screen
 MAX_GENERATIONS: int = 50
 INDEX_OF_REFRACTION: float = 2
 
@@ -73,28 +77,32 @@ PLAYER_MOVEMENT_SPEED = 10
 OBJECT_ROTATION_AMOUNT: float = 0.004
 
 
-
 # ========================= Physics Functions =========================
 def distance_squared(point1: numpy.ndarray, point2: numpy.ndarray) -> float:
     dx, dy = point1[0] - point2[0], point1[1] - point2[1]
     return dx * dx + dy * dy
 
-def rotate_around_center(center: numpy.ndarray, point: numpy.ndarray, angle: float) -> numpy.ndarray:
+
+def rotate_around_center(
+    center: numpy.ndarray, point: numpy.ndarray, angle: float
+) -> numpy.ndarray:
     relative_point = point - center
-    rotated_point = numpy.array([
-        relative_point[0]*math.cos(angle) - relative_point[1]*math.sin(angle),
-        relative_point[0]*math.sin(angle) + relative_point[1]*math.cos(angle)
-    ])
+    rotated_point = numpy.array(
+        [
+            relative_point[0] * math.cos(angle) - relative_point[1] * math.sin(angle),
+            relative_point[0] * math.sin(angle) + relative_point[1] * math.cos(angle),
+        ]
+    )
     return rotated_point + center
 
-def two_d_cross_product(vector1: numpy.ndarray, vector2: numpy.ndarray):
-    return vector1[0]*vector2[1] - vector1[1]*vector2[0]
 
+def two_d_cross_product(vector1: numpy.ndarray, vector2: numpy.ndarray):
+    return vector1[0] * vector2[1] - vector1[1] * vector2[0]
 
 
 # ========================= File Handling Functions =========================
 def load_sprite(
-    filename: str | None = None,
+    filename: Union[str, None] = None,
     scale: float = 1,
     image_x: float = 0,
     image_y: float = 0,
@@ -107,10 +115,10 @@ def load_sprite(
     flipped_horizontally: bool = False,
     flipped_vertically: bool = False,
     flipped_diagonally: bool = False,
-    hit_box_algorithm: str | None = "Simple",
+    hit_box_algorithm: Union[str, None] = "Simple",
     hit_box_detail: float = 4.5,
-    texture: arcade.Texture | None = None,
-    angle: float = 0
+    texture: Union[arcade.Texture, None] = None,
+    angle: float = 0,
 ) -> arcade.Sprite:
 
     try:
@@ -131,7 +139,7 @@ def load_sprite(
             hit_box_algorithm,
             hit_box_detail,
             texture,
-            angle
+            angle,
         )
     except FileNotFoundError:
         return arcade.Sprite(
@@ -151,7 +159,7 @@ def load_sprite(
             hit_box_algorithm,
             hit_box_detail,
             texture,
-            angle
+            angle,
         )
 
 
@@ -190,4 +198,3 @@ def write_data(filename: str, obj: dict) -> None:
     else:
         with open(VENV_DATA_PATH + filename, "w") as outfile:
             outfile.write(json_obj)
-

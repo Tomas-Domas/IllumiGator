@@ -23,7 +23,8 @@ classifiers = [
 dependencies = [
     "arcade",
     "numpy",
-    "screeninfo"
+    "screeninfo",
+    "pydantic"
 ]
 
 [project.urls]

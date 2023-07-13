@@ -1,14 +1,7 @@
 import arcade
 
 from illumigator import entity, level, menus, util
-from illumigator.util import (
-    ENVIRON_ASSETS_PATH,
-    WORLD_WIDTH,
-    WORLD_HEIGHT,
-    WINDOW_TITLE,
-    LEVELS_FILE
-)
-
+from util import WORLD_WIDTH, WORLD_HEIGHT, WINDOW_TITLE
 
 
 class GameObject(arcade.Window):
@@ -16,7 +9,6 @@ class GameObject(arcade.Window):
         super().__init__(WORLD_WIDTH, WORLD_HEIGHT, WINDOW_TITLE, resizable=True)
         self.enemy = None
         self.character = None
-        self.level_loader = level.load_levels(LEVELS_FILE)
         self.current_level = None
         self.menu_sound = None
         self.background_music = None
@@ -42,6 +34,7 @@ class GameObject(arcade.Window):
 
         # ========================= Settings =========================
         self.settings = util.load_data("config.json")
+        self.current_level_id = str(self.settings["current_level"]) + ".json"
         self.master_volume = self.settings["volume"]["master"]
         self.music_volume = self.settings["volume"]["music"] * self.master_volume
         self.effects_volume = self.settings["volume"]["effects"] * self.master_volume
@@ -58,16 +51,15 @@ class GameObject(arcade.Window):
         self.character = entity.Character(walking_volume=self.effects_volume)
         self.enemy = entity.Enemy()
 
-        self.current_level = next(self.level_loader)
-        # self.current_level = level.load_test_level()
+        self.current_level = level.load_level(util.load_data(self.current_level_id, True))
 
         # ========================= Sounds =========================
         self.menu_sound = util.load_sound("retro_blip.wav")
         self.background_music = util.load_sound("sprazara.mp3")
 
         # ========================= Fonts =========================
-        arcade.text_pyglet.load_font(ENVIRON_ASSETS_PATH + "PressStart2P-Regular.ttf")
-        arcade.text_pyglet.load_font(ENVIRON_ASSETS_PATH + "AtlantisInternational.ttf")
+        arcade.text_pyglet.load_font("assets/PressStart2P-Regular.ttf")
+        arcade.text_pyglet.load_font("assets/AtlantisInternational.ttf")
 
         # ========================= Menus =========================
         self.main_menu = menus.MainMenu()
@@ -87,8 +79,8 @@ class GameObject(arcade.Window):
                 self.character, self.mouse_x, self.mouse_y
             )  # Pass mouse coords for debugging purposes
             if any(
-                light_receiver.charge >= util.RECEIVER_THRESHOLD
-                for light_receiver in self.current_level.light_receiver_list
+                    light_receiver.charge >= util.RECEIVER_THRESHOLD
+                    for light_receiver in self.current_level.light_receiver_list
             ):
                 self.game_state = "win"
 
@@ -191,14 +183,9 @@ class GameObject(arcade.Window):
                 if self.game_menu.selection == 0:
                     self.game_state = "game"
                 elif self.game_menu.selection == 1:
-                    self.level_loader = level.load_levels(LEVELS_FILE)
-                    self.current_level = next(self.level_loader)
-                    self.character.reset_pos(
-                        util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2
-                    )
-                    self.enemy.reset_pos(
-                        util.WORLD_WIDTH - 200, util.WORLD_HEIGHT - 200
-                    )
+                    self.current_level = level.load_level(util.load_data(self.current_level_id, True))
+                    self.character.reset_pos(util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2)
+                    self.enemy.reset_pos(util.WORLD_WIDTH - 200, util.WORLD_HEIGHT - 200)
                     self.game_state = "game"
                 elif self.game_menu.selection == 2:
                     self.game_state = "options"
@@ -213,17 +200,11 @@ class GameObject(arcade.Window):
                 self.win_screen.decrement_selection()
             if key == arcade.key.ENTER:
                 if self.win_screen.selection == 0:
-                    self.current_level = next(self.level_loader)
                     self.game_state = "menu"
                 if self.win_screen.selection == 1:
-                    self.level_loader = level.load_levels(LEVELS_FILE)
-                    self.current_level = next(self.level_loader)
-                    self.character.reset_pos(
-                        util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2
-                    )
-                    self.enemy.reset_pos(
-                        util.WORLD_WIDTH - 200, util.WORLD_HEIGHT - 200
-                    )
+                    self.current_level = level.load_level(util.load_data(self.current_level_id, True))
+                    self.character.reset_pos(util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2)
+                    self.enemy.reset_pos(util.WORLD_WIDTH - 200, util.WORLD_HEIGHT - 200)
                     self.game_state = "game"
                 elif self.win_screen.selection == 2:
                     self.music_player.seek(0.0)
@@ -288,12 +269,8 @@ class GameObject(arcade.Window):
         window_height = height / min_ratio
         width_difference = (window_width - WORLD_WIDTH) / 2
         height_difference = (window_height - WORLD_HEIGHT) / 2
-        arcade.set_viewport(
-            -width_difference,
-            WORLD_WIDTH + width_difference,
-            -height_difference,
-            WORLD_HEIGHT + height_difference,
-        )
+        arcade.set_viewport(-width_difference, WORLD_WIDTH + width_difference, -height_difference, WORLD_HEIGHT +
+                            height_difference)
 
     def on_mouse_motion(self, x: int, y: int, dx: int, dy: int):
         self.mouse_x, self.mouse_y = x, y

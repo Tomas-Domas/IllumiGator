@@ -12,9 +12,13 @@ https://drive.google.com/drive/folders/1HQ1lIxgZJNANgWnts3bsWUUTnnfJrKXW?usp=sha
 arcade
 numpy
 screeninfo
-pydantic
 
 ## Install
 pip install illumigator
 
 run **illumigator** command
+
+## Create Levels
+- To create a level first an appropriately formatted JSON file containing your level.
+- Name the file level_{level_id}.json where _level_id_ is a unique identifier (integer).
+- Move the file into the _illumigator/data/levels_ directory. That's it!

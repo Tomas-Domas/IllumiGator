@@ -76,6 +76,9 @@ PLAYER_REACH_DISTANCE_SQUARED: int = 200**2
 PLAYER_MOVEMENT_SPEED = 10
 OBJECT_ROTATION_AMOUNT: float = 0.004
 
+# Enemy Constants
+ENEMY_MOVEMENT_SPEED = 5
+
 
 # ========================= Physics Functions =========================
 def distance_squared(point1: numpy.ndarray, point2: numpy.ndarray) -> float:

@@ -2,7 +2,7 @@ import arcade
 import pyglet.media
 import numpy
 
-from illumigator.util import WORLD_WIDTH, WORLD_HEIGHT, PLAYER_MOVEMENT_SPEED
+from illumigator.util import WORLD_WIDTH, WORLD_HEIGHT, PLAYER_MOVEMENT_SPEED, ENEMY_MOVEMENT_SPEED
 from illumigator import util
 
 
@@ -192,6 +192,7 @@ class Enemy(Character):
         scale_factor=2,
         image_width=24,
         image_height=24,
+        # TODO: Should be placed in different places based on level
         center_x=WORLD_WIDTH - 200,
         center_y=WORLD_HEIGHT - 200,
     ):
@@ -231,7 +232,7 @@ class Enemy(Character):
             direction_mag = numpy.linalg.norm(direction)
             if direction_mag > 0:
                 direction = (
-                    direction * PLAYER_MOVEMENT_SPEED / direction_mag
+                    direction * ENEMY_MOVEMENT_SPEED / direction_mag
                 )  # Normalize and scale with speed
 
                 prev_x = self.character_sprite.center_x

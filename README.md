@@ -12,6 +12,7 @@ https://drive.google.com/drive/folders/1HQ1lIxgZJNANgWnts3bsWUUTnnfJrKXW?usp=sha
 arcade
 numpy
 screeninfo
+pydantic
 
 ## Install
 pip install illumigator

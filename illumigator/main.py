@@ -2,6 +2,7 @@ import arcade
 
 from illumigator import entity, level, menus, util
 from util import WORLD_WIDTH, WORLD_HEIGHT, WINDOW_TITLE
+from level_selector import LevelSelector
 
 
 class GameObject(arcade.Window):
@@ -31,6 +32,7 @@ class GameObject(arcade.Window):
         self.game_menu = None
         self.controls_menu = None
         self.audio_menu = None
+        self.selector_menu = LevelSelector()
 
         # ========================= Settings =========================
         self.settings = util.load_data("config.json")
@@ -183,10 +185,7 @@ class GameObject(arcade.Window):
                 if self.game_menu.selection == 0:
                     self.game_state = "game"
                 elif self.game_menu.selection == 1:
-                    self.current_level = level.load_level(util.load_data(self.current_level_id, True))
-                    self.character.reset_pos(util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2)
-                    self.enemy.reset_pos(util.WORLD_WIDTH - 200, util.WORLD_HEIGHT - 200)
-                    self.game_state = "game"
+                    self.reset_level()
                 elif self.game_menu.selection == 2:
                     self.game_state = "options"
                 elif self.game_menu.selection == 3:
@@ -202,10 +201,7 @@ class GameObject(arcade.Window):
                 if self.win_screen.selection == 0:
                     self.game_state = "menu"
                 if self.win_screen.selection == 1:
-                    self.current_level = level.load_level(util.load_data(self.current_level_id, True))
-                    self.character.reset_pos(util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2)
-                    self.enemy.reset_pos(util.WORLD_WIDTH - 200, util.WORLD_HEIGHT - 200)
-                    self.game_state = "game"
+                    self.reset_level()
                 elif self.win_screen.selection == 2:
                     self.music_player.seek(0.0)
                     self.setup()
@@ -281,6 +277,12 @@ class GameObject(arcade.Window):
         self.settings["volume"]["effects"] = self.effects_volume
         util.write_data("config.json", self.settings)
         arcade.close_window()
+
+    def reset_level(self):
+        self.current_level = level.load_level(util.load_data(self.current_level_id, True))
+        self.character.reset_pos(util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2)
+        self.enemy.reset_pos(util.WORLD_WIDTH - 200, util.WORLD_HEIGHT - 200)
+        self.game_state = "game"
 
 
 def main():

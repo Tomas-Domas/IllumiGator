@@ -33,37 +33,18 @@ class LightRay:
         if self._child_ray is not None:
             self._child_ray.draw()
 
-def get_raycast_results(ray_coordinates: list[float], line_coordinates: list[float]) -> list[tuple[float, int] | None]:   # tuple is (nearest_distance_squared, nearest_line_index)
-    raycast_results = [0] * (len(ray_coordinates)//4)
-    for ray_i in range(0, len(ray_coordinates), 4):
-        nearest_distance_squared = float('inf')
-        nearest_line_index = -1
+def get_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, line_x1, line_y1, line_x2, line_y2) -> numpy.ndarray | None:   # list that contains (nearest_distance_squared, nearest_line_index)
+    raycast_results = numpy.full((len(ray_x1), 2), float('inf'))
+    for line_i in range(len(line_x1)):
 
-        ray_x1, ray_y1, ray_x2, ray_y2 = ray_coordinates[ray_i: ray_i+4]
-        for line_i in range(0, len(line_coordinates), 4):
-            line_x1, line_y1, line_x2, line_y2 = line_coordinates[line_i: line_i+4]
+        # Don't @ me...    https://en.wikipedia.org/wiki/Line-line_intersection#Given_two_points_on_each_line_segment
+        denominators = (line_x1[line_i] - line_x2[line_i])*(ray_y1 - ray_y2) - (line_y1[line_i] - line_y2[line_i])*(ray_x1 - ray_x2)
+        t = numpy.where(denominators != 0, ((line_x1[line_i] - ray_x1) * (ray_y1 - ray_y2) - (line_y1[line_i] - ray_y1) * (ray_x1 - ray_x2)) / denominators, float('inf'))
+        u = numpy.where(denominators != 0, -((line_x1[line_i] - line_x2[line_i]) * (line_y1[line_i] - ray_y1) - (line_y1[line_i] - line_y2[line_i]) * (line_x1[line_i] - ray_x1)) / denominators, float('inf'))
+        x_and_y_distances = numpy.where(((0 < t) & (t < 1)) & (u > 0), u * numpy.array(((ray_x1 - ray_x2), (ray_y1 - ray_y2))), float('inf'))
+        distances = x_and_y_distances[0]*x_and_y_distances[0] + x_and_y_distances[1]*x_and_y_distances[1]
+        raycast_results[:, 0] = numpy.where(distances < raycast_results[:, 0], distances, raycast_results[:, 0])
+        raycast_results[:, 1] = numpy.where(distances == raycast_results[:, 0], line_i, raycast_results[:, 1])
 
-            # Don't @ me...    https://en.wikipedia.org/wiki/Line-line_intersection#Given_two_points_on_each_line_segment
-            denominator = (line_x1 - line_x2) * (ray_y1 - ray_y2) - (line_y1 - line_y2) * (ray_x1 - ray_x2)
-            if denominator == 0:  # Line and ray are parallel
-                current_distance_squared = float('inf')
-            else:
-                t = ((line_x1 - ray_x1) * (ray_y1 - ray_y2) - (line_y1 - ray_y1) * (ray_x1 - ray_x2)) / denominator
-                u = -((line_x1 - line_x2) * (line_y1 - ray_y1) - (line_y1 - line_y2) * (line_x1 - ray_x1)) / denominator
-
-                if 0 < t < 1 and u > 0:
-                    x_dist = u * (ray_x1 - ray_x2)
-                    y_dist = u * (ray_y1 - ray_y2)
-                    current_distance_squared = x_dist * x_dist + y_dist * y_dist
-                else:
-                    current_distance_squared = float('inf')
-
-            if current_distance_squared < nearest_distance_squared:
-                nearest_distance_squared = current_distance_squared
-                nearest_line_index = line_i//4
-        if nearest_distance_squared == float('inf'):
-            raycast_results[ray_i//4] = None
-        else:
-            raycast_results[ray_i//4] = (nearest_distance_squared, nearest_line_index)
-
+    raycast_results[:, 0] = numpy.sqrt(raycast_results[:, 0])
     return raycast_results

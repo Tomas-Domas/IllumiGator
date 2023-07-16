@@ -1,5 +1,3 @@
-import math
-
 import numpy
 
 from illumigator import worldobjects, entity, util, light
@@ -129,31 +127,35 @@ class Level:
                 wall.apply_object_animation(character)
 
 
-        line_coordinates = [0, 0, 0, 0] * len(self.line_segments)
+        line_coordinates = numpy.ndarray((len(self.line_segments), 4))
         for line_i in range(len(self.line_segments)):
-            line_coordinates[line_i*4: (line_i*4) + 4] = self.line_segments[line_i]._point1[0], self.line_segments[line_i]._point1[1], self.line_segments[line_i]._point2[0], self.line_segments[line_i]._point2[1]
+            line_coordinates[line_i, :] = self.line_segments[line_i]._point1[0], self.line_segments[line_i]._point1[1], self.line_segments[line_i]._point2[0], self.line_segments[line_i]._point2[1]
         for light_source in self.light_sources_list:
             ray_queue = light_source.light_rays[:]
             queue_length = len(ray_queue)
 
+            line_x1, line_y1, line_x2, line_y2 = line_coordinates[:, 0], line_coordinates[:, 1], line_coordinates[:, 2], line_coordinates[:, 3]
+
             while queue_length > 0:
-                ray_coordinates = [0, 0, 0, 0] * queue_length
+                ray_coordinates = numpy.ndarray((queue_length, 4))
                 for ray_i in range(queue_length):
-                    ray_coordinates[ray_i*4: (ray_i*4) + 4] = ray_queue[ray_i]._origin[0], ray_queue[ray_i]._origin[1], ray_queue[ray_i]._origin[0] + ray_queue[ray_i]._direction[0], ray_queue[ray_i]._origin[1] + ray_queue[ray_i]._direction[1]
-                ray_casting_results = light.get_raycast_results(ray_coordinates, line_coordinates)
+                    ray_coordinates[ray_i, :] = ray_queue[ray_i]._origin[0], ray_queue[ray_i]._origin[1], ray_queue[ray_i]._origin[0] + ray_queue[ray_i]._direction[0], ray_queue[ray_i]._origin[1] + ray_queue[ray_i]._direction[1]
+                ray_x1, ray_y1, ray_x2, ray_y2 = ray_coordinates[:, 0], ray_coordinates[:, 1], ray_coordinates[:, 2], ray_coordinates[:, 3]
+                ray_casting_results = light.get_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, line_x1, line_y1, line_x2, line_y2)
 
                 for i in range(queue_length):
                     ray = ray_queue[i]
-                    if ray_casting_results[i] is None:
+                    if ray_casting_results[i][0] is float('inf'):
                         ray._end = ray._origin + ray._direction * util.MAX_RAY_DISTANCE
-                        ray._child_ray = None  # TODO: Make delete bloodline function
+                        del ray._child_ray  # TODO: Make delete bloodline function
+                        ray._child_ray = None
                         continue
                     else:
-                        nearest_distance_squared, nearest_line_index = ray_casting_results[i]
+                        nearest_distance, nearest_line_index = ray_casting_results[i]
 
-                    nearest_line = self.line_segments[nearest_line_index]
+                    nearest_line = self.line_segments[int(nearest_line_index)]
 
-                    ray._end = ray._origin + ray._direction * math.sqrt(nearest_distance_squared)
+                    ray._end = ray._origin + ray._direction * nearest_distance
                     if nearest_line.is_reflective and ray._generation < util.MAX_GENERATIONS:  # if the ray hit a mirror, create child and cast it
                         ray._generate_child_ray(nearest_line.get_reflected_direction(ray))
                         ray_queue.append(ray._child_ray)
@@ -163,6 +165,7 @@ class Level:
                     elif nearest_line.is_receiver:  # Charge receiver when a light ray hits it
                         nearest_line.parent_object.charge += util.LIGHT_INCREMENT
                     else:
+                        del ray._child_ray
                         ray._child_ray = None
                 ray_queue = ray_queue[queue_length:]
                 queue_length = len(ray_queue)

@@ -281,18 +281,3 @@ class Arc(Geometry):
             if util.two_d_cross_product(ray._direction, normal) > 0:
                 angle = -angle
             return util.rotate_around_center(numpy.zeros(2), normal, angle)
-
-
-def get_line_intersection_distance(line_x1, line_y1, line_x2, line_y2, ray_x3, ray_y3, ray_x4, ray_y4) -> float:
-    # Don't @ me...    https://en.wikipedia.org/wiki/Line-line_intersection#Given_two_points_on_each_line_segment
-    denominator = (line_x1 - line_x2) * (ray_y3 - ray_y4) - (line_y1 - line_y2) * (ray_x3 - ray_x4)
-    if denominator == 0:  # Line and ray are parallel
-        return float('inf')
-    t = ((line_x1 - ray_x3) * (ray_y3 - ray_y4) - (line_y1 - ray_y3) * (ray_x3 - ray_x4)) / denominator
-    u = -((line_x1 - line_x2) * (line_y1 - ray_y3) - (line_y1 - line_y2) * (line_x1 - ray_x3)) / denominator
-
-    if 0 < t < 1 and u > 0:
-        x_dist = u * (ray_x3 - ray_x4)
-        y_dist = u * (ray_y3 - ray_y4)
-        return x_dist * x_dist + y_dist * y_dist
-    return float('inf')

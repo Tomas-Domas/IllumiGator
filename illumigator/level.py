@@ -1,6 +1,6 @@
 import numpy
 
-from illumigator import worldobjects, entity, util, light
+from illumigator import worldobjects, entity, util, light, timer
 from util import WALL_SIZE
 
 
@@ -126,10 +126,10 @@ class Level:
             if wall.obj_animation is not None:
                 wall.apply_object_animation(character)
 
-
         line_coordinates = numpy.ndarray((len(self.line_segments), 4))
         for line_i in range(len(self.line_segments)):
             line_coordinates[line_i, :] = self.line_segments[line_i]._point1[0], self.line_segments[line_i]._point1[1], self.line_segments[line_i]._point2[0], self.line_segments[line_i]._point2[1]
+
         for light_source in self.light_sources_list:
             ray_queue = light_source.light_rays[:]
             queue_length = len(ray_queue)
@@ -147,8 +147,7 @@ class Level:
                     ray = ray_queue[i]
                     if ray_casting_results[i][0] is float('inf'):
                         ray._end = ray._origin + ray._direction * util.MAX_RAY_DISTANCE
-                        del ray._child_ray  # TODO: Make delete bloodline function
-                        ray._child_ray = None
+                        ray._child_ray = None  # TODO: Make delete bloodline function
                         continue
                     else:
                         nearest_distance, nearest_line_index = ray_casting_results[i]
@@ -165,8 +164,8 @@ class Level:
                     elif nearest_line.is_receiver:  # Charge receiver when a light ray hits it
                         nearest_line.parent_object.charge += util.LIGHT_INCREMENT
                     else:
-                        del ray._child_ray
                         ray._child_ray = None
+
                 ray_queue = ray_queue[queue_length:]
                 queue_length = len(ray_queue)
 

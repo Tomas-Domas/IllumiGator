@@ -1,6 +1,8 @@
 import arcade
 import numpy
 
+from illumigator import timer
+
 
 
 class LightRay:
@@ -34,17 +36,25 @@ class LightRay:
             self._child_ray.draw()
 
 def get_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, line_x1, line_y1, line_x2, line_y2) -> numpy.ndarray | None:   # list that contains (nearest_distance_squared, nearest_line_index)
-    raycast_results = numpy.full((len(ray_x1), 2), float('inf'))
-    for line_i in range(len(line_x1)):
+    raycast_results = numpy.full((2, len(ray_x1)), float('inf'))
+    for line_i in range(len(line_x1)):  # Don't @ me...    https://en.wikipedia.org/wiki/Line-line_intersection#Given_two_points_on_each_line_segment
+        line_i_x1, line_i_y1, line_i_x2, line_i_y2 = line_x1[line_i], line_y1[line_i], line_x2[line_i], line_y2[line_i]
 
-        # Don't @ me...    https://en.wikipedia.org/wiki/Line-line_intersection#Given_two_points_on_each_line_segment
-        denominators = (line_x1[line_i] - line_x2[line_i])*(ray_y1 - ray_y2) - (line_y1[line_i] - line_y2[line_i])*(ray_x1 - ray_x2)
-        t = numpy.where(denominators != 0, ((line_x1[line_i] - ray_x1) * (ray_y1 - ray_y2) - (line_y1[line_i] - ray_y1) * (ray_x1 - ray_x2)) / denominators, float('inf'))
-        u = numpy.where(denominators != 0, -((line_x1[line_i] - line_x2[line_i]) * (line_y1[line_i] - ray_y1) - (line_y1[line_i] - line_y2[line_i]) * (line_x1[line_i] - ray_x1)) / denominators, float('inf'))
-        x_and_y_distances = numpy.where(((0 < t) & (t < 1)) & (u > 0), u * numpy.array(((ray_x1 - ray_x2), (ray_y1 - ray_y2))), float('inf'))
-        distances = x_and_y_distances[0]*x_and_y_distances[0] + x_and_y_distances[1]*x_and_y_distances[1]
-        raycast_results[:, 0] = numpy.where(distances < raycast_results[:, 0], distances, raycast_results[:, 0])
-        raycast_results[:, 1] = numpy.where(distances == raycast_results[:, 0], line_i, raycast_results[:, 1])
+        temp_calc_x = (ray_x1 - ray_x2)
+        temp_calc_y = (ray_y1 - ray_y2)
+        denominators = (line_i_x1 - line_i_x2)*temp_calc_y - (line_i_y1 - line_i_y2)*temp_calc_x
 
-    raycast_results[:, 0] = numpy.sqrt(raycast_results[:, 0])
-    return raycast_results
+        t = numpy.where(denominators != 0, ((line_i_x1 - ray_x1)*temp_calc_y - (line_i_y1 - ray_y1)*temp_calc_x) / denominators, float('inf'))
+        u = numpy.where(denominators != 0, ((line_i_y1 - line_i_y2)*(line_i_x1 - ray_x1) - (line_i_x1 - line_i_x2)*(line_i_y1 - ray_y1)) / denominators, float('inf'))
+
+        xy_dists = numpy.where(((0 < t) & (t < 1)) & (u > 0), u * [temp_calc_x, temp_calc_y], float('inf'))
+        distances_squared = xy_dists[0, :]*xy_dists[0, :] + xy_dists[1, :]*xy_dists[1, :]
+
+        raycast_results = numpy.where(
+            [distances_squared < raycast_results[0, :], distances_squared < raycast_results[0, :]],
+            [distances_squared, numpy.full((len(ray_x1)), line_i)],
+            raycast_results
+        )
+
+    raycast_results[0, :] = numpy.sqrt(raycast_results[0, :])
+    return raycast_results.T

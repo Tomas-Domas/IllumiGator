@@ -6,6 +6,7 @@ import numpy
 import math
 
 import json
+import heapq
 
 # ========================= Game Constants =========================
 # Window
@@ -246,4 +247,32 @@ def update_community_metadata() -> None:
                 "level_name": load_data(filename, True, False)["level_name"]
             }
 
+    # Remove old datapoints (deleted file) in levels.json if necessary
+    list_of_datapoints_to_delete = []
+
+    for filename in json_obj["levels"]:
+        if not (filename in last_modified_dict):
+            list_of_datapoints_to_delete.append(filename)
+
+    for i in range(0, len(list_of_datapoints_to_delete)):
+        del json_obj["levels"][list_of_datapoints_to_delete[i]]
+
     write_data("levels/community/levels.json", json_obj)
+
+
+def get_community_metadata(page_size: int = 15) -> list:
+    addon_path = "levels/community/"
+    level_list = []
+
+    try:
+        metadata_file = open(ENVIRON_DATA_PATH + addon_path + "levels.json")
+        print(ENVIRON_DATA_PATH + addon_path + "levels.json")
+    except FileNotFoundError:
+        metadata_file = open(VENV_DATA_PATH + addon_path + "levels.json")
+
+    levels = json.load(metadata_file)["levels"]
+
+    for level in levels:
+        heapq.heappush(level_list, (-1 * levels[level]["date_modified"], levels[level]))
+
+    return [heapq.heappop(level_list)[1] for i in range(min(len(level_list), page_size))]

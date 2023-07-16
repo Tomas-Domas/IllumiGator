@@ -1,6 +1,6 @@
 import os
 from typing import Union
-from screeninfo import get_monitors, ScreenInfoError
+from screeninfo import get_monitors
 import arcade
 import numpy
 import math
@@ -21,7 +21,6 @@ for m in get_monitors():
 
 # Debug
 DEBUG_GEOMETRY: bool = True  # Toggle with G
-
 
 # ========================= Asset Constants =========================
 # World Objects
@@ -49,11 +48,10 @@ H3_FONT_SIZE = 24
 H2_FONT_SIZE = 36
 H1_FONT_SIZE = 48
 
-
 # ========================= Script Constants =========================
 # Ray Casting Constants
 STARTING_DISTANCE_VALUE = (
-    WORLD_WIDTH**2 + WORLD_HEIGHT**2
+        WORLD_WIDTH ** 2 + WORLD_HEIGHT ** 2
 )  # Large number for starting out min distance calculations
 MAX_RAY_DISTANCE = math.sqrt(
     STARTING_DISTANCE_VALUE
@@ -70,7 +68,7 @@ LIGHT_INCREMENT: float = 0.009085 / NUM_LIGHT_RAYS
 RECEIVER_THRESHOLD: float = 0.7
 
 # Player Constants
-PLAYER_REACH_DISTANCE_SQUARED: int = 200**2
+PLAYER_REACH_DISTANCE_SQUARED: int = 200 ** 2
 PLAYER_MOVEMENT_SPEED = 10
 OBJECT_ROTATION_AMOUNT: float = 0.004
 
@@ -85,7 +83,7 @@ def distance_squared(point1: numpy.ndarray, point2: numpy.ndarray) -> float:
 
 
 def rotate_around_center(
-    center: numpy.ndarray, point: numpy.ndarray, angle: float
+        center: numpy.ndarray, point: numpy.ndarray, angle: float
 ) -> numpy.ndarray:
     relative_point = point - center
     rotated_point = numpy.array(
@@ -103,25 +101,24 @@ def two_d_cross_product(vector1: numpy.ndarray, vector2: numpy.ndarray):
 
 # ========================= File Handling Functions =========================
 def load_sprite(
-    filename: Union[str, None] = None,
-    scale: float = 1,
-    image_x: float = 0,
-    image_y: float = 0,
-    image_width: float = 0,
-    image_height: float = 0,
-    center_x: float = 0,
-    center_y: float = 0,
-    repeat_count_x: int = 1,
-    repeat_count_y: int = 1,
-    flipped_horizontally: bool = False,
-    flipped_vertically: bool = False,
-    flipped_diagonally: bool = False,
-    hit_box_algorithm: Union[str, None] = "Simple",
-    hit_box_detail: float = 4.5,
-    texture: Union[arcade.Texture, None] = None,
-    angle: float = 0,
+        filename: Union[str, None] = None,
+        scale: float = 1,
+        image_x: float = 0,
+        image_y: float = 0,
+        image_width: float = 0,
+        image_height: float = 0,
+        center_x: float = 0,
+        center_y: float = 0,
+        repeat_count_x: int = 1,
+        repeat_count_y: int = 1,
+        flipped_horizontally: bool = False,
+        flipped_vertically: bool = False,
+        flipped_diagonally: bool = False,
+        hit_box_algorithm: Union[str, None] = "Simple",
+        hit_box_detail: float = 4.5,
+        texture: Union[arcade.Texture, None] = None,
+        angle: float = 0,
 ) -> arcade.Sprite:
-
     try:
         return arcade.Sprite(
             ENVIRON_ASSETS_PATH + filename,
@@ -178,12 +175,19 @@ def load_texture(filename: str) -> arcade.Texture:
         return arcade.load_texture(VENV_ASSETS_PATH + filename)
 
 
-def load_data(filename: str, is_level=False) -> dict:
+def load_data(filename: str, is_level=False, is_system_level=True) -> dict:
+    if is_level and is_system_level:
+        addon_path = "levels/system/level_"
+    elif is_level and not is_system_level:
+        addon_path = "levels/community/"
+    else:
+        addon_path = ""
+
     try:
-        file = open(ENVIRON_DATA_PATH + ("levels/level_" if is_level else "") + filename)
-        print(ENVIRON_DATA_PATH + ("levels/level_" if is_level else "") + filename)
+        file = open(ENVIRON_DATA_PATH + addon_path + filename)
+        print(ENVIRON_DATA_PATH + addon_path + filename)
     except FileNotFoundError:
-        file = open(VENV_DATA_PATH + ("levels/level_" if is_level else "") + filename)
+        file = open(VENV_DATA_PATH + addon_path + filename)
 
     obj = json.load(file)
     file.close()
@@ -191,7 +195,6 @@ def load_data(filename: str, is_level=False) -> dict:
 
 
 def write_data(filename: str, obj: dict) -> None:
-
     json_obj = json.dumps(obj)
 
     if os.path.exists(ENVIRON_DATA_PATH):
@@ -200,3 +203,46 @@ def write_data(filename: str, obj: dict) -> None:
     else:
         with open(VENV_DATA_PATH + filename, "w") as outfile:
             outfile.write(json_obj)
+
+
+def update_community_metadata() -> None:
+    last_modified_dict = {}
+    addon_path = "levels/community/"
+
+    # Get file names and modification date from community directory
+    try:
+        files = os.scandir(ENVIRON_DATA_PATH + addon_path)
+    except FileNotFoundError:
+        files = os.scandir(VENV_DATA_PATH + addon_path)
+
+    for file in files:
+        if not file.name == "levels.json":
+            last_modified_dict[file.name] = os.path.getmtime(file)
+
+    # Get levels.json metadata file from community directory
+    try:
+        metadata_file = open(ENVIRON_DATA_PATH + addon_path + "levels.json")
+        print(ENVIRON_DATA_PATH + addon_path + "levels.json")
+    except FileNotFoundError:
+        metadata_file = open(VENV_DATA_PATH + addon_path + "levels.json")
+
+    json_obj = json.load(metadata_file)
+    metadata_file.close()
+
+    # Add datapoint (new file) to levels.json if necessary
+    for filename in last_modified_dict:
+        if not (filename in json_obj["levels"]):
+            json_obj["levels"][filename] = {
+                "date_modified": last_modified_dict[filename],
+                "level_name": load_data(filename, True, False)["level_name"]
+            }
+
+    # Update levels.json with new data if necessary
+    for filename in last_modified_dict:
+        if last_modified_dict[filename] != json_obj["levels"][filename]["date_modified"]:
+            json_obj["levels"][filename] = {
+                "date_modified": last_modified_dict[filename],
+                "level_name": load_data(filename, True, False)["level_name"]
+            }
+
+    write_data("levels/community/levels.json", json_obj)

@@ -1,4 +1,3 @@
-
 import os
 from typing import Union
 from screeninfo import get_monitors, ScreenInfoError
@@ -22,7 +21,6 @@ for m in get_monitors():
 
 # Debug
 DEBUG_GEOMETRY: bool = True  # Toggle with G
-DEBUG_LIGHT_SOURCES: bool = False  # Toggle with L
 
 
 # ========================= Asset Constants =========================
@@ -64,7 +62,7 @@ MAX_GENERATIONS: int = 50
 INDEX_OF_REFRACTION: float = 2
 
 # Light Source Constants
-NUM_LIGHT_RAYS: int = 15
+NUM_LIGHT_RAYS: int = 100
 
 # Light Receiver Constants
 CHARGE_DECAY: float = 0.991

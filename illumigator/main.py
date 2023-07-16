@@ -1,3 +1,4 @@
+import cProfile
 import arcade
 
 from illumigator import entity, level, menus, util
@@ -153,8 +154,6 @@ class GameObject(arcade.Window):
         elif self.game_state == "game":
             if key == arcade.key.G:
                 util.DEBUG_GEOMETRY = not util.DEBUG_GEOMETRY
-            if key == arcade.key.L:
-                util.DEBUG_LIGHT_SOURCES = not util.DEBUG_LIGHT_SOURCES
 
             if key == arcade.key.ESCAPE:
                 self.game_state = "paused"
@@ -286,7 +285,15 @@ class GameObject(arcade.Window):
 def main():
     window = GameObject()
     window.setup()
-    arcade.run()
+
+
+    # arcade.run()
+
+
+    window.game_state = "game"
+    # window.on_update(1 / 60)
+    command = "for _ in range(10):\n\twindow.on_update(1/60)"
+    cProfile.runctx(command, {'window': window}, {}, sort='tottime')
 
 
 if __name__ == "__main__":

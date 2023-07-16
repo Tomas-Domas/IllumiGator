@@ -1,8 +1,6 @@
 import arcade
-import math
 import numpy
 
-from illumigator import util
 
 
 class LightRay:
@@ -10,62 +8,8 @@ class LightRay:
         self._origin = origin
         self._direction = direction
         self._end = numpy.zeros(2)
-        self._child_ray = None
+        self._child_ray: LightRay | None = None
         self._generation = generation
-
-    def cast_ray(self, world_objects: list):
-        nearest_distance_squared = util.STARTING_DISTANCE_VALUE
-        nearest_intersection_worldobject = None
-        nearest_intersection_geometry = None
-        nearest_intersection_point = None
-        for wo in world_objects:
-            for segment in wo._geometry_segments:
-                intersection_point = segment.get_intersection(self)
-                if intersection_point is None:
-                    continue
-
-                intersection_dist_squared = util.distance_squared(
-                    self._origin, intersection_point
-                )
-                if intersection_dist_squared < nearest_distance_squared:
-                    nearest_distance_squared = intersection_dist_squared
-                    nearest_intersection_worldobject = wo
-                    nearest_intersection_geometry = segment
-                    nearest_intersection_point = intersection_point
-
-        if nearest_intersection_point is None:
-            self._end = self._origin + self._direction * util.MAX_RAY_DISTANCE
-            self._child_ray = None
-            return
-
-        self._end = nearest_intersection_point
-        if (
-            nearest_intersection_worldobject._is_receiver
-        ):  # Charge receiver when a light ray hits it
-            nearest_intersection_worldobject.charge += util.LIGHT_INCREMENT
-
-        if self._generation >= util.MAX_GENERATIONS:
-            self._child_ray = None
-            return
-
-        if (
-            nearest_intersection_geometry.is_reflective
-        ):  # if the ray hit a mirror, create child and cast it
-            self._generate_child_ray(
-                nearest_intersection_geometry.get_reflected_direction(self)
-            )
-            self._child_ray.cast_ray(world_objects)
-        elif (
-            nearest_intersection_geometry.is_refractive
-        ):  # if the ray hit a lens, create child and cast it
-            self._generate_child_ray(
-                nearest_intersection_geometry.get_refracted_direction(
-                    self, nearest_intersection_point
-                )
-            )
-            self._child_ray.cast_ray(world_objects)
-        else:
-            self._child_ray = None
 
     def _generate_child_ray(self, direction):
         if self._child_ray is None:
@@ -88,3 +32,38 @@ class LightRay:
         )
         if self._child_ray is not None:
             self._child_ray.draw()
+
+def get_raycast_results(ray_coordinates: list[float], line_coordinates: list[float]) -> list[tuple[float, int] | None]:   # tuple is (nearest_distance_squared, nearest_line_index)
+    raycast_results = [0] * (len(ray_coordinates)//4)
+    for ray_i in range(0, len(ray_coordinates), 4):
+        nearest_distance_squared = float('inf')
+        nearest_line_index = -1
+
+        ray_x1, ray_y1, ray_x2, ray_y2 = ray_coordinates[ray_i: ray_i+4]
+        for line_i in range(0, len(line_coordinates), 4):
+            line_x1, line_y1, line_x2, line_y2 = line_coordinates[line_i: line_i+4]
+
+            # Don't @ me...    https://en.wikipedia.org/wiki/Line-line_intersection#Given_two_points_on_each_line_segment
+            denominator = (line_x1 - line_x2) * (ray_y1 - ray_y2) - (line_y1 - line_y2) * (ray_x1 - ray_x2)
+            if denominator == 0:  # Line and ray are parallel
+                current_distance_squared = float('inf')
+            else:
+                t = ((line_x1 - ray_x1) * (ray_y1 - ray_y2) - (line_y1 - ray_y1) * (ray_x1 - ray_x2)) / denominator
+                u = -((line_x1 - line_x2) * (line_y1 - ray_y1) - (line_y1 - line_y2) * (line_x1 - ray_x1)) / denominator
+
+                if 0 < t < 1 and u > 0:
+                    x_dist = u * (ray_x1 - ray_x2)
+                    y_dist = u * (ray_y1 - ray_y2)
+                    current_distance_squared = x_dist * x_dist + y_dist * y_dist
+                else:
+                    current_distance_squared = float('inf')
+
+            if current_distance_squared < nearest_distance_squared:
+                nearest_distance_squared = current_distance_squared
+                nearest_line_index = line_i//4
+        if nearest_distance_squared == float('inf'):
+            raycast_results[ray_i//4] = None
+        else:
+            raycast_results[ray_i//4] = (nearest_distance_squared, nearest_line_index)
+
+    return raycast_results

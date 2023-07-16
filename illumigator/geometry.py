@@ -7,16 +7,14 @@ from illumigator import util
 
 
 class Geometry(ABC):
-    def __init__(self, is_reflective: bool, is_refractive: bool):
+    def __init__(self, parent_object, is_reflective: bool, is_refractive: bool, is_receiver: bool):
+        self.parent_object = parent_object
         self.is_reflective = is_reflective
         self.is_refractive = is_refractive
+        self.is_receiver = is_receiver
 
     @abstractmethod
     def draw(self):
-        pass
-
-    @abstractmethod
-    def get_intersection(self, ray) -> tuple:
         pass
 
     @abstractmethod
@@ -27,36 +25,16 @@ class Geometry(ABC):
 class Line(Geometry):
     def __init__(
         self,
+        parent_object,
         point1: numpy.ndarray,
         point2: numpy.ndarray,
         is_reflective: bool = False,
         is_refractive: bool = False,
+        is_receiver: bool = False
     ):
-        super().__init__(is_reflective, is_refractive)
+        super().__init__(parent_object, is_reflective, is_refractive, is_receiver)
         self._point1 = point1
         self._point2 = point2
-
-    def get_intersection(self, ray) -> numpy.ndarray:
-        # Don't @ me...    https://en.wikipedia.org/wiki/Line-line_intersection#Given_two_points_on_each_line_segment
-        x1 = self._point1[0]
-        y1 = self._point1[1]
-        x2 = self._point2[0]
-        y2 = self._point2[1]
-
-        x3 = ray._origin[0]
-        y3 = ray._origin[1]
-        x4 = ray._origin[0] + ray._direction[0]
-        y4 = ray._origin[1] + ray._direction[1]
-
-        denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
-        if denominator == 0:  # Line and ray are parallel
-            return None
-        t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denominator
-        u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denominator
-
-        if 0 < t < 1 and u > 0:
-            return numpy.array([x1 + t * (x2 - x1), y1 + t * (y2 - y1)])
-        return None
 
     def move(self, world_object_center, move_distance, rotate_angle=0):
         self._point1 = (
@@ -101,12 +79,14 @@ class Line(Geometry):
 class Circle(Geometry):
     def __init__(
         self,
+        parent_object,
         center: numpy.ndarray,
         radius: float,
         is_reflective: bool = False,
         is_refractive: bool = False,
+        is_receiver: bool = False
     ):
-        super().__init__(is_reflective, is_refractive)
+        super().__init__(parent_object, is_reflective, is_refractive, is_receiver)
         self.center = center
         self.radius = radius
 
@@ -150,14 +130,16 @@ class Circle(Geometry):
 class Arc(Geometry):
     def __init__(
         self,
+        parent_object,
         center: numpy.ndarray,
         radius: float,
         rotation_angle: float,
         angular_width: float,
         is_reflective: bool = False,
         is_refractive: bool = True,
+        is_receiver: bool = False
     ):
-        super().__init__(is_reflective, is_refractive)
+        super().__init__(parent_object, is_reflective, is_refractive, is_receiver)
         if angular_width > numpy.pi:
             raise ValueError("Arc angle cannot be greater than PI")
         self._start_angle = rotation_angle - angular_width / 2
@@ -299,3 +281,18 @@ class Arc(Geometry):
             if util.two_d_cross_product(ray._direction, normal) > 0:
                 angle = -angle
             return util.rotate_around_center(numpy.zeros(2), normal, angle)
+
+
+def get_line_intersection_distance(line_x1, line_y1, line_x2, line_y2, ray_x3, ray_y3, ray_x4, ray_y4) -> float:
+    # Don't @ me...    https://en.wikipedia.org/wiki/Line-line_intersection#Given_two_points_on_each_line_segment
+    denominator = (line_x1 - line_x2) * (ray_y3 - ray_y4) - (line_y1 - line_y2) * (ray_x3 - ray_x4)
+    if denominator == 0:  # Line and ray are parallel
+        return float('inf')
+    t = ((line_x1 - ray_x3) * (ray_y3 - ray_y4) - (line_y1 - ray_y3) * (ray_x3 - ray_x4)) / denominator
+    u = -((line_x1 - line_x2) * (line_y1 - ray_y3) - (line_y1 - line_y2) * (line_x1 - ray_x3)) / denominator
+
+    if 0 < t < 1 and u > 0:
+        x_dist = u * (ray_x3 - ray_x4)
+        y_dist = u * (ray_y3 - ray_y4)
+        return x_dist * x_dist + y_dist * y_dist
+    return float('inf')

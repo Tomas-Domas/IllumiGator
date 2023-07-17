@@ -121,7 +121,7 @@ class Level:
             self.line_segments.extend(world_object._geometry_segments)
 
 
-    def update(self, character: entity.Character, mouse_x, mouse_y):
+    def update(self, character: entity.Character):
         for wall in self.wall_list:
             if wall.obj_animation is not None:
                 wall.apply_object_animation(character)
@@ -141,20 +141,16 @@ class Level:
                 for ray_i in range(queue_length):
                     ray_coordinates[ray_i, :] = ray_queue[ray_i]._origin[0], ray_queue[ray_i]._origin[1], ray_queue[ray_i]._origin[0] + ray_queue[ray_i]._direction[0], ray_queue[ray_i]._origin[1] + ray_queue[ray_i]._direction[1]
                 ray_x1, ray_y1, ray_x2, ray_y2 = ray_coordinates[:, 0], ray_coordinates[:, 1], ray_coordinates[:, 2], ray_coordinates[:, 3]
-                ray_casting_results = light.get_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, line_x1, line_y1, line_x2, line_y2)
+                nearest_distances, nearest_line_indeces = light.get_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, line_x1, line_y1, line_x2, line_y2)
 
                 for i in range(queue_length):
                     ray = ray_queue[i]
-                    if ray_casting_results[i][0] is float('inf'):
+                    if nearest_distances[i] is float('inf'):
                         ray._end = ray._origin + ray._direction * util.MAX_RAY_DISTANCE
                         ray._child_ray = None  # TODO: Make delete bloodline function
                         continue
-                    else:
-                        nearest_distance, nearest_line_index = ray_casting_results[i]
-
-                    nearest_line = self.line_segments[int(nearest_line_index)]
-
-                    ray._end = ray._origin + ray._direction * nearest_distance
+                    nearest_line = self.line_segments[nearest_line_indeces[i]]
+                    ray._end = ray._origin + ray._direction * nearest_distances[i]
                     if nearest_line.is_reflective and ray._generation < util.MAX_GENERATIONS:  # if the ray hit a mirror, create child and cast it
                         ray._generate_child_ray(nearest_line.get_reflected_direction(ray))
                         ray_queue.append(ray._child_ray)

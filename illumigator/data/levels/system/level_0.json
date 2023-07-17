@@ -2,7 +2,7 @@
   "level_name": "Level 1",
   "level_data": {
     "mirror_coordinate_list": [
-      [200, 500, 0]
+      [200, 500, -0.5]
     ],
     "wall_coordinate_list": [],
     "light_receiver_coordinate_list": [],

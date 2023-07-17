@@ -1,3 +1,4 @@
+import cProfile
 import arcade
 
 from illumigator import entity, level, menus, util
@@ -78,9 +79,7 @@ class GameObject(arcade.Window):
         if self.game_state == "game":
             self.character.update(self.current_level, self.effects_volume)
             self.enemy.update(self.current_level, self.character)
-            self.current_level.update(
-                self.character, self.mouse_x, self.mouse_y
-            )  # Pass mouse coords for debugging purposes
+            self.current_level.update(self.character)
             if any(
                     light_receiver.charge >= util.RECEIVER_THRESHOLD
                     for light_receiver in self.current_level.light_receiver_list
@@ -161,8 +160,6 @@ class GameObject(arcade.Window):
         elif self.game_state == "game":
             if key == arcade.key.G:
                 util.DEBUG_GEOMETRY = not util.DEBUG_GEOMETRY
-            if key == arcade.key.L:
-                util.DEBUG_LIGHT_SOURCES = not util.DEBUG_LIGHT_SOURCES
 
             if key == arcade.key.ESCAPE:
                 self.game_state = "paused"
@@ -307,7 +304,15 @@ class GameObject(arcade.Window):
 def main():
     window = GameObject()
     window.setup()
+
     arcade.run()
+
+    # window.game_state = "game"
+    # window.on_update(1 / 60)
+
+    # window.game_state = "game"
+    # command = "for _ in range(100):\n\twindow.on_update(1/60)"
+    # cProfile.runctx(command, {'window': window}, {}, sort='tottime')
 
 
 if __name__ == "__main__":

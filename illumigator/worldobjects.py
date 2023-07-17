@@ -51,10 +51,10 @@ class WorldObject:
         axis2 = 0.5 * sprite_height * sprite_scale * dimensions[1] * axis2_norm
         if disable_geometry is False:
             self._geometry_segments = [
-                geometry.Line(position - axis1 - axis2, position - axis1 + axis2),
-                geometry.Line(position - axis1 + axis2, position + axis1 + axis2),
-                geometry.Line(position + axis1 + axis2, position + axis1 - axis2),
-                geometry.Line(position + axis1 - axis2, position - axis1 - axis2),
+                geometry.Line(self, position - axis1 - axis2, position - axis1 + axis2),
+                geometry.Line(self, position - axis1 + axis2, position + axis1 + axis2),
+                geometry.Line(self, position + axis1 + axis2, position + axis1 - axis2),
+                geometry.Line(self, position + axis1 - axis2, position - axis1 - axis2),
             ]
 
         for col in range(int(dimensions[0])):
@@ -186,12 +186,14 @@ class Lens(WorldObject):
         )
         self._geometry_segments = [
             geometry.Arc(
+                self,
                 position - short_axis,
                 radius_of_curvature,
                 rotation_angle,
                 coverage_angle,
             ),
             geometry.Arc(
+                self,
                 position + short_axis,
                 radius_of_curvature,
                 numpy.pi + rotation_angle,
@@ -203,14 +205,10 @@ class Lens(WorldObject):
 class LightSource(WorldObject):
     def __init__(self, position: numpy.ndarray, rotation_angle: float):
         super().__init__(position, rotation_angle)
-        self._light_rays = [
+        self.light_rays = [
             light.LightRay(numpy.zeros(2), numpy.zeros(2))
             for _ in range(util.NUM_LIGHT_RAYS)
         ]
-
-    def cast_rays(self, world_objects):
-        for ray in self._light_rays:
-            ray.cast_ray(world_objects)
 
     def move(self, move_distance: numpy.ndarray, rotate_angle: float = 0):
         super().move_geometry(move_distance, rotate_angle)
@@ -218,7 +216,7 @@ class LightSource(WorldObject):
         self.calculate_light_ray_positions()
 
     def draw(self):
-        for ray in self._light_rays:
+        for ray in self.light_rays:
             ray.draw()
         super().draw()
 
@@ -239,14 +237,14 @@ class RadialLightSource(LightSource):
         self.calculate_light_ray_positions()
 
     def calculate_light_ray_positions(self):
-        num_rays = len(self._light_rays)
+        num_rays = len(self.light_rays)
         for n in range(num_rays):
             ray_angle = (n / num_rays) * (
                 self._rotation_angle - self._angular_spread / 2
             ) + (1 - n / num_rays) * (self._rotation_angle + self._angular_spread / 2)
             ray_direction = numpy.array([math.cos(ray_angle), math.sin(ray_angle)])
-            self._light_rays[n]._origin = self._position
-            self._light_rays[n]._direction = ray_direction
+            self.light_rays[n]._origin = self._position
+            self.light_rays[n]._direction = ray_direction
 
 
 class ParallelLightSource(LightSource):
@@ -259,7 +257,7 @@ class ParallelLightSource(LightSource):
         self.calculate_light_ray_positions()
 
     def calculate_light_ray_positions(self):
-        num_rays = len(self._light_rays)
+        num_rays = len(self.light_rays)
         ray_direction = numpy.array(
             [math.cos(self._rotation_angle), math.sin(self._rotation_angle)]
         )
@@ -270,12 +268,12 @@ class ParallelLightSource(LightSource):
             ]
         )
         for n in range(num_rays):
-            self._light_rays[n]._origin = (
+            self.light_rays[n]._origin = (
                 self._position
                 - (self._width * (n / (util.NUM_LIGHT_RAYS - 1) - 0.5))
                 * spread_direction
             )
-            self._light_rays[n]._direction = ray_direction
+            self.light_rays[n]._direction = ray_direction
 
 
 class LightReceiver(WorldObject):

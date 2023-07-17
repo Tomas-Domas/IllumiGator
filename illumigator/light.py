@@ -1,9 +1,6 @@
 import arcade
 import numpy
 
-from illumigator import timer
-
-
 
 class LightRay:
     def __init__(self, origin, direction, generation=0):

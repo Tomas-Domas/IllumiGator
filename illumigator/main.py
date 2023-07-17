@@ -32,7 +32,7 @@ class GameObject(arcade.Window):
         self.game_menu = None
         self.controls_menu = None
         self.audio_menu = None
-        self.selector_menu = LevelSelector()
+        self.selector_menu = None
 
         # ========================= Settings =========================
         self.settings = util.load_data("config.json")
@@ -71,6 +71,7 @@ class GameObject(arcade.Window):
         self.controls_menu = menus.ControlsMenu()
         self.audio_menu = menus.AudioMenu(("MASTER", "MUSIC", "EFFECTS"),
                                           (self.master_volume, self.music_volume, self.effects_volume))
+        self.selector_menu = LevelSelector()
     # def reload(self):
 
     def on_update(self, delta_time):
@@ -134,6 +135,9 @@ class GameObject(arcade.Window):
             self.effects_volume = self.audio_menu.slider_list[2].pos * self.master_volume
             self.audio_menu.draw()
 
+        if self.game_state == "level_select":
+            self.selector_menu.draw()
+
     def on_key_press(self, key, key_modifiers):
 
         if self.game_state == "paused" or self.game_state == "win" or self.game_state == "options":
@@ -151,6 +155,8 @@ class GameObject(arcade.Window):
                 self.settings["volume"]["effects"] = self.effects_volume
                 util.write_data("config.json", self.settings)
                 arcade.close_window()
+            if key == arcade.key.U:
+                self.game_state = "level_select"
 
         elif self.game_state == "game":
             if key == arcade.key.G:
@@ -236,6 +242,19 @@ class GameObject(arcade.Window):
                 self.audio_menu.decrement_selection()
             if key == arcade.key.DOWN:
                 self.audio_menu.increment_selection()
+
+        if self.game_state == "level_select":
+            if key == arcade.key.D or key == arcade.key.RIGHT:
+                self.selector_menu.selection += 1
+            if key == arcade.key.A or key == arcade.key.LEFT:
+                self.selector_menu.selection -= 1
+            if key == arcade.key.W or key == arcade.key.UP:
+                self.selector_menu.selection -= 5
+            if key == arcade.key.S or key == arcade.key.DOWN:
+                self.selector_menu.selection += 5
+            if key == arcade.key.R:
+                util.update_community_metadata()
+                self.selector_menu.update()
 
     def on_key_release(self, key, key_modifiers):
         if key == arcade.key.W or key == arcade.key.UP:

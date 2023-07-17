@@ -288,14 +288,14 @@ def main():
     window = GameObject()
     window.setup()
 
-    arcade.run()
+    # arcade.run()
 
     window.game_state = "game"
     window.on_update(1 / 60)
 
     # window.game_state = "game"
-    # command = "for _ in range(1):\n\twindow.on_update(1/60)"
-    # cProfile.runctx(command, {'window': window}, {}, sort='cumtime')
+    # command = "for _ in range(100):\n\twindow.on_update(1/60)"
+    # cProfile.runctx(command, {'window': window}, {}, sort='tottime')
 
 
 if __name__ == "__main__":

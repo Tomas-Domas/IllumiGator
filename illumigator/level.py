@@ -134,7 +134,7 @@ class Level:
             ray_queue = light_source.light_rays[:]
             queue_length = len(ray_queue)
 
-            line_x1, line_y1, line_x2, line_y2 = line_coordinates[:, 0], line_coordinates[:, 1], line_coordinates[:, 2], line_coordinates[:, 3]
+            line_x1, line_y1, line_x2, line_y2 = line_coordinates.T
 
             while queue_length > 0:
                 ray_coordinates = numpy.ndarray((queue_length, 4))

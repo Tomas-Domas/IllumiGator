@@ -3,8 +3,6 @@ import math
 import arcade
 import numpy
 
-import time
-
 
 class LightRay:
     def __init__(self, origin, direction, generation=0):
@@ -26,27 +24,18 @@ class LightRay:
             self._child_ray._origin = self._end + direction * 0.001
             self._child_ray._direction = direction
 
-    def draw(self):
-        alpha = int(32 + 32 * math.sin(2 * time.time()))
+    def draw(self, alpha):
         color = (255, 255, 255, alpha + self._flicker)
-        arcade.draw_line(
-            self._origin[0],
-            self._origin[1],
-            self._end[0],
-            self._end[1],
-            color,
-            10
-        )
+        arcade.draw_line(*self._origin, *self._end, color=color, line_width=6)
+        arcade.draw_line(*self._origin, *self._end, color=color, line_width=4)
+        arcade.draw_line(*self._origin, *self._end, color=color, line_width=3)
         if self._child_ray is not None:
-            self._child_ray.draw()
+            self._child_ray.draw(alpha)
 
 
 def get_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, line_x1, line_y1, line_x2, line_y2) -> \
         tuple[numpy.ndarray, numpy.ndarray]:  # distances, line indices
     # Don't @ me...    https://en.wikipedia.org/wiki/Line-line_intersection#Given_two_points_on_each_line_segment
-    # print("INPUTS")
-    # print(ray_x1, ray_y1, ray_x2, ray_y2)
-    # print(line_x1, line_y1, line_x2, line_y2)
     ray_dx_dy = numpy.array(((ray_x1 - ray_x2), (ray_y1 - ray_y2)))
     line_dx_dy = numpy.array(((line_x1 - line_x2), (line_y1 - line_y2)))
     x_dif = numpy.subtract.outer(line_x1, ray_x1)
@@ -64,7 +53,7 @@ def get_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, line_x1, line_y1, line_x
         float('inf')
     )
 
-    u[(u <= 0) | (t <= 0) | (t >= 1)] = float('inf')  # u
+    u[(u < 0) | (t < 0) | (t > 1)] = float('inf')  # u
     min_indices = numpy.argmin(u, axis=0)
 
     return u.T[:, min_indices].diagonal(), min_indices

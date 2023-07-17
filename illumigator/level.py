@@ -170,12 +170,12 @@ class Level:
             light_receiver.charge *= util.CHARGE_DECAY
 
     def draw(self):
+        for light_source in self.light_sources_list:
+            light_source.draw()
         for wall in self.wall_list:
             wall.draw()
         for mirror in self.mirror_list:
             mirror.draw()
-        for light_source in self.light_sources_list:
-            light_source.draw()
         for light_receiver in self.light_receiver_list:
             light_receiver.draw()
 

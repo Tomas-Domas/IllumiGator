@@ -8,7 +8,7 @@ from level_selector import LevelSelector
 
 class GameObject(arcade.Window):
     def __init__(self):
-        super().__init__(WORLD_WIDTH, WORLD_HEIGHT, WINDOW_TITLE, resizable=True)
+        super().__init__(WORLD_WIDTH, WORLD_HEIGHT, WINDOW_TITLE, resizable=True, antialiasing=True)
         self.enemy = None
         self.character = None
         self.current_level = None
@@ -21,7 +21,6 @@ class GameObject(arcade.Window):
         self.background_sprite = None
         self.mouse_x = util.WORLD_WIDTH // 2
         self.mouse_y = util.WORLD_HEIGHT // 2
-        self.set_mouse_visible(False)
 
         # ========================= State =========================
         self.game_state = None
@@ -80,10 +79,7 @@ class GameObject(arcade.Window):
             self.character.update(self.current_level, self.effects_volume)
             self.enemy.update(self.current_level, self.character)
             self.current_level.update(self.character)
-            if any(
-                    light_receiver.charge >= util.RECEIVER_THRESHOLD
-                    for light_receiver in self.current_level.light_receiver_list
-            ):
+            if any(light_receiver.charge >= util.RECEIVER_THRESHOLD for light_receiver in self.current_level.light_receiver_list):
                 self.game_state = "win"
 
             if self.character.status == "dead":

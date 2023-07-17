@@ -61,11 +61,11 @@ MAX_GENERATIONS: int = 50
 INDEX_OF_REFRACTION: float = 2
 
 # Light Source Constants
-NUM_LIGHT_RAYS: int = 40
+NUM_LIGHT_RAYS: int = 50
 
 # Light Receiver Constants
-CHARGE_DECAY: float = 0.991
-LIGHT_INCREMENT: float = 0.009085 / NUM_LIGHT_RAYS
+CHARGE_DECAY: float = 0.99
+LIGHT_INCREMENT: float = 0.012 / NUM_LIGHT_RAYS
 RECEIVER_THRESHOLD: float = 0.7
 
 # Player Constants

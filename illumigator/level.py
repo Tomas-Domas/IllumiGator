@@ -1,6 +1,6 @@
 import numpy
 
-from illumigator import worldobjects, entity, util, light, timer
+from illumigator import worldobjects, entity, util, light
 from util import WALL_SIZE
 
 

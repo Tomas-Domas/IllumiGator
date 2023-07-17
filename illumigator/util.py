@@ -260,9 +260,13 @@ def update_community_metadata() -> None:
     write_data("levels/community/levels.json", json_obj)
 
 
-def get_community_metadata(page_size: int = 15) -> list:
+# Returns the total number of levels and a page of levels
+def get_community_metadata(page_size: int = 15, page: int = 1) -> tuple[int, list]:
     addon_path = "levels/community/"
     level_list = []
+    level_list_copy = []
+    min_at_page = (page-1) * page_size
+    max_at_page = page * page_size
 
     try:
         metadata_file = open(ENVIRON_DATA_PATH + addon_path + "levels.json")
@@ -275,4 +279,7 @@ def get_community_metadata(page_size: int = 15) -> list:
     for level in levels:
         heapq.heappush(level_list, (-1 * levels[level]["date_modified"], levels[level]))
 
-    return [heapq.heappop(level_list)[1] for i in range(min(len(level_list), page_size))]
+    for i in range(len(level_list)):
+        level_list_copy.append(heapq.heappop(level_list)[1])
+
+    return len(levels), level_list_copy[min_at_page:max_at_page]

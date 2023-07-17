@@ -27,8 +27,8 @@ class LightRay:
             self._child_ray._direction = direction
 
     def draw(self):
-        alpha = int(60 + 63 * math.sin(2 * time.time()))
-        color = (255, 0, 0, alpha + self._flicker)
+        alpha = int(32 + 32 * math.sin(2 * time.time()))
+        color = (255, 255, 255, alpha + self._flicker)
         arcade.draw_line(
             self._origin[0],
             self._origin[1],

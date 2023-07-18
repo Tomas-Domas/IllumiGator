@@ -150,7 +150,7 @@ class GameObject(arcade.Window):
                 self.settings["volume"]["effects"] = self.effects_volume
                 util.write_data("config.json", self.settings)
                 arcade.close_window()
-            if key == arcade.key.U:
+            if key == arcade.key.L:
                 self.game_state = "level_select"
 
         elif self.game_state == "game":
@@ -248,6 +248,10 @@ class GameObject(arcade.Window):
             if key == arcade.key.R:
                 util.update_community_metadata()
                 self.selector_menu.update()
+            if key == arcade.key.ESCAPE:
+                self.game_state = "menu"
+            if key == arcade.key.ENTER:
+                self.current_level = self.selector_menu.load_selection()
 
     def on_key_release(self, key, key_modifiers):
         if key == arcade.key.W or key == arcade.key.UP:

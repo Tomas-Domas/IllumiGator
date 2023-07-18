@@ -235,7 +235,8 @@ def update_community_metadata() -> None:
         if not (filename in json_obj["levels"]):
             json_obj["levels"][filename] = {
                 "date_modified": last_modified_dict[filename],
-                "level_name": load_data(filename, True, False)["level_name"]
+                "level_name": load_data(filename, True, False)["level_name"],
+                "planet_name": load_data(filename, True, False)["planet"]
             }
 
     # Update levels.json with new data if necessary
@@ -243,7 +244,8 @@ def update_community_metadata() -> None:
         if last_modified_dict[filename] != json_obj["levels"][filename]["date_modified"]:
             json_obj["levels"][filename] = {
                 "date_modified": last_modified_dict[filename],
-                "level_name": load_data(filename, True, False)["level_name"]
+                "level_name": load_data(filename, True, False)["level_name"],
+                "planet_name": load_data(filename, True, False)["planet"]
             }
 
     # Remove old datapoints (deleted file) in levels.json if necessary
@@ -260,10 +262,12 @@ def update_community_metadata() -> None:
 
 
 # Returns the total number of levels and a page of levels
-def get_community_metadata(page_size: int = 15, page: int = 1) -> tuple[int, list]:
+def get_community_metadata(page_size: int = 15, page: int = 1) -> tuple[int, list, list]:
     addon_path = "levels/community/"
-    level_list = []
-    level_list_copy = []
+    level_list_unsorted = []
+    level_list_sorted = []
+    filenames_unsorted = []
+    filenames_sorted = []
     min_at_page = (page-1) * page_size
     max_at_page = page * page_size
 
@@ -276,9 +280,15 @@ def get_community_metadata(page_size: int = 15, page: int = 1) -> tuple[int, lis
     levels = json.load(metadata_file)["levels"]
 
     for level in levels:
-        heapq.heappush(level_list, (-1 * levels[level]["date_modified"], levels[level]))
+        heapq.heappush(filenames_unsorted, (-1 * levels[level]["date_modified"], level))
 
-    for i in range(len(level_list)):
-        level_list_copy.append(heapq.heappop(level_list)[1])
+    for level in levels:
+        heapq.heappush(level_list_unsorted, (-1 * levels[level]["date_modified"], levels[level]))
 
-    return len(levels), level_list_copy[min_at_page:max_at_page]
+    for i in range(len(level_list_unsorted)):
+        level_list_sorted.append(heapq.heappop(level_list_unsorted)[1])
+
+    for i in range(len(filenames_unsorted)):
+        filenames_sorted.append(heapq.heappop(filenames_unsorted)[1])
+
+    return len(levels), level_list_sorted[min_at_page:max_at_page], filenames_sorted

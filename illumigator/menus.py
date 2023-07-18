@@ -88,9 +88,18 @@ class MainMenu:
             font_name=util.MENU_FONT,
         )
         arcade.draw_text(
-            "Press ESCAPE to quit",
+            "Press L to select a level",
             x_midpoint,
             y_midpoint - 100,
+            arcade.color.WHITE,
+            util.BODY_FONT_SIZE,
+            anchor_x="center",
+            font_name=util.MENU_FONT
+        )
+        arcade.draw_text(
+            "Press ESCAPE to quit",
+            x_midpoint,
+            y_midpoint - 150,
             arcade.color.WHITE,
             util.BODY_FONT_SIZE,
             anchor_x="center",

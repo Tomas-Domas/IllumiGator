@@ -10,6 +10,7 @@
     "light_source_coordinate_list": [
       [200, 400, 1.57079632679]
     ],
-    "animated_wall_coordinate_list": []
+    "animated_wall_coordinate_list": [],
+    "lenses_coordinate_list": []
   }
 }

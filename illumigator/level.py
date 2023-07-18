@@ -12,17 +12,18 @@ class Level:
         light_receiver_coordinate_list: list[list] = None,
         light_source_coordinate_list: list[list] = None,
         animated_wall_coordinate_list: list[list] = None,
+        lenses_coordinate_list: list[list] = None,
         name="default",
     ):
         self.background = None
         self.name = name
         self.line_segments = []
+        self.arcs = []
 
         self.mirror_list = []
+        self.lenses_list = []
         self.light_receiver_list = []
         self.light_sources_list = []
-
-        # ========================= Outer Walls =========================
         self.wall_list: list[worldobjects.WorldObject] = [
             worldobjects.Wall(
                 numpy.array([WALL_SIZE/2, 720/2]),
@@ -117,8 +118,24 @@ class Level:
                                            animated_wall_coordinates[7], animated_wall_coordinates[8])
             self.wall_list.append(animated_wall)
 
+        for lens_coordinates in lenses_coordinate_list:
+            self.lenses_list.append(
+                worldobjects.Lens(
+                    numpy.array([
+                        lens_coordinates[0],
+                        lens_coordinates[1]
+                    ]),
+                    lens_coordinates[3]
+                )
+            )
+
+
+        #  Append line segments and arcs to geometry lists
         for world_object in (self.wall_list + self.mirror_list + self.light_receiver_list):
             self.line_segments.extend(world_object._geometry_segments)
+
+        for world_object in self.lenses_list:
+            self.arcs.extend(world_object._geometry_segments)
 
 
     def update(self, character: entity.Character):
@@ -141,7 +158,7 @@ class Level:
                 for ray_i in range(queue_length):
                     ray_coordinates[ray_i, :] = ray_queue[ray_i]._origin[0], ray_queue[ray_i]._origin[1], ray_queue[ray_i]._origin[0] + ray_queue[ray_i]._direction[0], ray_queue[ray_i]._origin[1] + ray_queue[ray_i]._direction[1]
                 ray_x1, ray_y1, ray_x2, ray_y2 = ray_coordinates[:, 0], ray_coordinates[:, 1], ray_coordinates[:, 2], ray_coordinates[:, 3]
-                nearest_distances, nearest_line_indeces = light.get_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, line_x1, line_y1, line_x2, line_y2)
+                nearest_distances, nearest_line_indeces = light.get_line_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, line_x1, line_y1, line_x2, line_y2)
 
                 for i in range(queue_length):
                     ray = ray_queue[i]
@@ -197,4 +214,5 @@ def load_level(level: dict) -> Level:
                  level_data["light_receiver_coordinate_list"],
                  level_data["light_source_coordinate_list"],
                  level_data["animated_wall_coordinate_list"],
+                 level_data["lenses_coordinate_list"],
                  level["level_name"])

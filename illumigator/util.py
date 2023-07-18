@@ -291,4 +291,4 @@ def get_community_metadata(page_size: int = 15, page: int = 1) -> tuple[int, lis
     for i in range(len(filenames_unsorted)):
         filenames_sorted.append(heapq.heappop(filenames_unsorted)[1])
 
-    return len(levels), level_list_sorted[min_at_page:max_at_page], filenames_sorted
+    return len(levels), level_list_sorted[min_at_page:max_at_page], filenames_sorted[min_at_page:max_at_page]

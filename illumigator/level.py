@@ -6,13 +6,13 @@ from util import WALL_SIZE
 
 class Level:
     def __init__(
-        self,
-        wall_coordinate_list: list[list] = None,
-        mirror_coordinate_list: list[list] = None,
-        light_receiver_coordinate_list: list[list] = None,
-        light_source_coordinate_list: list[list] = None,
-        animated_wall_coordinate_list: list[list] = None,
-        name="default",
+            self,
+            wall_coordinate_list: list[list] = None,
+            mirror_coordinate_list: list[list] = None,
+            light_receiver_coordinate_list: list[list] = None,
+            light_source_coordinate_list: list[list] = None,
+            animated_wall_coordinate_list: list[list] = None,
+            name="default",
     ):
         self.background = None
         self.name = name
@@ -25,23 +25,23 @@ class Level:
         # ========================= Outer Walls =========================
         self.wall_list: list[worldobjects.WorldObject] = [
             worldobjects.Wall(
-                numpy.array([WALL_SIZE/2, 720/2]),
-                numpy.array([1, 720/WALL_SIZE]),
+                numpy.array([WALL_SIZE / 2, 720 / 2]),
+                numpy.array([1, 720 / WALL_SIZE]),
                 0,
             ),
             worldobjects.Wall(
-                numpy.array([1280 - WALL_SIZE/2, 720/2]),
-                numpy.array([1, 720/WALL_SIZE]),
+                numpy.array([1280 - WALL_SIZE / 2, 720 / 2]),
+                numpy.array([1, 720 / WALL_SIZE]),
                 0,
             ),
             worldobjects.Wall(
-                numpy.array([1280/2, WALL_SIZE/2]),
-                numpy.array([1280/WALL_SIZE - 2, 1]),
+                numpy.array([1280 / 2, WALL_SIZE / 2]),
+                numpy.array([1280 / WALL_SIZE - 2, 1]),
                 0,
             ),
             worldobjects.Wall(
-                numpy.array([1280/2, 720 - WALL_SIZE/2]),
-                numpy.array([1280/WALL_SIZE - 2, 1]),
+                numpy.array([1280 / 2, 720 - WALL_SIZE / 2]),
+                numpy.array([1280 / WALL_SIZE - 2, 1]),
                 0,
             )
         ]
@@ -104,22 +104,21 @@ class Level:
 
         for animated_wall_coordinates in animated_wall_coordinate_list:
             animated_wall = worldobjects.Wall(
-                    numpy.array([
-                        animated_wall_coordinates[0],
-                        animated_wall_coordinates[1]
-                    ]),
-                    numpy.array([
-                        animated_wall_coordinates[2],
-                        animated_wall_coordinates[3]
-                    ]),
-                    animated_wall_coordinates[4])
+                numpy.array([
+                    animated_wall_coordinates[0],
+                    animated_wall_coordinates[1]
+                ]),
+                numpy.array([
+                    animated_wall_coordinates[2],
+                    animated_wall_coordinates[3]
+                ]),
+                animated_wall_coordinates[4])
             animated_wall.create_animation(numpy.array([animated_wall_coordinates[5], animated_wall_coordinates[6]]),
                                            animated_wall_coordinates[7], animated_wall_coordinates[8])
             self.wall_list.append(animated_wall)
 
         for world_object in (self.wall_list + self.mirror_list + self.light_receiver_list):
             self.line_segments.extend(world_object._geometry_segments)
-
 
     def update(self, character: entity.Character):
         for wall in self.wall_list:
@@ -128,7 +127,8 @@ class Level:
 
         line_coordinates = numpy.ndarray((len(self.line_segments), 4))
         for line_i in range(len(self.line_segments)):
-            line_coordinates[line_i, :] = self.line_segments[line_i]._point1[0], self.line_segments[line_i]._point1[1], self.line_segments[line_i]._point2[0], self.line_segments[line_i]._point2[1]
+            line_coordinates[line_i, :] = self.line_segments[line_i]._point1[0], self.line_segments[line_i]._point1[1], \
+            self.line_segments[line_i]._point2[0], self.line_segments[line_i]._point2[1]
 
         for light_source in self.light_sources_list:
             ray_queue = light_source.light_rays[:]
@@ -139,9 +139,13 @@ class Level:
             while queue_length > 0:
                 ray_coordinates = numpy.ndarray((queue_length, 4))
                 for ray_i in range(queue_length):
-                    ray_coordinates[ray_i, :] = ray_queue[ray_i]._origin[0], ray_queue[ray_i]._origin[1], ray_queue[ray_i]._origin[0] + ray_queue[ray_i]._direction[0], ray_queue[ray_i]._origin[1] + ray_queue[ray_i]._direction[1]
-                ray_x1, ray_y1, ray_x2, ray_y2 = ray_coordinates[:, 0], ray_coordinates[:, 1], ray_coordinates[:, 2], ray_coordinates[:, 3]
-                nearest_distances, nearest_line_indeces = light.get_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, line_x1, line_y1, line_x2, line_y2)
+                    ray_coordinates[ray_i, :] = ray_queue[ray_i]._origin[0], ray_queue[ray_i]._origin[1], \
+                    ray_queue[ray_i]._origin[0] + ray_queue[ray_i]._direction[0], ray_queue[ray_i]._origin[1] + \
+                    ray_queue[ray_i]._direction[1]
+                ray_x1, ray_y1, ray_x2, ray_y2 = ray_coordinates[:, 0], ray_coordinates[:, 1], ray_coordinates[:,
+                                                                                               2], ray_coordinates[:, 3]
+                nearest_distances, nearest_line_indeces = light.get_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2,
+                                                                                    line_x1, line_y1, line_x2, line_y2)
 
                 for i in range(queue_length):
                     ray = ray_queue[i]
@@ -164,7 +168,6 @@ class Level:
 
                 ray_queue = ray_queue[queue_length:]
                 queue_length = len(ray_queue)
-
 
         for light_receiver in self.light_receiver_list:
             light_receiver.charge *= util.CHARGE_DECAY
@@ -189,6 +192,7 @@ class Level:
         for light_receiver in self.light_receiver_list:
             if light_receiver.check_collision(character.character_sprite):
                 return True
+
 
 def load_level(level: dict) -> Level:
     level_data = level["level_data"]

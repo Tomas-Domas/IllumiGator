@@ -28,7 +28,6 @@ class Slider:
         self.right = False
 
     def update(self):
-
         if self.left:
             self.pos = self.pos - 0.01
         if self.right:

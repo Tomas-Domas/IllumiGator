@@ -28,6 +28,7 @@ class GameObject(arcade.Window):
         # ========================= Menus =========================
         self.main_menu = None
         self.win_screen = None
+        self.lose_screen = None
         self.options_menu = None
         self.game_menu = None
         self.controls_menu = None
@@ -67,6 +68,7 @@ class GameObject(arcade.Window):
         self.main_menu = menus.MainMenu()
         self.game_menu = menus.GenericMenu("PAUSED", ("RESUME", "RESTART", "OPTIONS", "QUIT TO MENU"), overlay=True)
         self.win_screen = menus.GenericMenu("YOU WIN", ("CONTINUE", "RETRY", "QUIT TO MENU"))
+        self.lose_screen = menus.GenericMenu("YOU DIED", ("RETRY", "QUIT TO MENU"))
         self.options_menu = menus.GenericMenu("OPTIONS", ("RETURN", "CONTROLS", "AUDIO", "FULLSCREEN"))
         self.controls_menu = menus.ControlsMenu()
         self.audio_menu = menus.AudioMenu(("MASTER", "MUSIC", "EFFECTS"),
@@ -83,7 +85,7 @@ class GameObject(arcade.Window):
                 self.game_state = "win"
 
             if self.character.status == "dead":
-                self.game_state = "win"
+                self.game_state = "game_over"
 
         if self.game_state == "audio":
             self.audio_menu.update()
@@ -113,7 +115,9 @@ class GameObject(arcade.Window):
             self.win_screen.draw()
             self.music_player.pause()
 
-        # if self.game_state == "game_over":
+        if self.game_state == "game_over":
+            self.lose_screen.draw()
+            self.music_player.pause()
 
         if self.game_state == "options":
             self.options_menu.draw()
@@ -202,6 +206,18 @@ class GameObject(arcade.Window):
                 if self.win_screen.selection == 1:
                     self.reset_level()
                 elif self.win_screen.selection == 2:
+                    self.music_player.seek(0.0)
+                    self.setup()
+
+        elif self.game_state == "game_over":
+            if key == arcade.key.S or key == arcade.key.DOWN:
+                self.lose_screen.increment_selection()
+            if key == arcade.key.W or key == arcade.key.UP:
+                self.lose_screen.decrement_selection()
+            if key == arcade.key.ENTER:
+                if self.lose_screen.selection == 0:
+                    self.reset_level()
+                elif self.lose_screen.selection == 1:
                     self.music_player.seek(0.0)
                     self.setup()
 

@@ -1,7 +1,7 @@
 import numpy
 
 from illumigator import worldobjects, entity, util, light
-from util import WALL_SIZE
+from util import WALL_SIZE, Timer
 
 
 class Level:
@@ -122,35 +122,46 @@ class Level:
 
 
     def update(self, character: entity.Character):
+        wallsT = Timer("Walls")
         for wall in self.wall_list:
             if wall.obj_animation is not None:
                 wall.apply_object_animation(character)
+        wallsT.stop()
 
-        line_coordinates = numpy.ndarray((len(self.line_segments), 4))
+
+
+        raysT = Timer("RAYCAST")
+
+        line_p1 = numpy.ndarray((len(self.line_segments), 2))
+        line_p2 = numpy.ndarray((len(self.line_segments), 2))
+        line_reflect = [False] * len(self.line_segments)
+        line_len = [0] * len(self.line_segments)
         for line_i in range(len(self.line_segments)):
-            line_coordinates[line_i, :] = self.line_segments[line_i]._point1[0], self.line_segments[line_i]._point1[1], self.line_segments[line_i]._point2[0], self.line_segments[line_i]._point2[1]
+            line_p1[line_i], line_p2[line_i], line_reflect[line_i], line_len[line_i] = \
+                self.line_segments[line_i]._point1, self.line_segments[line_i]._point2, self.line_segments[line_i].is_reflective, self.line_segments[line_i]._length
+
+        raysT.lap("Lines Prep")
 
         for light_source in self.light_sources_list:
             ray_queue = light_source.light_rays[:]
             queue_length = len(ray_queue)
 
-            line_x1, line_y1, line_x2, line_y2 = line_coordinates.T
-
             while queue_length > 0:
-                ray_coordinates = numpy.ndarray((queue_length, 4))
+                ray_p1 = numpy.ndarray((queue_length, 2))
+                ray_dir = numpy.ndarray((queue_length, 2))
                 for ray_i in range(queue_length):
-                    ray_coordinates[ray_i, :] = ray_queue[ray_i]._origin[0], ray_queue[ray_i]._origin[1], ray_queue[ray_i]._origin[0] + ray_queue[ray_i]._direction[0], ray_queue[ray_i]._origin[1] + ray_queue[ray_i]._direction[1]
-                ray_x1, ray_y1, ray_x2, ray_y2 = ray_coordinates[:, 0], ray_coordinates[:, 1], ray_coordinates[:, 2], ray_coordinates[:, 3]
-                nearest_distances, nearest_line_indeces = light.get_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, line_x1, line_y1, line_x2, line_y2)
+                    ray_p1[ray_i], ray_dir[ray_i] = ray_queue[ray_i]._origin, ray_queue[ray_i]._direction
+
+                raysT.lap("  Rays Prep")
+                nearest_distances, nearest_line_indeces = light.get_raycast_results(ray_p1, ray_dir, line_p1, line_p2, line_reflect, line_len)
+                raysT.lap("  Raycast Results")
+
+                new_ray_endpoints = ray_p1 + (nearest_distances * ray_dir.T).T
 
                 for i in range(queue_length):
                     ray = ray_queue[i]
-                    if nearest_distances[i] is float('inf'):
-                        ray._end = ray._origin + ray._direction * util.MAX_RAY_DISTANCE
-                        ray._child_ray = None  # TODO: Make delete bloodline function
-                        continue
                     nearest_line = self.line_segments[nearest_line_indeces[i]]
-                    ray._end = ray._origin + ray._direction * nearest_distances[i]
+                    ray._end = new_ray_endpoints[i]
                     if nearest_line.is_reflective and ray._generation < util.MAX_GENERATIONS:  # if the ray hit a mirror, create child and cast it
                         ray._generate_child_ray(nearest_line.get_reflected_direction(ray))
                         ray_queue.append(ray._child_ray)
@@ -162,12 +173,21 @@ class Level:
                     else:
                         ray._child_ray = None
 
+                raysT.lap("  Rays Update")
+
                 ray_queue = ray_queue[queue_length:]
                 queue_length = len(ray_queue)
 
+                raysT.lap("  Queue Update")
+                print()
+        del raysT
 
+
+        receiverT = Timer("Receivers")
         for light_receiver in self.light_receiver_list:
             light_receiver.charge *= util.CHARGE_DECAY
+        receiverT.stop()
+        print()
 
     def draw(self):
         for light_source in self.light_sources_list:

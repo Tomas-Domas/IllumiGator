@@ -1,4 +1,5 @@
 import os
+import time
 from typing import Union
 from screeninfo import get_monitors
 import arcade
@@ -6,6 +7,7 @@ import numpy
 import math
 import json
 import heapq
+
 
 
 # ========================= Game Constants =========================
@@ -22,6 +24,8 @@ for m in get_monitors():
 
 # Debug
 DEBUG_GEOMETRY: bool = True  # Toggle with G
+
+
 
 # ========================= Asset Constants =========================
 # World Objects
@@ -48,6 +52,8 @@ BODY_FONT_SIZE = 12
 H3_FONT_SIZE = 24
 H2_FONT_SIZE = 36
 H1_FONT_SIZE = 48
+
+
 
 # ========================= Script Constants =========================
 # Ray Casting Constants
@@ -77,6 +83,7 @@ OBJECT_ROTATION_AMOUNT: float = 0.004
 ENEMY_MOVEMENT_SPEED = 5
 
 
+
 # ========================= Physics Functions =========================
 def distance_squared(point1: numpy.ndarray, point2: numpy.ndarray) -> float:
     dx, dy = point1[0] - point2[0], point1[1] - point2[1]
@@ -100,23 +107,17 @@ def two_d_cross_product(vector1: numpy.ndarray, vector2: numpy.ndarray):
     return vector1[0] * vector2[1] - vector1[1] * vector2[0]
 
 
+
 # ========================= File Handling Functions =========================
 def load_sprite(
         filename: Union[str, None] = None,
         scale: float = 1,
-        image_x: float = 0,
-        image_y: float = 0,
-        image_width: float = 0,
-        image_height: float = 0,
-        center_x: float = 0,
-        center_y: float = 0,
-        repeat_count_x: int = 1,
-        repeat_count_y: int = 1,
-        flipped_horizontally: bool = False,
-        flipped_vertically: bool = False,
-        flipped_diagonally: bool = False,
-        hit_box_algorithm: Union[str, None] = "Simple",
-        hit_box_detail: float = 4.5,
+        image_x: float = 0, image_y: float = 0,
+        image_width: float = 0, image_height: float = 0,
+        center_x: float = 0, center_y: float = 0,
+        repeat_count_x: int = 1, repeat_count_y: int = 1,
+        flipped_horizontally: bool = False, flipped_vertically: bool = False, flipped_diagonally: bool = False,
+        hit_box_algorithm: Union[str, None] = "Simple", hit_box_detail: float = 4.5,
         texture: Union[arcade.Texture, None] = None,
         angle: float = 0,
 ) -> arcade.Sprite:
@@ -124,19 +125,12 @@ def load_sprite(
         return arcade.Sprite(
             ENVIRON_ASSETS_PATH + filename,
             scale,
-            image_x,
-            image_y,
-            image_width,
-            image_height,
-            center_x,
-            center_y,
-            repeat_count_x,
-            repeat_count_y,
-            flipped_horizontally,
-            flipped_vertically,
-            flipped_diagonally,
-            hit_box_algorithm,
-            hit_box_detail,
+            image_x, image_y,
+            image_width, image_height,
+            center_x, center_y,
+            repeat_count_x, repeat_count_y,
+            flipped_horizontally, flipped_vertically, flipped_diagonally,
+            hit_box_algorithm, hit_box_detail,
             texture,
             angle,
         )
@@ -144,19 +138,12 @@ def load_sprite(
         return arcade.Sprite(
             VENV_ASSETS_PATH + filename,
             scale,
-            image_x,
-            image_y,
-            image_width,
-            image_height,
-            center_x,
-            center_y,
-            repeat_count_x,
-            repeat_count_y,
-            flipped_horizontally,
-            flipped_vertically,
-            flipped_diagonally,
-            hit_box_algorithm,
-            hit_box_detail,
+            image_x, image_y,
+            image_width, image_height,
+            center_x, center_y,
+            repeat_count_x, repeat_count_y,
+            flipped_horizontally, flipped_vertically, flipped_diagonally,
+            hit_box_algorithm, hit_box_detail,
             texture,
             angle,
         )
@@ -282,3 +269,19 @@ def get_community_metadata(page_size: int = 15, page: int = 1) -> tuple[int, lis
         level_list_copy.append(heapq.heappop(level_list)[1])
 
     return len(levels), level_list_copy[min_at_page:max_at_page]
+
+
+
+# ========================= Profiling Timer =========================
+class Timer:
+    def __init__(self, name="Timer"):
+        self.name = name
+        self.start = time.perf_counter_ns()
+
+    def stop(self):
+        print(str(self.name + "                    ")[:20] + ":", ("               " + "{:,}".format(time.perf_counter_ns() - self.start) + "ns")[-16:])
+
+    def lap(self, message):
+        end = time.perf_counter_ns()
+        print(str(message + "                    ")[:20] + ":", ("               " + "{:,}".format(end - self.start) + "ns")[-16:])
+        self.start = end

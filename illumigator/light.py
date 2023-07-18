@@ -1,4 +1,5 @@
 import math
+import time
 
 import arcade
 import numpy
@@ -33,13 +34,12 @@ class LightRay:
             self._child_ray.draw(alpha)
 
 
-def get_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, line_x1, line_y1, line_x2, line_y2) -> \
-        tuple[numpy.ndarray, numpy.ndarray]:  # distances, line indices
+def get_raycast_results(ray_p1, ray_p2, line_p1, line_p2, line_reflect, line_len) -> tuple[numpy.ndarray, numpy.ndarray]:  # distances, line indices
     # Don't @ me...    https://en.wikipedia.org/wiki/Line-line_intersection#Given_two_points_on_each_line_segment
-    ray_dx_dy = numpy.array(((ray_x1 - ray_x2), (ray_y1 - ray_y2)))
-    line_dx_dy = numpy.array(((line_x1 - line_x2), (line_y1 - line_y2)))
-    x_dif = numpy.subtract.outer(line_x1, ray_x1)
-    y_dif = numpy.subtract.outer(line_y1, ray_y1)
+    ray_dx_dy = -ray_p2.T
+    line_dx_dy = numpy.array(((line_p1[:, 0] - line_p2[:, 0]), (line_p1[:, 1] - line_p2[:, 1])))
+    x_dif = numpy.subtract.outer(line_p1[:, 0], ray_p1[:, 0])
+    y_dif = numpy.subtract.outer(line_p1[:, 1], ray_p1[:, 1])
 
     denominators = numpy.multiply.outer(line_dx_dy[0], ray_dx_dy[1]) - numpy.multiply.outer(line_dx_dy[1], ray_dx_dy[0])
     t = numpy.where(
@@ -55,6 +55,31 @@ def get_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, line_x1, line_y1, line_x
 
     u[(u < 0) | (t < 0) | (t > 1)] = float('inf')  # u
     min_indices = numpy.argmin(u, axis=0)
+
+    # def calculate_normal(self):
+    #     normal_unscaled = numpy.array(
+    #         [-(self._point2[1] - self._point1[1]), self._point2[0] - self._point1[0]]
+    #     )
+    #     self._normal = normal_unscaled / numpy.linalg.norm(normal_unscaled)
+    #
+    # def get_reflected_direction(self, ray):
+    #     return ray._direction - (2 * self._normal * (self._normal @ ray._direction))
+
+
+    line_normals = (
+        numpy.where(
+            line_reflect,
+            [line_dx_dy[1], -line_dx_dy[0]],
+            numpy.zeros_like(line_dx_dy)
+        ) / line_len
+    ).T
+
+
+
+
+    print(line_normals)
+    print(ray_p2)
+    0/0
 
     return u.T[:, min_indices].diagonal(), min_indices
 

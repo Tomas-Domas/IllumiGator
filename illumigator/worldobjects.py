@@ -177,8 +177,8 @@ class Mirror(WorldObject):
 class Lens(WorldObject):
     def __init__(self, position: numpy.ndarray, rotation_angle: float):
         super().__init__(position, rotation_angle)
-        radius_of_curvature = (util.PLACEHOLDER_SPRITE_INFO[1] * util.PLACEHOLDER_SPRITE_INFO[2])
-        coverage_angle = numpy.pi / 4
+        radius_of_curvature = 110
+        coverage_angle = numpy.pi / 5
         short_axis = (
             numpy.array([math.cos(rotation_angle), math.sin(rotation_angle)])
             * math.cos(coverage_angle / 2)

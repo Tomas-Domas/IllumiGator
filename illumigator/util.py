@@ -58,10 +58,10 @@ MAX_RAY_DISTANCE = math.sqrt(
     STARTING_DISTANCE_VALUE
 )  # Max distance before ray goes off-screen
 MAX_GENERATIONS: int = 50
-INDEX_OF_REFRACTION: float = 2
+INDEX_OF_REFRACTION: float = 1.3
 
 # Light Source Constants
-NUM_LIGHT_RAYS: int = 50
+NUM_LIGHT_RAYS: int = 4
 
 # Light Receiver Constants
 CHARGE_DECAY: float = 0.99

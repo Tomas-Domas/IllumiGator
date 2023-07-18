@@ -3,14 +3,20 @@
   "planet": "earth",
   "level_data": {
     "mirror_coordinate_list": [
-      [200, 500, -0.5]
+      [200, 500, -1.1780972450961724]
     ],
     "wall_coordinate_list": [],
     "light_receiver_coordinate_list": [],
     "light_source_coordinate_list": [
-      [200, 400, 1.57079632679]
+      [200, 200, 1.5707963267948966]
     ],
     "animated_wall_coordinate_list": [],
-    "lenses_coordinate_list": []
+    "lenses_coordinate_list": [
+      [395, 300, 0, 69, 69, 69, -0.7853981633974483],
+      [395, 280, 0],
+      [395, 260, 0],
+      [395, 240, 0],
+      [395, 220, 0]
+    ]
   }
 }

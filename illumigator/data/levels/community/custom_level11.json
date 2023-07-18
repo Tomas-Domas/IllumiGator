@@ -1,5 +1,5 @@
 {
-  "level_name": "My Custom Level 2",
+  "level_name": "My Custom Level 3",
   "planet": "mars",
   "level_data": {
     "mirror_coordinate_list": [
@@ -17,7 +17,7 @@
     "light_source_coordinate_list": [
       [140, 60, 1.57079632679]
     ],
-    "animated_wall_coordinate_list": [
-    ]
+    "animated_wall_coordinate_list": [],
+    "lenses_coordinate_list": []
   }
 }

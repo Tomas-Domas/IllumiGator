@@ -1,13 +1,15 @@
 {
-  "level_name": "TESTING",
+  "level_name": "My Custom Level 3",
   "planet": "mars",
   "level_data": {
     "mirror_coordinate_list": [
-      [740, 580, 0]
+      [740, 580, 0],
+      [900, 180, 0]
     ],
     "wall_coordinate_list": [
       [340, 540, 1, 7, 0],
-      [740, 180, 1, 7, 0]
+      [740, 180, 1, 7, 0],
+      [900, 540, 1, 7, 0]
     ],
     "light_receiver_coordinate_list": [
       [1180, 620, 0]
@@ -15,7 +17,7 @@
     "light_source_coordinate_list": [
       [140, 60, 1.57079632679]
     ],
-    "animated_wall_coordinate_list": [
-    ]
+    "animated_wall_coordinate_list": [],
+    "lenses_coordinate_list": []
   }
 }

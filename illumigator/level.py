@@ -21,7 +21,7 @@ class Level:
         self.arcs = []
 
         self.mirror_list = []
-        self.lenses_list = []
+        self.lens_list = []
         self.light_receiver_list = []
         self.light_sources_list = []
         self.wall_list: list[worldobjects.WorldObject] = [
@@ -119,13 +119,13 @@ class Level:
             self.wall_list.append(animated_wall)
 
         for lens_coordinates in lenses_coordinate_list:
-            self.lenses_list.append(
+            self.lens_list.append(
                 worldobjects.Lens(
                     numpy.array([
                         lens_coordinates[0],
                         lens_coordinates[1]
                     ]),
-                    lens_coordinates[3]
+                    lens_coordinates[2]
                 )
             )
 
@@ -134,7 +134,7 @@ class Level:
         for world_object in (self.wall_list + self.mirror_list + self.light_receiver_list):
             self.line_segments.extend(world_object._geometry_segments)
 
-        for world_object in self.lenses_list:
+        for world_object in self.lens_list:
             self.arcs.extend(world_object._geometry_segments)
 
 
@@ -143,48 +143,60 @@ class Level:
             if wall.obj_animation is not None:
                 wall.apply_object_animation(character)
 
+        for light_receiver in self.light_receiver_list:
+            light_receiver.charge *= util.CHARGE_DECAY
+
+
+        #  ==================== Raycasting and update rays ====================
         line_coordinates = numpy.ndarray((len(self.line_segments), 4))
+        arc_coordinates = numpy.ndarray((len(self.arcs), 3))
         for line_i in range(len(self.line_segments)):
             line_coordinates[line_i, :] = self.line_segments[line_i]._point1[0], self.line_segments[line_i]._point1[1], self.line_segments[line_i]._point2[0], self.line_segments[line_i]._point2[1]
+        for arc_i in range(len(self.arcs)):
+            arc_coordinates[arc_i, :] = self.arcs[arc_i].center[0], self.arcs[arc_i].center[1], self.arcs[arc_i].radius
+        line_x1, line_y1, line_x2, line_y2 = line_coordinates.T
+        arc_x, arc_y, arc_r = arc_coordinates.T
+
 
         for light_source in self.light_sources_list:
             ray_queue = light_source.light_rays[:]
             queue_length = len(ray_queue)
 
-            line_x1, line_y1, line_x2, line_y2 = line_coordinates.T
 
             while queue_length > 0:
                 ray_coordinates = numpy.ndarray((queue_length, 4))
                 for ray_i in range(queue_length):
                     ray_coordinates[ray_i, :] = ray_queue[ray_i]._origin[0], ray_queue[ray_i]._origin[1], ray_queue[ray_i]._origin[0] + ray_queue[ray_i]._direction[0], ray_queue[ray_i]._origin[1] + ray_queue[ray_i]._direction[1]
                 ray_x1, ray_y1, ray_x2, ray_y2 = ray_coordinates[:, 0], ray_coordinates[:, 1], ray_coordinates[:, 2], ray_coordinates[:, 3]
-                nearest_distances, nearest_line_indeces = light.get_line_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, line_x1, line_y1, line_x2, line_y2)
 
-                for i in range(queue_length):
-                    ray = ray_queue[i]
-                    if nearest_distances[i] is float('inf'):
-                        ray._end = ray._origin + ray._direction * util.MAX_RAY_DISTANCE
-                        ray._child_ray = None  # TODO: Make delete bloodline function
-                        continue
-                    nearest_line = self.line_segments[nearest_line_indeces[i]]
-                    ray._end = ray._origin + ray._direction * nearest_distances[i]
-                    if nearest_line.is_reflective and ray._generation < util.MAX_GENERATIONS:  # if the ray hit a mirror, create child and cast it
-                        ray._generate_child_ray(nearest_line.get_reflected_direction(ray))
-                        ray_queue.append(ray._child_ray)
-                    # elif nearest_line_index.is_refractive and ray._generation < util.MAX_GENERATIONS:  # if the ray hit a lens, create child and cast it
-                    #     ray._generate_child_ray(nearest_line_index.get_refracted_direction(ray))
-                    #     # ADD TO QUEUE
-                    elif nearest_line.is_receiver:  # Charge receiver when a light ray hits it
-                        nearest_line.parent_object.charge += util.LIGHT_INCREMENT
-                    else:
-                        ray._child_ray = None
+
+                nearest_line_distances, nearest_line_indices = light.get_line_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, line_x1, line_y1, line_x2, line_y2)
+                nearest_arc_distances, nearest_arc_indices = light.get_arc_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, arc_x, arc_y, arc_r)
+                return
+
+                # for i in range(queue_length):
+                #     ray = ray_queue[i]
+                #     if nearest_distances[i] is float('inf'):
+                #         ray._end = ray._origin + ray._direction * util.MAX_RAY_DISTANCE
+                #         ray._child_ray = None  # TODO: Make delete bloodline function
+                #         continue
+                #     nearest_line = self.line_segments[nearest_line_indices[i]]
+                #     ray._end = ray._origin + ray._direction * nearest_distances[i]
+                #     if nearest_line.is_reflective and ray._generation < util.MAX_GENERATIONS:  # if the ray hit a mirror, create child and cast it
+                #         ray._generate_child_ray(nearest_line.get_reflected_direction(ray))
+                #         ray_queue.append(ray._child_ray)
+                #     # elif nearest_line_index.is_refractive and ray._generation < util.MAX_GENERATIONS:  # if the ray hit a lens, create child and cast it
+                #     #     ray._generate_child_ray(nearest_line_index.get_refracted_direction(ray))
+                #     #     # ADD TO QUEUE
+                #     elif nearest_line.is_receiver:  # Charge receiver when a light ray hits it
+                #         nearest_line.parent_object.charge += util.LIGHT_INCREMENT
+                #     else:
+                #         ray._child_ray = None
 
                 ray_queue = ray_queue[queue_length:]
                 queue_length = len(ray_queue)
 
 
-        for light_receiver in self.light_receiver_list:
-            light_receiver.charge *= util.CHARGE_DECAY
 
     def draw(self):
         for light_source in self.light_sources_list:
@@ -193,6 +205,8 @@ class Level:
             wall.draw()
         for mirror in self.mirror_list:
             mirror.draw()
+        for lens in self.lens_list:
+            lens.draw()
         for light_receiver in self.light_receiver_list:
             light_receiver.draw()
 
@@ -209,10 +223,12 @@ class Level:
 
 def load_level(level: dict) -> Level:
     level_data = level["level_data"]
-    return Level(level_data["wall_coordinate_list"],
-                 level_data["mirror_coordinate_list"],
-                 level_data["light_receiver_coordinate_list"],
-                 level_data["light_source_coordinate_list"],
-                 level_data["animated_wall_coordinate_list"],
-                 level_data["lenses_coordinate_list"],
-                 level["level_name"])
+    return Level(
+        level_data["wall_coordinate_list"],
+        level_data["mirror_coordinate_list"],
+        level_data["light_receiver_coordinate_list"],
+        level_data["light_source_coordinate_list"],
+        level_data["animated_wall_coordinate_list"],
+        level_data["lenses_coordinate_list"],
+        level["level_name"]
+    )

@@ -1,5 +1,6 @@
 {
   "level_name": "My Custom Level 2",
+  "planet": "mars",
   "level_data": {
     "mirror_coordinate_list": [
       [740, 580, 0],

@@ -1,5 +1,6 @@
 {
   "level_name": "Level 1",
+  "planet": "earth",
   "level_data": {
     "mirror_coordinate_list": [
       [200, 500, -0.5]

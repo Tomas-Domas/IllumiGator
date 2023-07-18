@@ -52,10 +52,11 @@ class LevelSelector:
         self.level_names = []
         self.planets = []
         self.planet_filenames = []
-        metadata = util.get_community_metadata()
+        self.filenames = []
+        metadata = util.get_community_metadata(page=self.current_page)
 
-        self.filenames = metadata[0]
         self.levels = metadata[1]
+        self.filenames = metadata[2]
 
         for i in range(0, len(self.levels)):
             self.level_names.append(self.levels[i]["level_name"])

@@ -208,7 +208,7 @@ class GameObject(arcade.Window):
                     self.game_state = "game"
                 elif self.game_menu.selection == 1:
                     self.reset_level()
-                    self.game_state = "menu"
+                    self.game_state = "game"
                 elif self.game_menu.selection == 2:
                     self.game_state = "options"
                 elif self.game_menu.selection == 3:

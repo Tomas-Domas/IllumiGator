@@ -30,6 +30,7 @@ MIRROR_SPRITE_INFO: tuple = ("mirror.png", 1.3, 9, 48)
 SOURCE_SPRITE_INFO: tuple = ("light_source.png", 2, 16, 16)
 RECEIVER_SPRITE_INFO: tuple = ("light_receiver.png", 2, 32, 32)
 PLACEHOLDER_SPRITE_INFO: tuple = ("sprite.png", 0.25, 128, 128)
+PLAYER_SPRITE_INFO: tuple = ("00_gator_left.png", 1, 24, 24)
 WALL_SIZE = WALL_SPRITE_INFO[1] * WALL_SPRITE_INFO[2]
 
 # Player

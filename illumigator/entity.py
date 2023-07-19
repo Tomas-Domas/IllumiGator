@@ -2,7 +2,7 @@ import arcade
 import pyglet.media
 import numpy
 
-from illumigator.util import WORLD_WIDTH, WORLD_HEIGHT, PLAYER_MOVEMENT_SPEED, ENEMY_MOVEMENT_SPEED
+from illumigator.util import PLAYER_MOVEMENT_SPEED, ENEMY_MOVEMENT_SPEED, PLAYER_SPRITE_INFO
 from illumigator import util
 
 
@@ -48,11 +48,10 @@ class Character:
             scale_factor=2,
             image_width=24,
             image_height=24,
-            center_x=WORLD_WIDTH // 2,
-            center_y=WORLD_HEIGHT // 2,
             walking_volume=1
     ):
 
+        self.world_object = None
         self.status = None
         self.left_character_loader = SpriteLoader("left")
         self.right_character_loader = SpriteLoader("right")
@@ -62,8 +61,6 @@ class Character:
             scale_factor,
             image_width=image_width,
             image_height=image_height,
-            center_x=center_x,
-            center_y=center_y,
             hit_box_algorithm="Simple",
         )
 
@@ -139,13 +136,17 @@ class Character:
 
             # Checking if x movement is valid
             self.character_sprite.center_x += direction[0]
+            self.world_object.move_geometry(numpy.array([direction[0], 0]), 0)
             if level.check_collisions(self):
                 self.character_sprite.center_x -= direction[0]
+                self.world_object.move_geometry(numpy.array([-direction[0], 0]), 0)
 
             # Checking if y movement is valid
             self.character_sprite.center_y += direction[1]
+            self.world_object.move_geometry(numpy.array([0, direction[1]]), 0)
             if level.check_collisions(self):
                 self.character_sprite.center_y -= direction[1]
+                self.world_object.move_geometry(numpy.array([0, -direction[1]]), 0)
 
             # Check if sound should be played
             if not arcade.Sound.is_playing(self.walking_sound, self.player):
@@ -192,11 +193,8 @@ class Enemy(Character):
         scale_factor=2,
         image_width=24,
         image_height=24,
-        # TODO: Should be placed in different places based on level
-        center_x=WORLD_WIDTH - 200,
-        center_y=WORLD_HEIGHT - 200,
     ):
-        super().__init__(scale_factor, image_width, image_height, center_x, center_y)
+        super().__init__(scale_factor, image_width, image_height)
         self.state = "asleep"
 
         self.left_character_loader = SpriteLoader("left")
@@ -207,12 +205,11 @@ class Enemy(Character):
             scale_factor,
             image_width=image_width,
             image_height=image_height,
-            center_x=center_x,
-            center_y=center_y,
             hit_box_algorithm="Simple",
         )
 
     def update(self, level, player):
+        self.walk(level)
         dist = numpy.sqrt(
             (self.character_sprite.center_x - player.character_sprite.center_x) ** 2
             + (self.character_sprite.center_y - player.character_sprite.center_y) ** 2
@@ -235,33 +232,26 @@ class Enemy(Character):
                     direction * ENEMY_MOVEMENT_SPEED / direction_mag
                 )  # Normalize and scale with speed
 
-                prev_x = self.character_sprite.center_x
-                prev_y = self.character_sprite.center_y
-
                 self.character_sprite.center_x += direction[0]
                 self.character_sprite.center_y += direction[1]
+                self.world_object.move_geometry(direction, 0)
 
                 if level.check_collisions(self):
-                    self.character_sprite.center_x = prev_x
-                    self.character_sprite.center_y = prev_y
+                    self.character_sprite.center_x -= direction[0]
+                    self.character_sprite.center_y -= direction[1]
+                    self.world_object.move_geometry(-direction, 0)
 
                     perp_direction = numpy.array([-direction[1], direction[0]])
                     self.character_sprite.center_x += perp_direction[0]
                     self.character_sprite.center_y += perp_direction[1]
+                    self.world_object.move_geometry(perp_direction, 0)
 
                     if level.check_collisions(self):
                         self.character_sprite.center_x -= 2 * perp_direction[0]
                         self.character_sprite.center_y -= 2 * perp_direction[1]
+                        self.world_object.move_geometry(-2 * perp_direction, 0)
 
                 if arcade.check_for_collision(
                     self.character_sprite, player.character_sprite
                 ):
                     player.kill()
-
-    def reset_pos(self, c_x, c_y):
-        self.character_sprite.center_x = c_x
-        self.character_sprite.center_y = c_y
-        # Makes sure character is facing right upon reset.
-        self.right_character_loader.reset()
-        self.state = "asleep"
-        self.character_sprite.texture = next(self.right_character_loader)

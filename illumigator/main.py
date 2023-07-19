@@ -58,7 +58,7 @@ class GameObject(arcade.Window):
         self.character = entity.Character(walking_volume=self.effects_volume)
         self.enemy = entity.Enemy()
 
-        self.current_level = level.load_level(util.load_data(self.current_level_path, True))
+        self.current_level = level.load_level(util.load_data(self.current_level_path, True), self.character, self.enemy)
 
         # ========================= Sounds =========================
         self.menu_sound = util.load_sound("retro_blip.wav")
@@ -355,9 +355,9 @@ class GameObject(arcade.Window):
         arcade.close_window()
 
     def reset_level(self):
-        self.current_level = level.load_level(util.load_data(self.current_level_path, True))
-        self.character.reset_pos(util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2)
+        self.current_level = level.load_level(util.load_data(self.current_level_path, True), self.character, self.enemy)
         self.enemy.reset_pos(util.WORLD_WIDTH - 200, util.WORLD_HEIGHT - 200)
+        self.game_state = "game"
 
 
 def main():

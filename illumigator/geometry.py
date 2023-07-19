@@ -186,10 +186,8 @@ class Arc(Geometry):
                 point1[1] - self.center[1], point1[0] - self.center[0]
             )
             if not (
-                (self._start_angle < point1_angle < self._end_angle)
-                or (
-                    self._end_angle < self._start_angle
-                    and (
+                (self._start_angle < point1_angle < self._end_angle) or (
+                    self._end_angle < self._start_angle and (
                         0 <= self._start_angle <= point1_angle
                         or point1_angle <= self._end_angle <= 0
                     )

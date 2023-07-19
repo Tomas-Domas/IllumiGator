@@ -61,7 +61,7 @@ MAX_GENERATIONS: int = 50
 INDEX_OF_REFRACTION: float = 1.3
 
 # Light Source Constants
-NUM_LIGHT_RAYS: int = 4
+NUM_LIGHT_RAYS: int = 5
 
 # Light Receiver Constants
 CHARGE_DECAY: float = 0.99

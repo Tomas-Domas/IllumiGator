@@ -1,4 +1,5 @@
 import numpy
+import math
 
 from illumigator import worldobjects, entity, util, light
 from util import WALL_SIZE
@@ -149,19 +150,18 @@ class Level:
 
         #  ==================== Raycasting and update rays ====================
         line_coordinates = numpy.ndarray((len(self.line_segments), 4))
-        arc_coordinates = numpy.ndarray((len(self.arcs), 3))
+        arc_coordinates = numpy.ndarray((len(self.arcs), 5))
         for line_i in range(len(self.line_segments)):
             line_coordinates[line_i, :] = self.line_segments[line_i]._point1[0], self.line_segments[line_i]._point1[1], self.line_segments[line_i]._point2[0], self.line_segments[line_i]._point2[1]
         for arc_i in range(len(self.arcs)):
-            arc_coordinates[arc_i, :] = self.arcs[arc_i].center[0], self.arcs[arc_i].center[1], self.arcs[arc_i].radius
+            arc_coordinates[arc_i, :] = self.arcs[arc_i].center[0], self.arcs[arc_i].center[1], self.arcs[arc_i].radius, self.arcs[arc_i]._start_angle, self.arcs[arc_i]._end_angle
         line_x1, line_y1, line_x2, line_y2 = line_coordinates.T
-        arc_x, arc_y, arc_r = arc_coordinates.T
+        arc_x, arc_y, arc_r, arc_angle1, arc_angle2 = arc_coordinates.T
 
 
         for light_source in self.light_sources_list:
             ray_queue = light_source.light_rays[:]
             queue_length = len(ray_queue)
-
 
             while queue_length > 0:
                 ray_coordinates = numpy.ndarray((queue_length, 4))
@@ -169,10 +169,106 @@ class Level:
                     ray_coordinates[ray_i, :] = ray_queue[ray_i]._origin[0], ray_queue[ray_i]._origin[1], ray_queue[ray_i]._origin[0] + ray_queue[ray_i]._direction[0], ray_queue[ray_i]._origin[1] + ray_queue[ray_i]._direction[1]
                 ray_x1, ray_y1, ray_x2, ray_y2 = ray_coordinates[:, 0], ray_coordinates[:, 1], ray_coordinates[:, 2], ray_coordinates[:, 3]
 
+                # nearest_line_distances, nearest_line_indices = light.get_line_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, line_x1, line_y1, line_x2, line_y2)
 
-                nearest_line_distances, nearest_line_indices = light.get_line_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, line_x1, line_y1, line_x2, line_y2)
-                nearest_arc_distances, nearest_arc_indices = light.get_arc_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, arc_x, arc_y, arc_r)
+
+
+
+
+
+                temp_calculation1_list = [0] * len(ray_queue)
+                temp_calculation2_list = [0] * len(ray_queue)
+                nabla_list = [0] * len(ray_queue)
+                nabla_sqrt_list = [0] * len(ray_queue)
+                intersection_distance1_list = [0] * len(ray_queue)
+                intersection_distance2_list = [0] * len(ray_queue)
+                point1_list = [0] * len(ray_queue)
+                point2_list = [0] * len(ray_queue)
+
+                for ray_i in range(len(ray_queue)):
+                    ray = ray_queue[ray_i]
+
+                    temp_calculation1 = [0] * len(self.arcs)
+                    temp_calculation2 = [0] * len(self.arcs)
+                    nabla = [0] * len(self.arcs)
+                    nabla_sqrt = [0] * len(self.arcs)
+                    intersection_distance1 = [0] * len(self.arcs)
+                    intersection_distance2 = [0] * len(self.arcs)
+                    point1 = [0] * len(self.arcs)
+                    point2 = [0] * len(self.arcs)
+                    for arc_i in range(len(self.arcs)):
+                        arc = self.arcs[arc_i]
+
+                        temp_calculation1[arc_i] = ray._direction @ (ray._origin - arc.center)
+                        temp_calculation2[arc_i] = numpy.linalg.norm(ray._origin - arc.center)
+                        nabla[arc_i] = (temp_calculation1[arc_i] * temp_calculation1[arc_i]) - (
+                                (temp_calculation2[arc_i] * temp_calculation2[arc_i]) - arc.radius * arc.radius
+                        )
+                        if nabla[arc_i] < 0:
+                            nabla[arc_i] = float('inf')
+
+                        nabla_sqrt[arc_i] = math.sqrt(nabla[arc_i])
+                        intersection_distance1[arc_i] = -nabla_sqrt[arc_i] - temp_calculation1[arc_i]
+                        intersection_distance2[arc_i] = nabla_sqrt[arc_i] - temp_calculation1[arc_i]
+
+                        point1_angle, point2_angle = None, None
+
+                        if intersection_distance1[arc_i] > 0:
+                            point1[arc_i] = ray._origin + intersection_distance1[arc_i] * ray._direction
+                            point1_angle = math.atan2(
+                                point1[arc_i][1] - arc.center[1], point1[arc_i][0] - arc.center[0]
+                            )
+                            if not ((arc._start_angle < point1_angle < arc._end_angle) or
+                                    (arc._end_angle < arc._start_angle and
+                                     (0 <= arc._start_angle <= point1_angle or point1_angle <= arc._end_angle <= 0))):
+                                point1[arc_i] = None
+                        if intersection_distance2[arc_i] > 0:
+                            point2[arc_i] = ray._origin + intersection_distance2[arc_i] * ray._direction
+                            point2_angle = math.atan2(
+                                point2[arc_i][1] - arc.center[1], point2[arc_i][0] - arc.center[0]
+                            )
+                            if not ((arc._start_angle < point2_angle < arc._end_angle) or
+                                    (arc._end_angle < arc._start_angle and
+                                     (0 <= arc._start_angle <= point2_angle or point2_angle <= arc._end_angle <= 0))):
+                                point2[arc_i] = None
+
+                    temp_calculation1_list[ray_i] = temp_calculation1
+                    temp_calculation2_list[ray_i] = temp_calculation2
+                    nabla_list[ray_i] = nabla
+                    nabla_sqrt_list[ray_i] = nabla_sqrt
+                    intersection_distance1_list[ray_i] = intersection_distance1
+                    intersection_distance2_list[ray_i] = intersection_distance2
+                    point1_list[ray_i] = point1
+                    point2_list[ray_i] = point2
+
+
+
+                print("CORRECT:\ntemp1")
+                # print(temp_calculation1_list)
+                # print("temp2")
+                # print(temp_calculation2_list)
+                # print("nabla")
+                # print(nabla_list)
+                print("nabla_sqrt")
+                print(nabla_sqrt_list)
+                print("intersect1")
+                print(intersection_distance1_list)
+                print("point1 x, y")
+                print(point1_list)
+
+                # print("intersect2")
+                # print(intersection_distance2_list)
+                print()
+
+
+
+
+
+
+                nearest_arc_distances, nearest_arc_indices = light.get_arc_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, arc_x, arc_y, arc_r, arc_angle1, arc_angle2)
                 return
+
+
 
                 # for i in range(queue_length):
                 #     ray = ray_queue[i]

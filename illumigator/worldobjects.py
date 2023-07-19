@@ -26,7 +26,7 @@ class WorldObject:
 
         self._sprite_list: arcade.SpriteList = arcade.SpriteList()
 
-    def initialize_sprites(self, sprite_info: tuple, dimensions: numpy.ndarray | None = None):
+    def initialize_sprites(self, sprite_info: tuple, *, dimensions: numpy.ndarray | None = None):
         sprite_path, sprite_scale, sprite_width, sprite_height = sprite_info
         if dimensions is None:
             self._sprite_list.append(
@@ -68,7 +68,7 @@ class WorldObject:
                         )
                     )
 
-    def initialize_geometry(self, sprite_info: tuple, dimensions: numpy.ndarray = numpy.ones(2), *, all_borders: bool = False):
+    def initialize_geometry(self, sprite_info: tuple, *, dimensions: numpy.ndarray = numpy.ones(2), all_borders: bool = False):
         sprite_path, sprite_scale, sprite_width, sprite_height = sprite_info
         axis1_norm = numpy.array([math.cos(self._rotation_angle), math.sin(self._rotation_angle)])
         axis2_norm = numpy.array([-math.sin(self._rotation_angle), math.cos(self._rotation_angle)])
@@ -159,8 +159,8 @@ class WorldObject:
 class Wall(WorldObject):
     def __init__(self, position: numpy.ndarray, dimensions: numpy.ndarray, rotation_angle: float):
         super().__init__(position, rotation_angle, is_interactable=False)
-        self.initialize_geometry(util.WALL_SPRITE_INFO, dimensions, all_borders=False)
-        self.initialize_sprites(util.WALL_SPRITE_INFO, dimensions)
+        self.initialize_geometry(util.WALL_SPRITE_INFO, dimensions=dimensions, all_borders=False)
+        self.initialize_sprites(util.WALL_SPRITE_INFO, dimensions=dimensions)
 
 
 class Mirror(WorldObject):

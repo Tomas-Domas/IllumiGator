@@ -94,6 +94,7 @@ class MainMenu:
                 font_name=util.MENU_FONT
             )
 
+
 class GenericMenu:
     def __init__(self, title, options, selection=0, overlay=False):
         self.title = title

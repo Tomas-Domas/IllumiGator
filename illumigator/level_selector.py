@@ -8,10 +8,16 @@ planet_size = 64
 
 
 class LevelSelector:
-    def __init__(self, selection=0):
+    def __init__(self, selection=0, is_community=False):
         self._selection = selection
-        util.update_community_metadata()
-        metadata = util.get_community_metadata()
+        self.is_community = is_community
+        self.title = "COMMUNITY LEVELS" if is_community else "OFFICIAL LEVELS"
+
+        if is_community:
+            util.update_community_metadata()
+            metadata = util.get_level_metadata(is_community=True)
+        else:
+            metadata = util.get_level_metadata()
 
         self.page_count = metadata[0]
         self.levels = metadata[1]
@@ -23,9 +29,11 @@ class LevelSelector:
         self.planet_filenames = []
         self.planets = []
         self.keys = []
-        self.key_text = (("ESC", "RETURN TO MENU"), ("R", "REFRESH LEVELS"), ("ENTER", "LOAD LEVEL"))
+        self.key_text = [("ESC", "RETURN TO MENU"), ("ENTER", "LOAD LEVEL")]
+        if is_community:
+            self.key_text.append(("R", "REFRESH LEVELS"))
 
-        for index in range(0, 3):
+        for index in range(0, len(self.key_text)):
             starting_point = 100
             self.keys.append(util.load_sprite("key.png",
                              1,
@@ -53,7 +61,11 @@ class LevelSelector:
         self.planets = []
         self.planet_filenames = []
         self.filenames = []
-        metadata = util.get_community_metadata(page=self.current_page)
+
+        if self.is_community:
+            metadata = util.get_level_metadata(page=self.current_page, is_community=True)
+        else:
+            metadata = util.get_level_metadata(page=self.current_page)
 
         self.levels = metadata[1]
         self.filenames = metadata[2]
@@ -75,7 +87,7 @@ class LevelSelector:
                 center_y=y_start_point - row * util.WORLD_HEIGHT // 4))
 
     def draw(self):
-        arcade.draw_text("COMMUNITY LEVELS",
+        arcade.draw_text(self.title,
                          util.WORLD_WIDTH // 2,
                          util.WORLD_HEIGHT - util.H3_FONT_SIZE,
                          font_size=util.H3_FONT_SIZE,
@@ -94,7 +106,7 @@ class LevelSelector:
                              anchor_y="center",
                              color=arcade.color.GRAY,
                              font_name=util.MENU_FONT,
-                             font_size=util.BODY_FONT_SIZE if index != 2 else util.BODY_FONT_SIZE-4)
+                             font_size=util.BODY_FONT_SIZE if index != 1 else util.BODY_FONT_SIZE-4)
             arcade.draw_text(self.key_text[index][1],
                              start_x=key.center_x + 32 + 10,
                              start_y=key.center_y,
@@ -143,4 +155,6 @@ class LevelSelector:
             self._selection = selection if selection < len(self.levels) - 1 else len(self.levels) - 1
 
     def load_selection(self) -> Level:
-        return load_level(util.load_data(self.filenames[self.selection], True, False))
+        is_system = not self.is_community
+        print(self.filenames[self.selection])
+        return load_level(util.load_data(self.filenames[self.selection], True, is_system))

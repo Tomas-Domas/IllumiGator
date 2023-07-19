@@ -33,11 +33,12 @@ class GameObject(arcade.Window):
         self.game_menu = None
         self.controls_menu = None
         self.audio_menu = None
-        self.selector_menu = None
+        self.official_selector_menu = None
+        self.community_selector_menu = None
 
         # ========================= Settings =========================
         self.settings = util.load_data("config.json")
-        self.current_level_id = str(self.settings["current_level"]) + ".json"
+        self.current_level_path = "level_" + str(self.settings["current_level"]) + ".json"
         self.master_volume = self.settings["volume"]["master"]
         self.music_volume = self.settings["volume"]["music"] * self.master_volume
         self.effects_volume = self.settings["volume"]["effects"] * self.master_volume
@@ -54,7 +55,7 @@ class GameObject(arcade.Window):
         self.character = entity.Character(walking_volume=self.effects_volume)
         self.enemy = entity.Enemy()
 
-        self.current_level = level.load_level(util.load_data(self.current_level_id, True))
+        self.current_level = level.load_level(util.load_data(self.current_level_path, True))
 
         # ========================= Sounds =========================
         self.menu_sound = util.load_sound("retro_blip.wav")
@@ -73,7 +74,8 @@ class GameObject(arcade.Window):
         self.controls_menu = menus.ControlsMenu()
         self.audio_menu = menus.AudioMenu(("MASTER", "MUSIC", "EFFECTS"),
                                           (self.master_volume, self.music_volume, self.effects_volume))
-        self.selector_menu = LevelSelector()
+        self.official_selector_menu = LevelSelector()
+        self.community_selector_menu = LevelSelector(is_community=True)
     # def reload(self):
 
     def on_update(self, delta_time):
@@ -134,8 +136,11 @@ class GameObject(arcade.Window):
             self.effects_volume = self.audio_menu.slider_list[2].pos * self.master_volume
             self.audio_menu.draw()
 
-        if self.game_state == "level_select":
-            self.selector_menu.draw()
+        if self.game_state == "official_level_select":
+            self.official_selector_menu.draw()
+
+        if self.game_state == "community_level_select":
+            self.community_selector_menu.draw()
 
     def on_key_press(self, key, key_modifiers):
 
@@ -154,8 +159,10 @@ class GameObject(arcade.Window):
                 self.settings["volume"]["effects"] = self.effects_volume
                 util.write_data("config.json", self.settings)
                 arcade.close_window()
-            if key == arcade.key.L:
-                self.game_state = "level_select"
+            if key == arcade.key.O:
+                self.game_state = "official_level_select"
+            if key == arcade.key.C:
+                self.game_state = "community_level_select"
 
         elif self.game_state == "game":
             if key == arcade.key.G:
@@ -252,22 +259,26 @@ class GameObject(arcade.Window):
             if key == arcade.key.DOWN:
                 self.audio_menu.increment_selection()
 
-        if self.game_state == "level_select":
+        if self.game_state == "community_level_select" or self.game_state == "official_level_select":
+            level_selector = {"community_level_select": self.community_selector_menu,
+                              "official_level_select": self.official_selector_menu}
+
             if key == arcade.key.D or key == arcade.key.RIGHT:
-                self.selector_menu.selection += 1
+                level_selector[self.game_state].selection += 1
             if key == arcade.key.A or key == arcade.key.LEFT:
-                self.selector_menu.selection -= 1
+                level_selector[self.game_state].selection -= 1
             if key == arcade.key.W or key == arcade.key.UP:
-                self.selector_menu.selection -= 5
+                level_selector[self.game_state].selection -= 5
             if key == arcade.key.S or key == arcade.key.DOWN:
-                self.selector_menu.selection += 5
-            if key == arcade.key.R:
+                level_selector[self.game_state].selection += 5
+            if key == arcade.key.R and self.game_state == "community_level_select":
                 util.update_community_metadata()
-                self.selector_menu.update()
+                level_selector[self.game_state].update()
             if key == arcade.key.ESCAPE:
                 self.game_state = "menu"
             if key == arcade.key.ENTER:
-                self.current_level = self.selector_menu.load_selection()
+                self.current_level = level_selector[self.game_state].load_selection()
+                self.game_state = "menu"
 
     def on_key_release(self, key, key_modifiers):
         if key == arcade.key.W or key == arcade.key.UP:
@@ -311,7 +322,7 @@ class GameObject(arcade.Window):
         arcade.close_window()
 
     def reset_level(self):
-        self.current_level = level.load_level(util.load_data(self.current_level_id, True))
+        self.current_level = level.load_level(util.load_data(self.current_level_path, True))
         self.character.reset_pos(util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2)
         self.enemy.reset_pos(util.WORLD_WIDTH - 200, util.WORLD_HEIGHT - 200)
         self.game_state = "game"

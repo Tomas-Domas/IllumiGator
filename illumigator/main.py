@@ -153,7 +153,7 @@ class GameObject(arcade.Window):
                 self.settings["volume"]["effects"] = self.effects_volume
                 util.write_data("config.json", self.settings)
                 arcade.close_window()
-            if key == arcade.key.L:
+            if key == arcade.key.U:
                 self.game_state = "level_select"
 
         elif self.game_state == "game":
@@ -308,9 +308,9 @@ def main():
     window = GameObject()
     window.setup()
 
-    window.game_state = "game"
-    window.on_update(1 / 60)
-    window.game_state = "menu"
+    # window.game_state = "game"
+    # window.on_update(1 / 60)
+    # window.game_state = "menu"
 
     arcade.run()
 

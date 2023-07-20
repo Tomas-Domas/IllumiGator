@@ -1,7 +1,7 @@
 import numpy
 
 from illumigator import worldobjects, entity, util, light
-from util import WALL_SIZE
+from util import WALL_SIZE, Timer
 
 
 class Level:
@@ -129,7 +129,6 @@ class Level:
                 )
             )
 
-
         #  Append line segments and arcs to geometry lists
         for world_object in (self.wall_list + self.mirror_list + self.light_receiver_list):
             self.line_segments.extend(world_object._geometry_segments)
@@ -143,42 +142,45 @@ class Level:
             if wall.obj_animation is not None:
                 wall.apply_object_animation(character)
 
+        receiverT = Timer("Receivers")
         for light_receiver in self.light_receiver_list:
             light_receiver.charge *= util.CHARGE_DECAY
+        receiverT.stop()
 
         for source in self.light_sources_list:
             source.move(numpy.array([mouseX - source._position[0], mouseY - source._position[1]]))
 
 
         #  ==================== Raycasting and update rays ====================
-        line_coordinates = numpy.ndarray((len(self.line_segments), 4))
-        arc_coordinates = numpy.ndarray((len(self.arcs), 5))
-        for line_i in range(len(self.line_segments)):
-            line_coordinates[line_i, :] = self.line_segments[line_i]._point1[0], self.line_segments[line_i]._point1[1], self.line_segments[line_i]._point2[0], self.line_segments[line_i]._point2[1]
-        for arc_i in range(len(self.arcs)):
-            arc_coordinates[arc_i, :] = self.arcs[arc_i].center[0], self.arcs[arc_i].center[1], self.arcs[arc_i].radius, self.arcs[arc_i]._start_angle, self.arcs[arc_i]._end_angle
-        line_x1, line_y1, line_x2, line_y2 = line_coordinates.T
-        arc_x, arc_y, arc_r, arc_angle1, arc_angle2 = arc_coordinates.T
+        raysT = Timer("RAYCAST")
 
+        line_p1 = numpy.ndarray((len(self.line_segments), 2))
+        line_p2 = numpy.ndarray((len(self.line_segments), 2))
+        for line_i in range(len(self.line_segments)):
+            line_p1[line_i], line_p2[line_i] = self.line_segments[line_i]._point1, self.line_segments[line_i]._point2
+        arc_center = numpy.ndarray((len(self.arcs), 2))
+        arc_radius = numpy.ndarray((len(self.arcs),  ))
+        arc_angles = numpy.ndarray((len(self.arcs), 2))
+        for arc_i in range(len(self.arcs)):
+            arc_center[arc_i], arc_radius[arc_i], arc_angles[arc_i][0], arc_angles[arc_i][1] = self.arcs[arc_i].center, self.arcs[arc_i].radius, self.arcs[arc_i]._start_angle, self.arcs[arc_i]._end_angle
+
+        raysT.lap("Lines Prep")
 
         for light_source in self.light_sources_list:
             ray_queue = light_source.light_rays[:]
             queue_length = len(ray_queue)
 
             while queue_length > 0:
-                ray_coordinates = numpy.ndarray((queue_length, 4))
+                ray_p1 = numpy.ndarray((queue_length, 2))
+                ray_dir = numpy.ndarray((queue_length, 2))
                 for ray_i in range(queue_length):
-                    ray_coordinates[ray_i, :] = ray_queue[ray_i]._origin[0], ray_queue[ray_i]._origin[1], ray_queue[ray_i]._origin[0] + ray_queue[ray_i]._direction[0], ray_queue[ray_i]._origin[1] + ray_queue[ray_i]._direction[1]
-                ray_x1, ray_y1, ray_x2, ray_y2 = ray_coordinates[:, 0], ray_coordinates[:, 1], ray_coordinates[:, 2], ray_coordinates[:, 3]
+                    ray_p1[ray_i], ray_dir[ray_i] = ray_queue[ray_i]._origin, ray_queue[ray_i]._direction
 
-
-
-
-                nearest_line_distances, nearest_line_indices = light.get_line_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, line_x1, line_y1, line_x2, line_y2)
-
-                nearest_arc_distance, nearest_arc_indices = light.get_arc_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, arc_x, arc_y, arc_r, arc_angle1, arc_angle2)
-
-
+                raysT.lap("  Rays Prep")
+                nearest_line_distances, nearest_line_indices = light.get_raycast_results(ray_p1, ray_dir, line_p1, line_p2)
+                raysT.lap("  Line Raycast")
+                nearest_arc_distance, nearest_arc_indices = light.get_arc_raycast_results(ray_p1, ray_dir, arc_center, arc_radius, arc_angles)
+                raysT.lap("  Arc Raycast")
 
                 for i in range(queue_length):
                     ray = ray_queue[i]
@@ -204,9 +206,14 @@ class Level:
                         else:
                             ray._child_ray = None
 
+                raysT.lap("  Rays Update")
+
                 ray_queue = ray_queue[queue_length:]
                 queue_length = len(ray_queue)
 
+                raysT.lap("  Queue Update")
+                print()
+        del raysT
 
     def draw(self):
         for light_source in self.light_sources_list:

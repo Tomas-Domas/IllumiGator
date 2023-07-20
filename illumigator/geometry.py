@@ -35,6 +35,7 @@ class Line(Geometry):
         super().__init__(parent_object, is_reflective, is_refractive, is_receiver)
         self._point1 = point1
         self._point2 = point2
+        self._length = numpy.linalg.norm(point2 - point1)
 
     def move(self, world_object_center, move_distance, rotate_angle=0):
         self._point1 = (
@@ -45,17 +46,6 @@ class Line(Geometry):
             util.rotate_around_center(world_object_center, self._point2, rotate_angle)
             + move_distance
         )
-        if self.is_reflective or self.is_refractive:
-            self.calculate_normal()
-
-    def calculate_normal(self):
-        normal_unscaled = numpy.array(
-            [-(self._point2[1] - self._point1[1]), self._point2[0] - self._point1[0]]
-        )
-        self._normal = normal_unscaled / numpy.linalg.norm(normal_unscaled)
-
-    def get_reflected_direction(self, ray):
-        return ray._direction - (2 * self._normal * (self._normal @ ray._direction))
 
     def draw(self):
         if self.is_reflective:

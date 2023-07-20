@@ -34,31 +34,26 @@ class LightRay:
             self._child_ray.draw(alpha)
 
 
-
-def update(self):
-    self.flicker = 10 * math.sin(time.time())
-
-def get_line_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, line_x1, line_y1, line_x2, line_y2) -> tuple[numpy.ndarray, numpy.ndarray]:  # distances, line indices
-    inf = float('inf')
+def get_raycast_results(ray_p1, ray_p2, line_p1, line_p2, line_reflect, line_len) -> tuple[numpy.ndarray, numpy.ndarray]:  # distances, line indices
     # Don't @ me...    https://en.wikipedia.org/wiki/Line-line_intersection#Given_two_points_on_each_line_segment
-    ray_dx_dy = numpy.array(((ray_x1 - ray_x2), (ray_y1 - ray_y2)))
-    line_dx_dy = numpy.array(((line_x1 - line_x2), (line_y1 - line_y2)))
-    x_dif = numpy.subtract.outer(line_x1, ray_x1)
-    y_dif = numpy.subtract.outer(line_y1, ray_y1)
+    ray_dx_dy = -ray_p2.T
+    line_dx_dy = numpy.array(((line_p1[:, 0] - line_p2[:, 0]), (line_p1[:, 1] - line_p2[:, 1])))
+    x_dif = numpy.subtract.outer(line_p1[:, 0], ray_p1[:, 0])
+    y_dif = numpy.subtract.outer(line_p1[:, 1], ray_p1[:, 1])
 
     denominators = numpy.multiply.outer(line_dx_dy[0], ray_dx_dy[1]) - numpy.multiply.outer(line_dx_dy[1], ray_dx_dy[0])
     t = numpy.where(
         denominators != 0,
         (x_dif * ray_dx_dy[1] - y_dif * ray_dx_dy[0]) / denominators,
-        inf
+        float('inf')
     )
     u = numpy.where(
         denominators != 0,
         (x_dif.T * line_dx_dy[1] - y_dif.T * line_dx_dy[0]).T / denominators,
-        inf
+        float('inf')
     )
 
-    u[(u < 0) | (t < 0) | (t > 1)] = inf  # u
+    u[(u < 0) | (t < 0) | (t > 1)] = float('inf')  # u
     min_indices = numpy.argmin(u, axis=0)
 
     return u.T[:, min_indices].diagonal(), min_indices
@@ -143,6 +138,3 @@ def get_arc_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, arc_x, arc_y, arc_r,
         [numpy.min(intersection_distance1, axis=0), numpy.argmin(intersection_distance1, axis=0)],
         [numpy.min(intersection_distance2, axis=0), numpy.argmin(intersection_distance2, axis=0)]
     )
-
-
-

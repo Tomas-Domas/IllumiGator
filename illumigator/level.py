@@ -12,7 +12,7 @@ class Level:
         light_receiver_coordinate_list: list[list] = None,
         light_source_coordinate_list: list[list] = None,
         animated_wall_coordinate_list: list[list] = None,
-        lenses_coordinate_list: list[list] = None,
+        lens_coordinate_list: list[list] = None,
         name="default",
     ):
         self.background = None
@@ -104,7 +104,8 @@ class Level:
                 )
 
         for animated_wall_coordinates in animated_wall_coordinate_list:
-            animated_wall = worldobjects.Wall(
+            self.wall_list.append(
+                worldobjects.Wall(
                     numpy.array([
                         animated_wall_coordinates[0],
                         animated_wall_coordinates[1]
@@ -113,12 +114,14 @@ class Level:
                         animated_wall_coordinates[2],
                         animated_wall_coordinates[3]
                     ]),
-                    animated_wall_coordinates[4])
-            animated_wall.create_animation(numpy.array([animated_wall_coordinates[5], animated_wall_coordinates[6]]),
+                    animated_wall_coordinates[4]
+                )
+            )
+            self.wall_list[-1].create_animation(numpy.array([animated_wall_coordinates[5], animated_wall_coordinates[6]]),
                                            animated_wall_coordinates[7], animated_wall_coordinates[8])
-            self.wall_list.append(animated_wall)
 
-        for lens_coordinates in lenses_coordinate_list:
+        for lens_coordinates in lens_coordinate_list:
+            print(lens_coordinates)
             self.lens_list.append(
                 worldobjects.Lens(
                     numpy.array([
@@ -177,18 +180,25 @@ class Level:
                     ray_p1[ray_i], ray_dir[ray_i] = ray_queue[ray_i]._origin, ray_queue[ray_i]._direction
 
                 raysT.lap("  Rays Prep")
+
                 nearest_line_distances, nearest_line_indices = light.get_raycast_results(ray_p1, ray_dir, line_p1, line_p2)
+
                 raysT.lap("  Line Raycast")
-                nearest_arc_distance, nearest_arc_indices = light.get_arc_raycast_results(ray_p1, ray_dir, arc_center, arc_radius, arc_angles)
-                raysT.lap("  Arc Raycast")
+
+                if len(self.arcs) > 0:
+                    nearest_arc_distance, nearest_arc_indices = light.get_arc_raycast_results(ray_p1[:, 0], ray_p1[:, 1], ray_dir[:, 0], ray_dir[:, 1], arc_center[:, 0], arc_center[:, 1], arc_radius, arc_angles[:, 0], arc_angles[:, 1])
+                    raysT.lap("  Arc Raycast")
+                else:
+                    nearest_arc_distance, nearest_arc_indices = numpy.full_like(nearest_line_distances, float('inf')), numpy.full_like(nearest_line_distances, -1)
 
                 for i in range(queue_length):
                     ray = ray_queue[i]
-                    if nearest_line_distances[i] < nearest_arc_distance[i]:
+                    if nearest_line_distances[i] <= nearest_arc_distance[i]:
                         ray._end = ray._origin + ray._direction * nearest_line_distances[i]
                         nearest_line = self.line_segments[int(nearest_line_indices[i])]
                         if nearest_line.is_reflective and ray._generation < util.MAX_GENERATIONS:  # if the ray hit a mirror, create child and cast it
                             ray._generate_child_ray(nearest_line.get_reflected_direction(ray))
+                            # ray._generate_child_ray(numpy.array([-0.8, -0.6]))
                             ray_queue.append(ray._child_ray)
                         elif nearest_line.is_receiver:  # Charge receiver when a light ray hits it
                             nearest_line.parent_object.charge += util.LIGHT_INCREMENT
@@ -213,7 +223,7 @@ class Level:
 
                 raysT.lap("  Queue Update")
                 print()
-        del raysT
+        del ray
 
     def draw(self):
         for light_source in self.light_sources_list:
@@ -240,12 +250,10 @@ class Level:
 
 def load_level(level: dict) -> Level:
     level_data = level["level_data"]
-    return Level(
-        level_data["wall_coordinate_list"],
-        level_data["mirror_coordinate_list"],
-        level_data["light_receiver_coordinate_list"],
-        level_data["light_source_coordinate_list"],
-        level_data["animated_wall_coordinate_list"],
-        level_data["lenses_coordinate_list"],
-        level["level_name"]
-    )
+    return Level(level_data["wall_coordinate_list"],
+                 level_data["mirror_coordinate_list"],
+                 level_data["light_receiver_coordinate_list"],
+                 level_data["light_source_coordinate_list"],
+                 level_data["animated_wall_coordinate_list"],
+                 level_data["lens_coordinate_list"],
+                 level["level_name"])

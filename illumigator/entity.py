@@ -11,13 +11,13 @@ class SpriteLoader:
     Sprites manager and Iterator for a specific direction
     """
 
-    def __init__(self, direction):
+    def __init__(self, direction, sprite_format_string: str = util.PLAYER_SPRITE):
         self.suffix = direction
         self._sprites = []
         self._sprite_files = []
         self._index = -1
         for i in range(6):
-            fname = util.PLAYER_SPRITE.format(i=i, direction=direction)
+            fname = sprite_format_string.format(i=i, direction=direction)
             self._sprite_files.append(fname)
             sprite = util.load_texture(fname)
             self._sprites.append(sprite)
@@ -197,8 +197,9 @@ class Enemy(Character):
         super().__init__(scale_factor, image_width, image_height)
         self.state = "asleep"
 
-        self.left_character_loader = SpriteLoader("left")
-        self.right_character_loader = SpriteLoader("right")
+        # Change util.ENEMY_SPRITE to use enemy sprite
+        self.left_character_loader = SpriteLoader("left", util.PLAYER_SPRITE)
+        self.right_character_loader = SpriteLoader("right", util.PLAYER_SPRITE)
 
         self.character_sprite = util.load_sprite(
             self.right_character_loader.sprite_files[0],

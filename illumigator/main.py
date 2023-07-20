@@ -79,8 +79,8 @@ class GameObject(arcade.Window):
         self.controls_menu = menus.ControlsMenu()
         self.audio_menu = menus.AudioMenu(("MASTER", "MUSIC", "EFFECTS"),
                                           (self.master_volume, self.music_volume, self.effects_volume))
-        self.official_selector_menu = LevelSelector()
-        self.community_selector_menu = LevelSelector(is_community=True)
+        self.official_selector_menu = level_selector.LevelSelector()
+        self.community_selector_menu = level_selector.LevelSelector(is_community=True)
         self.community_win_menu = menus.GenericMenu("YOU WIN", ("RETRY", "QUIT TO MENU"))
 
     # def reload(self):
@@ -89,7 +89,7 @@ class GameObject(arcade.Window):
         if self.game_state == "game":
             self.character.update(self.current_level, self.effects_volume)
             self.enemy.update(self.current_level, self.character)
-            self.current_level.update(self.character, util.mouseX, util.mouseY)  # Pass mouse coords for debugging light sources
+            self.current_level.update(self.character)
             if any(light_receiver.charge >= util.RECEIVER_THRESHOLD for light_receiver in self.current_level.light_receiver_list):
                 if not self.official_level_status:
                     self.game_state = "community_win"

@@ -54,20 +54,18 @@ class Level:
         ]
 
         character.character_sprite.position = numpy.array([character_coordinates[0], character_coordinates[1]])
-        character.world_object = WorldObject(
-            numpy.array([
-                        character_coordinates[0],
-                        character_coordinates[1]]),
-                        character_coordinates[2])
+        character.world_object = worldobjects.WorldObject(
+            numpy.array([character_coordinates[0], character_coordinates[1]]),
+            0
+        )
         character.world_object.initialize_geometry(PLAYER_SPRITE_INFO)
         character.status = "alive"
 
         enemy.character_sprite.position = numpy.array([enemy_coordinates[0], enemy_coordinates[1]])
-        enemy.world_object = WorldObject(
-            numpy.array([
-                        enemy_coordinates[0],
-                        enemy_coordinates[1]]),
-                        enemy_coordinates[2])
+        enemy.world_object = worldobjects.WorldObject(
+            numpy.array([enemy_coordinates[0], enemy_coordinates[1]]),
+            0
+        )
         enemy.world_object.initialize_geometry(PLAYER_SPRITE_INFO)
         enemy.state = "asleep"
 
@@ -176,8 +174,9 @@ class Level:
             light_receiver.charge *= util.CHARGE_DECAY
         receiverT.stop()
 
-        for source in self.light_sources_list:
-            source.move(numpy.array([mouseX - source._position[0], mouseY - source._position[1]]))
+        if util.DEBUG_LIGHTS:
+            for source in self.light_sources_list:
+                source.move(numpy.array([util.mouseX - source._position[0], util.mouseY - source._position[1]]))
 
 
         #  ==================== Raycasting and update rays ====================

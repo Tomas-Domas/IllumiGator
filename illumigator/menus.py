@@ -28,7 +28,6 @@ class Slider:
         self.right = False
 
     def update(self):
-
         if self.left:
             self.pos = self.pos - 0.01
         if self.right:
@@ -59,6 +58,11 @@ class Slider:
 class MainMenu:
     @staticmethod
     def draw():
+        options = ("Press ENTER to start",
+                   "Press O to select an official level",
+                   "Press C to select a community level",
+                   "Press ESCAPE to quit")
+
         arcade.draw_text(
             "Illumi",
             x_midpoint,
@@ -78,33 +82,17 @@ class MainMenu:
             font_name=util.MENU_FONT,
             bold=True,
         )
-        arcade.draw_text(
-            "Press ENTER to start",
-            x_midpoint,
-            y_midpoint - 50,
-            arcade.color.WHITE,
-            util.BODY_FONT_SIZE,
-            anchor_x="center",
-            font_name=util.MENU_FONT,
-        )
-        arcade.draw_text(
-            "Press L to select a level",
-            x_midpoint,
-            y_midpoint - 100,
-            arcade.color.WHITE,
-            util.BODY_FONT_SIZE,
-            anchor_x="center",
-            font_name=util.MENU_FONT
-        )
-        arcade.draw_text(
-            "Press ESCAPE to quit",
-            x_midpoint,
-            y_midpoint - 150,
-            arcade.color.WHITE,
-            util.BODY_FONT_SIZE,
-            anchor_x="center",
-            font_name=util.MENU_FONT,
-        )
+
+        for i in range(len(options)):
+            arcade.draw_text(
+                options[i],
+                x_midpoint,
+                y_midpoint - 50 * (i+1),
+                arcade.color.WHITE,
+                util.BODY_FONT_SIZE,
+                anchor_x="center",
+                font_name=util.MENU_FONT
+            )
 
 
 class GenericMenu:

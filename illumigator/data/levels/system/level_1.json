@@ -22,6 +22,8 @@
     "animated_wall_coordinate_list": [
       [1100, 460, 1, 1, 0, 40, 0, 0.025, 3.141519]
     ],
-    "lens_coordinate_list": []
+    "lens_coordinate_list": [],
+    "character_coordinates": [640, 360, 0],
+    "enemy_coordinates": [1080, 520, 0]
   }
 }

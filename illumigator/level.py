@@ -1,20 +1,25 @@
 import numpy
 
 from illumigator import worldobjects, entity, util, light
-from util import WALL_SIZE, Timer
+from util import WALL_SIZE, PLAYER_SPRITE_INFO, Timer
 
 
 class Level:
     def __init__(
-        self,
-        wall_coordinate_list: list[list] = None,
-        mirror_coordinate_list: list[list] = None,
-        light_receiver_coordinate_list: list[list] = None,
-        light_source_coordinate_list: list[list] = None,
-        animated_wall_coordinate_list: list[list] = None,
-        lens_coordinate_list: list[list] = None,
-        name="default",
+            self,
+            character: entity.Character,
+            enemy: entity.Enemy,
+            wall_coordinate_list: list[list] = None,
+            mirror_coordinate_list: list[list] = None,
+            light_receiver_coordinate_list: list[list] = None,
+            light_source_coordinate_list: list[list] = None,
+            animated_wall_coordinate_list: list[list] = None,
+            lens_coordinate_list: list[list] = None,
+            character_coordinates: list = None,
+            enemy_coordinates: list = None,
+            name="default"
     ):
+
         self.background = None
         self.name = name
         self.line_segments = []
@@ -24,28 +29,50 @@ class Level:
         self.lens_list = []
         self.light_receiver_list = []
         self.light_sources_list = []
+        self.entity_world_object_list = []
         self.wall_list: list[worldobjects.WorldObject] = [
             worldobjects.Wall(
-                numpy.array([WALL_SIZE/2, 720/2]),
-                numpy.array([1, 720/WALL_SIZE]),
+                numpy.array([WALL_SIZE / 2, 720 / 2]),
+                numpy.array([1, 720 / WALL_SIZE]),
                 0,
             ),
             worldobjects.Wall(
-                numpy.array([1280 - WALL_SIZE/2, 720/2]),
-                numpy.array([1, 720/WALL_SIZE]),
+                numpy.array([1280 - WALL_SIZE / 2, 720 / 2]),
+                numpy.array([1, 720 / WALL_SIZE]),
                 0,
             ),
             worldobjects.Wall(
-                numpy.array([1280/2, WALL_SIZE/2]),
-                numpy.array([1280/WALL_SIZE - 2, 1]),
+                numpy.array([1280 / 2, WALL_SIZE / 2]),
+                numpy.array([1280 / WALL_SIZE - 2, 1]),
                 0,
             ),
             worldobjects.Wall(
-                numpy.array([1280/2, 720 - WALL_SIZE/2]),
-                numpy.array([1280/WALL_SIZE - 2, 1]),
+                numpy.array([1280 / 2, 720 - WALL_SIZE / 2]),
+                numpy.array([1280 / WALL_SIZE - 2, 1]),
                 0,
             )
         ]
+
+        character.character_sprite.position = numpy.array([character_coordinates[0], character_coordinates[1]])
+        character.world_object = WorldObject(
+            numpy.array([
+                        character_coordinates[0],
+                        character_coordinates[1]]),
+                        character_coordinates[2])
+        character.world_object.initialize_geometry(PLAYER_SPRITE_INFO)
+        character.status = "alive"
+
+        enemy.character_sprite.position = numpy.array([enemy_coordinates[0], enemy_coordinates[1]])
+        enemy.world_object = WorldObject(
+            numpy.array([
+                        enemy_coordinates[0],
+                        enemy_coordinates[1]]),
+                        enemy_coordinates[2])
+        enemy.world_object.initialize_geometry(PLAYER_SPRITE_INFO)
+        enemy.state = "asleep"
+
+        self.entity_world_object_list.append(character.world_object)
+        self.entity_world_object_list.append(enemy.world_object)
 
         for wall_coordinates in wall_coordinate_list:
             self.wall_list.append(
@@ -133,14 +160,13 @@ class Level:
             )
 
         #  Append line segments and arcs to geometry lists
-        for world_object in (self.wall_list + self.mirror_list + self.light_receiver_list):
+        for world_object in (self.wall_list + self.mirror_list + self.light_receiver_list + self.entity_world_object_list):
             self.line_segments.extend(world_object._geometry_segments)
-
         for world_object in self.lens_list:
             self.arcs.extend(world_object._geometry_segments)
 
 
-    def update(self, character: entity.Character, mouseX, mouseY):
+    def update(self, character: entity.Character):
         for wall in self.wall_list:
             if wall.obj_animation is not None:
                 wall.apply_object_animation(character)
@@ -236,6 +262,8 @@ class Level:
             lens.draw()
         for light_receiver in self.light_receiver_list:
             light_receiver.draw()
+        for entity_world_object in self.entity_world_object_list:
+            entity_world_object.draw()
 
     def check_collisions(self, character: entity.Character):
         for wall in self.wall_list:
@@ -248,12 +276,17 @@ class Level:
             if light_receiver.check_collision(character.character_sprite):
                 return True
 
-def load_level(level: dict) -> Level:
+
+def load_level(level: dict, character: entity.Character, enemy: entity.Enemy) -> Level:
     level_data = level["level_data"]
-    return Level(level_data["wall_coordinate_list"],
+    return Level(character,
+                 enemy,
+                 level_data["wall_coordinate_list"],
                  level_data["mirror_coordinate_list"],
                  level_data["light_receiver_coordinate_list"],
                  level_data["light_source_coordinate_list"],
                  level_data["animated_wall_coordinate_list"],
                  level_data["lens_coordinate_list"],
+                 level_data["character_coordinates"],
+                 level_data["enemy_coordinates"],
                  level["level_name"])

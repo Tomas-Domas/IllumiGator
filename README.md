@@ -19,6 +19,7 @@ pip install illumigator
 run **illumigator** command
 
 ## Create Levels
-- To create a level first an appropriately formatted JSON file containing your level.
-- Name the file level_{level_id}.json where _level_id_ is a unique identifier (integer).
-- Move the file into the _illumigator/data/levels_ directory. That's it!
+- First create or download an appropriately formatted JSON file containing your level.
+- Move the file into the _illumigator/data/levels/community_ directory.
+- If you are adding it while in the level selection menu, press R to refresh the page.
+- That's it!

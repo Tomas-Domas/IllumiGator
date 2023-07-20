@@ -154,7 +154,5 @@ class LevelSelector:
         else:
             self._selection = selection if selection < len(self.levels) - 1 else len(self.levels) - 1
 
-    def load_selection(self) -> Level:
-        is_system = not self.is_community
-        print(self.filenames[self.selection])
-        return load_level(util.load_data(self.filenames[self.selection], True, is_system), character, enemy)
+    def get_selection(self) -> str:
+        return self.filenames[self.selection]

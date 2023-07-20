@@ -96,7 +96,9 @@ class GameObject(arcade.Window):
                     self.game_state = "win"
 
                 self.current_level_path = "level_" + str(self.official_level_index) + ".json"
-                self.current_level = level.load_level(util.load_data(self.current_level_path, True, True))
+                self.current_level = level.load_level(util.load_data(self.current_level_path, True, True),
+                                                      self.character,
+                                                      self.enemy)
 
             if self.character.status == "dead":
                 self.game_state = "game_over"
@@ -307,7 +309,11 @@ class GameObject(arcade.Window):
             if key == arcade.key.ESCAPE:
                 self.game_state = "menu"
             if key == arcade.key.ENTER:
-                self.current_level = level_selector[self.game_state].load_selection()
+                filename = level_selector[self.game_state].get_selection()
+                is_system = True if self.game_state == "official_level_select" else False
+                self.current_level = level.load_level(util.load_data(filename, True, is_system),
+                                                      self.character,
+                                                      self.enemy)
                 if self.game_state == "official_level_select":
                     self.official_level_index = level_selector[self.game_state].selection + 1
                 self.game_state = "menu"

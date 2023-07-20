@@ -14,7 +14,11 @@ class GameObject(arcade.Window):
         self.current_level = None
         self.menu_sound = None
         self.background_music = None
-        self.music_player = None
+        self.menu_music = None
+        self.pause_music = None
+        self.menu_player = None
+        self.bgm_player = None
+        self.pause_player = None
 
         # ========================= Window =========================
         arcade.set_background_color(arcade.color.BLACK)
@@ -64,7 +68,9 @@ class GameObject(arcade.Window):
 
         # ========================= Sounds =========================
         self.menu_sound = util.load_sound("retro_blip.wav")
-        self.background_music = util.load_sound("sprazara.mp3")
+        self.background_music = util.load_sound("ocean-of-ice.mp3")
+        self.menu_music = util.load_sound("SF_Dramatic.mp3")
+        self.pause_music = util.load_sound("Hina_Fallen_leaves.mp3")
 
         # ========================= Fonts =========================
         arcade.text_pyglet.load_font(ENVIRON_ASSETS_PATH + "PressStart2P-Regular.ttf")
@@ -121,29 +127,44 @@ class GameObject(arcade.Window):
 
         if self.game_state == "menu":
             self.main_menu.draw()
+            if self.pause_player is not None:
+                self.pause_player.pause()
+            # This mp3 is a little loud, so the volume is automatically halved.
+            if self.menu_player is None:
+                self.menu_player = arcade.play_sound(self.menu_music, self.music_volume * 0.5, looping=True)
+            else:
+                self.menu_player.volume = self.music_volume * 0.5
+                self.menu_player.play()
         elif self.game_state == "game" or self.game_state == "paused":
             self.background_sprite.draw()
             self.current_level.draw()
             self.character.draw()
             self.enemy.draw()
 
-            if self.music_player is None:
-                self.music_player = arcade.play_sound(self.background_music, self.music_volume, looping=True)
+            if self.game_state == "game":
+                if self.pause_player is not None:
+                    self.pause_player.pause()
+                if self.bgm_player is None:
+                    self.bgm_player = arcade.play_sound(self.background_music, self.music_volume, looping=True)
+                else:
+                    self.bgm_player.volume = self.music_volume
+                    self.bgm_player.play()
             else:
-                self.music_player.volume = self.music_volume
-                self.music_player.play()
-
-            if self.game_state == "paused":
-                self.music_player.pause()
                 self.game_menu.draw()
+                self.bgm_player.pause()
+                if self.pause_player is None:
+                    self.pause_player = arcade.play_sound(self.pause_music, self.music_volume, looping=True)
+                else:
+                    self.pause_player.volume = self.music_volume
+                    self.pause_player.play()
 
         if self.game_state == "win":
             self.win_menu.draw()
-            self.music_player.pause()
+            self.bgm_player.pause()
 
         if self.game_state == "game_over":
             self.lose_menu.draw()
-            self.music_player.pause()
+            self.bgm_player.pause()
 
         if self.game_state == "options":
             self.options_menu.draw()
@@ -168,11 +189,10 @@ class GameObject(arcade.Window):
 
         if self.game_state == "final_win":
             self.final_win_menu.draw()
-            self.music_player.pause()
+            self.bgm_player.pause()
 
         if self.game_state == "community_win":
             self.community_win_menu.draw()
-            self.music_player.pause()
 
     def on_key_press(self, key, key_modifiers):
         if self.game_state == "paused" or self.game_state == "win" or self.game_state == "options" \
@@ -186,6 +206,7 @@ class GameObject(arcade.Window):
         if self.game_state == "menu":
             if key == arcade.key.ENTER:
                 self.game_state = "game"
+                self.menu_player.pause()
             if key == arcade.key.ESCAPE:
                 self.on_close()
             if key == arcade.key.O:
@@ -199,6 +220,7 @@ class GameObject(arcade.Window):
 
             if key == arcade.key.ESCAPE:
                 self.game_state = "paused"
+                self.bgm_player.pause()
             if key == arcade.key.W or key == arcade.key.UP:
                 self.character.up = True
             if key == arcade.key.A or key == arcade.key.LEFT:
@@ -216,6 +238,7 @@ class GameObject(arcade.Window):
         elif self.game_state == "paused":
             if key == arcade.key.ESCAPE:
                 self.game_state = "game"
+                self.pause_player.pause()
             if key == arcade.key.S or key == arcade.key.DOWN:
                 self.game_menu.increment_selection()
             if key == arcade.key.W or key == arcade.key.UP:
@@ -229,7 +252,8 @@ class GameObject(arcade.Window):
                 elif self.game_menu.selection == 2:
                     self.game_state = "options"
                 elif self.game_menu.selection == 3:
-                    self.music_player.seek(0.0)
+                    self.bgm_player.seek(0.0)
+                    self.pause_player.seek(0.0)
                     self.reset_level()
                     self.game_state = "menu"
 
@@ -251,14 +275,16 @@ class GameObject(arcade.Window):
                         self.reset_level()
                         self.game_state = "game"
                     elif selection == 2:
-                        self.music_player.seek(0.0)
+                        self.bgm_player.seek(0.0)
+                        self.pause_player.seek(0.0)
                         self.game_state = "menu"
                 elif self.game_state == "final_win":
                     if selection == 0:
                         self.reset_level()
                         self.game_state = "game"
                     elif selection == 1:
-                        self.music_player.seek(0.0)
+                        self.bgm_player.seek(0.0)
+                        self.pause_player.seek(0.0)
                         self.game_state = "menu"
 
         elif self.game_state == "game_over" or self.game_state == "community_win":
@@ -271,7 +297,8 @@ class GameObject(arcade.Window):
                     self.reset_level()
                     self.game_state = "game"
                 elif self.lose_menu.selection == 1:
-                    self.music_player.seek(0.0)
+                    self.bgm_player.seek(0.0)
+                    self.pause_player.seek(0.0)
                     self.reset_level()
                     self.game_state = "menu"
 

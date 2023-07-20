@@ -194,6 +194,10 @@ class GameObject(arcade.Window):
             self.community_win_menu.draw()
 
     def on_key_press(self, key, key_modifiers):
+        if key == arcade.key.Q:
+            self.character.rotation_dir += 1
+        if key == arcade.key.E:
+            self.character.rotation_dir -= 1
         valid_menu_press = key == arcade.key.UP or key == arcade.key.DOWN or key == arcade.key.LEFT \
                            or key == arcade.key.RIGHT or key == arcade.key.W or key == arcade.key.A \
                            or key == arcade.key.S or key == arcade.key.D or key == arcade.key.ENTER \
@@ -235,11 +239,6 @@ class GameObject(arcade.Window):
                 self.character.down = True
             if key == arcade.key.D or key == arcade.key.RIGHT:
                 self.character.right = True
-
-            if key == arcade.key.Q:
-                self.character.rotation_dir += 1
-            if key == arcade.key.E:
-                self.character.rotation_dir -= 1
 
         elif self.game_state == "paused":
             if key == arcade.key.ESCAPE:
@@ -383,13 +382,11 @@ class GameObject(arcade.Window):
             self.character.down = False
         if key == arcade.key.D or key == arcade.key.RIGHT:
             self.character.right = False
+        if key == arcade.key.Q:
+            self.character.rotation_dir -= 1
+        if key == arcade.key.E:
+            self.character.rotation_dir += 1
         self.character.update(self.current_level, self.effects_volume)
-
-        if self.game_state == "game":
-            if key == arcade.key.Q:
-                self.character.rotation_dir -= 1
-            if key == arcade.key.E:
-                self.character.rotation_dir += 1
 
         if self.game_state == "audio":
             if key == arcade.key.LEFT:

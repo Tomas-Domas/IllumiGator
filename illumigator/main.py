@@ -2,8 +2,8 @@ import cProfile
 import arcade
 
 from illumigator import entity, level, menus, util
-from util import WORLD_WIDTH, WORLD_HEIGHT, WINDOW_TITLE
-from level_selector import LevelSelector
+from illumigator.util import ENVIRON_ASSETS_PATH, WORLD_WIDTH, WORLD_HEIGHT, WINDOW_TITLE
+from illumigator.level_selector import LevelSelector
 
 
 class GameObject(arcade.Window):
@@ -67,8 +67,8 @@ class GameObject(arcade.Window):
         self.background_music = util.load_sound("sprazara.mp3")
 
         # ========================= Fonts =========================
-        arcade.text_pyglet.load_font("assets/PressStart2P-Regular.ttf")
-        arcade.text_pyglet.load_font("assets/AtlantisInternational.ttf")
+        arcade.text_pyglet.load_font(ENVIRON_ASSETS_PATH + "PressStart2P-Regular.ttf")
+        arcade.text_pyglet.load_font(ENVIRON_ASSETS_PATH + "AtlantisInternational.ttf")
 
         # ========================= Menus =========================
         self.main_menu = menus.MainMenu()

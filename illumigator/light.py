@@ -1,5 +1,6 @@
 import math
 import time
+from typing import Union
 
 import arcade
 import numpy
@@ -10,7 +11,7 @@ class LightRay:
         self._origin = origin
         self._direction = direction
         self._end = numpy.zeros(2)
-        self._child_ray: LightRay | None = None
+        self._child_ray: Union[LightRay, None] = None
         self._generation = generation
         self._flicker = 20
 

@@ -35,6 +35,7 @@ WALL_SIZE = WALL_SPRITE_INFO[1] * WALL_SPRITE_INFO[2]
 
 # Player
 PLAYER_SPRITE = "0{i}_gator_{direction}.png"
+ENEMY_SPRITE = "0{i}_enemy_{direction}.png"
 
 # Paths
 ENVIRON_ASSETS_PATH = os.path.join(os.path.split(__file__)[0], "assets/")

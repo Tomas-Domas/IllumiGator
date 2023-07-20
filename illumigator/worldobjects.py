@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from typing import Union
 import arcade
 import numpy
 import math
@@ -22,11 +23,11 @@ class WorldObject:
         self._rotation_angle: float = rotation_angle
         self._is_interactable: bool = is_interactable
         self._geometry_segments: list[geometry.Geometry] = []
-        self.obj_animation: object_animation.ObjectAnimation | None = None
+        self.obj_animation: Union[object_animation.ObjectAnimation, None] = None
 
         self._sprite_list: arcade.SpriteList = arcade.SpriteList()
 
-    def initialize_sprites(self, sprite_info: tuple, dimensions: numpy.ndarray | None = None):
+    def initialize_sprites(self, sprite_info: tuple, dimensions: Union[numpy.ndarray, None] = None):
         sprite_path, sprite_scale, sprite_width, sprite_height = sprite_info
         if dimensions is None:
             self._sprite_list.append(

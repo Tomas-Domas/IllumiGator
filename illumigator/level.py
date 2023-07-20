@@ -2,7 +2,7 @@ import numpy
 
 from illumigator import worldobjects, entity, util, light
 from illumigator.worldobjects import WorldObject
-from util import WALL_SIZE, PLAYER_SPRITE_INFO
+from illumigator.util import WALL_SIZE, PLAYER_SPRITE_INFO
 
 
 class Level:

@@ -175,9 +175,10 @@ class GameObject(arcade.Window):
             self.music_player.pause()
 
     def on_key_press(self, key, key_modifiers):
-
-        if self.game_state == "paused" or self.game_state == "win" or self.game_state == "options":
-            arcade.play_sound(self.menu_sound, self.effects_volume)
+        if self.game_state == "paused" or self.game_state == "win" or self.game_state == "options" \
+                or self.game_state == "audio":
+            if self.effects_volume != 0:
+                arcade.play_sound(self.menu_sound, self.effects_volume)
 
         if key == arcade.key.F11:
             self.set_fullscreen(not self.fullscreen)

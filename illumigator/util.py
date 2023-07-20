@@ -1,4 +1,5 @@
 import os
+import time
 from typing import Union
 from screeninfo import get_monitors
 import arcade
@@ -7,6 +8,7 @@ import math
 import json
 import heapq
 import subprocess
+
 
 # ========================= Game Constants =========================
 # Window
@@ -20,8 +22,7 @@ for m in get_monitors():
         SCREEN_WIDTH = m.width
         SCREEN_HEIGHT = m.height
 
-# Debug
-DEBUG_GEOMETRY: bool = True  # Toggle with G
+
 
 # ========================= Asset Constants =========================
 # World Objects
@@ -51,6 +52,8 @@ H3_FONT_SIZE = 24
 H2_FONT_SIZE = 36
 H1_FONT_SIZE = 48
 
+
+
 # ========================= Script Constants =========================
 # Ray Casting Constants
 STARTING_DISTANCE_VALUE = (
@@ -59,11 +62,11 @@ STARTING_DISTANCE_VALUE = (
 MAX_RAY_DISTANCE = math.sqrt(
     STARTING_DISTANCE_VALUE
 )  # Max distance before ray goes off-screen
-MAX_GENERATIONS: int = 50
-INDEX_OF_REFRACTION: float = 2
+MAX_GENERATIONS: int = 20
+INDEX_OF_REFRACTION: float = 1.5
 
 # Light Source Constants
-NUM_LIGHT_RAYS: int = 30
+NUM_LIGHT_RAYS: int = 20
 
 # Light Receiver Constants
 CHARGE_DECAY: float = 0.99
@@ -77,6 +80,7 @@ OBJECT_ROTATION_AMOUNT: float = 0.004
 
 # Enemy Constants
 ENEMY_MOVEMENT_SPEED = 5
+
 
 
 # ========================= Physics Functions =========================
@@ -102,23 +106,17 @@ def two_d_cross_product(vector1: numpy.ndarray, vector2: numpy.ndarray):
     return vector1[0] * vector2[1] - vector1[1] * vector2[0]
 
 
+
 # ========================= File Handling Functions =========================
 def load_sprite(
         filename: Union[str, None] = None,
         scale: float = 1,
-        image_x: float = 0,
-        image_y: float = 0,
-        image_width: float = 0,
-        image_height: float = 0,
-        center_x: float = 0,
-        center_y: float = 0,
-        repeat_count_x: int = 1,
-        repeat_count_y: int = 1,
-        flipped_horizontally: bool = False,
-        flipped_vertically: bool = False,
-        flipped_diagonally: bool = False,
-        hit_box_algorithm: Union[str, None] = "Simple",
-        hit_box_detail: float = 4.5,
+        image_x: float = 0, image_y: float = 0,
+        image_width: float = 0, image_height: float = 0,
+        center_x: float = 0, center_y: float = 0,
+        repeat_count_x: int = 1, repeat_count_y: int = 1,
+        flipped_horizontally: bool = False, flipped_vertically: bool = False, flipped_diagonally: bool = False,
+        hit_box_algorithm: Union[str, None] = "Simple", hit_box_detail: float = 4.5,
         texture: Union[arcade.Texture, None] = None,
         angle: float = 0,
 ) -> arcade.Sprite:
@@ -126,19 +124,12 @@ def load_sprite(
         return arcade.Sprite(
             ENVIRON_ASSETS_PATH + filename,
             scale,
-            image_x,
-            image_y,
-            image_width,
-            image_height,
-            center_x,
-            center_y,
-            repeat_count_x,
-            repeat_count_y,
-            flipped_horizontally,
-            flipped_vertically,
-            flipped_diagonally,
-            hit_box_algorithm,
-            hit_box_detail,
+            image_x, image_y,
+            image_width, image_height,
+            center_x, center_y,
+            repeat_count_x, repeat_count_y,
+            flipped_horizontally, flipped_vertically, flipped_diagonally,
+            hit_box_algorithm, hit_box_detail,
             texture,
             angle,
         )
@@ -146,19 +137,12 @@ def load_sprite(
         return arcade.Sprite(
             VENV_ASSETS_PATH + filename,
             scale,
-            image_x,
-            image_y,
-            image_width,
-            image_height,
-            center_x,
-            center_y,
-            repeat_count_x,
-            repeat_count_y,
-            flipped_horizontally,
-            flipped_vertically,
-            flipped_diagonally,
-            hit_box_algorithm,
-            hit_box_detail,
+            image_x, image_y,
+            image_width, image_height,
+            center_x, center_y,
+            repeat_count_x, repeat_count_y,
+            flipped_horizontally, flipped_vertically, flipped_diagonally,
+            hit_box_algorithm, hit_box_detail,
             texture,
             angle,
         )
@@ -310,3 +294,25 @@ def opendir(filename):
         raise FileNotFoundError
     except:
         subprocess.Popen(['xdg-open', filename])
+
+
+
+# ========================= Development Help =========================
+# Debug
+DEBUG_GEOMETRY: bool = True  # Toggle with G
+DEBUG_LIGHTS: bool = False  # Toggle with L
+mouseX = 0
+mouseY = 0
+
+class Timer:
+    def __init__(self, name="Timer"):
+        self.name = name
+        self.start = time.perf_counter_ns()
+
+    def stop(self):
+        print(str(self.name + "                    ")[:20] + ":", ("               " + "{:,}".format(time.perf_counter_ns() - self.start) + "ns")[-16:])
+
+    def lap(self, message):
+        end = time.perf_counter_ns()
+        print(str(message + "                    ")[:20] + ":", ("               " + "{:,}".format(end - self.start) + "ns")[-16:])
+        self.start = end

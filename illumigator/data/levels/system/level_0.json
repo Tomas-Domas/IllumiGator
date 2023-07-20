@@ -1,15 +1,24 @@
 {
-  "level_name": "Level 1",
+  "level_name": "Level 0",
   "planet": "earth",
   "level_data": {
     "mirror_coordinate_list": [
-      [200, 500, -0.5]
+      [200, 500, -1.1780972450961724]
     ],
     "wall_coordinate_list": [],
     "light_receiver_coordinate_list": [],
     "light_source_coordinate_list": [
-      [200, 400, 1.57079632679]
+      [200, 200, 1.5707963267948966]
     ],
-    "animated_wall_coordinate_list": []
+    "animated_wall_coordinate_list": [],
+    "lens_coordinate_list": [
+      [395, 300, -0.7853981633974483]
+    ],
+    "character_coordinates": [
+      640, 360
+    ],
+    "enemy_coordinates": [
+      900, 600
+    ]
   }
 }

@@ -35,6 +35,7 @@ class Line(Geometry):
         super().__init__(parent_object, is_reflective, is_refractive, is_receiver)
         self._point1 = point1
         self._point2 = point2
+        self._length = numpy.linalg.norm(point2 - point1)
 
     def move(self, world_object_center, move_distance, rotate_angle=0):
         self._point1 = (
@@ -45,14 +46,12 @@ class Line(Geometry):
             util.rotate_around_center(world_object_center, self._point2, rotate_angle)
             + move_distance
         )
-        if self.is_reflective or self.is_refractive:
-            self.calculate_normal()
+        self.calculate_normal()
 
     def calculate_normal(self):
-        normal_unscaled = numpy.array(
-            [-(self._point2[1] - self._point1[1]), self._point2[0] - self._point1[0]]
-        )
-        self._normal = normal_unscaled / numpy.linalg.norm(normal_unscaled)
+        x = self._point1[1] - self._point2[1]
+        y = self._point2[0] - self._point1[0]
+        self._normal = numpy.array([x, y]) / math.sqrt(x*x + y*y)
 
     def get_reflected_direction(self, ray):
         return ray._direction - (2 * self._normal * (self._normal @ ray._direction))
@@ -151,7 +150,7 @@ class Arc(Geometry):
         self.is_reflective = is_reflective
         self.is_refractive = is_refractive
 
-    def _constrain_angles(self):  # Constrain between (0, 2PI) and in increasing order
+    def _constrain_angles(self):  # Constrain between (-PI, PI)
         if self._start_angle > numpy.pi:
             self._start_angle -= 2 * numpy.pi
         elif self._start_angle < -numpy.pi:
@@ -186,10 +185,8 @@ class Arc(Geometry):
                 point1[1] - self.center[1], point1[0] - self.center[0]
             )
             if not (
-                (self._start_angle < point1_angle < self._end_angle)
-                or (
-                    self._end_angle < self._start_angle
-                    and (
+                (self._start_angle < point1_angle < self._end_angle) or (
+                    self._end_angle < self._start_angle and (
                         0 <= self._start_angle <= point1_angle
                         or point1_angle <= self._end_angle <= 0
                     )
@@ -262,9 +259,9 @@ class Arc(Geometry):
                 num_segments=512,
             )
 
-    def get_refracted_direction(self, ray, point: numpy.ndarray):
+    def get_refracted_direction(self, ray):
         # Determine normal
-        normal = (point - self.center) / self.radius
+        normal = (ray._end - self.center) / self.radius
         # Determine whether coming into or out of shape
         dot_product = normal @ ray._direction
 

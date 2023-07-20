@@ -1,9 +1,8 @@
 import cProfile
 import arcade
 
-from illumigator import entity, level, menus, util
-from illumigator.util import ENVIRON_ASSETS_PATH, WORLD_WIDTH, WORLD_HEIGHT, WINDOW_TITLE
-from illumigator.level_selector import LevelSelector
+from illumigator import entity, level, menus, util, level_selector
+from util import ENVIRON_ASSETS_PATH, WORLD_WIDTH, WORLD_HEIGHT, WINDOW_TITLE
 
 
 class GameObject(arcade.Window):
@@ -86,8 +85,8 @@ class GameObject(arcade.Window):
         self.controls_menu = menus.ControlsMenu()
         self.audio_menu = menus.AudioMenu(("MASTER", "MUSIC", "EFFECTS"),
                                           (self.master_volume, self.music_volume, self.effects_volume))
-        self.official_selector_menu = LevelSelector()
-        self.community_selector_menu = LevelSelector(is_community=True)
+        self.official_selector_menu = level_selector.LevelSelector()
+        self.community_selector_menu = level_selector.LevelSelector(is_community=True)
         self.community_win_menu = menus.GenericMenu("YOU WIN", ("RETRY", "QUIT TO MENU"))
 
     # def reload(self):
@@ -217,6 +216,8 @@ class GameObject(arcade.Window):
         elif self.game_state == "game":
             if key == arcade.key.G:
                 util.DEBUG_GEOMETRY = not util.DEBUG_GEOMETRY
+            if key == arcade.key.L:
+                util.DEBUG_LIGHTS = not util.DEBUG_LIGHTS
 
             if key == arcade.key.ESCAPE:
                 self.game_state = "paused"
@@ -398,7 +399,7 @@ class GameObject(arcade.Window):
                             height_difference)
 
     def on_mouse_motion(self, x: int, y: int, dx: int, dy: int):
-        self.mouse_x, self.mouse_y = x, y
+        util.mouseX, util.mouseY = x, y
 
     def on_close(self):
         self.settings["volume"]["master"] = self.master_volume
@@ -418,10 +419,12 @@ def main():
     window = GameObject()
     window.setup()
 
+    window.game_state = "game"
+    window.on_update(1 / 60)
+    window.game_state = "menu"
+
     arcade.run()
 
-    # window.game_state = "game"
-    # window.on_update(1 / 60)
 
     # window.game_state = "game"
     # command = "for _ in range(100):\n\twindow.on_update(1/60)"

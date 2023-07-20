@@ -1,5 +1,4 @@
 from abc import abstractmethod
-from typing import Union
 import arcade
 import numpy
 import math
@@ -23,11 +22,11 @@ class WorldObject:
         self._rotation_angle: float = rotation_angle
         self._is_interactable: bool = is_interactable
         self._geometry_segments: list[geometry.Geometry] = []
-        self.obj_animation: Union[object_animation.ObjectAnimation, None] = None
+        self.obj_animation: object_animation.ObjectAnimation | None = None
 
         self._sprite_list: arcade.SpriteList = arcade.SpriteList()
 
-    def initialize_sprites(self, sprite_info: tuple, dimensions: Union[numpy.ndarray, None] = None):
+    def initialize_sprites(self, sprite_info: tuple, *, dimensions: numpy.ndarray | None = None):
         sprite_path, sprite_scale, sprite_width, sprite_height = sprite_info
         if dimensions is None:
             self._sprite_list.append(
@@ -69,7 +68,7 @@ class WorldObject:
                         )
                     )
 
-    def initialize_geometry(self, sprite_info: tuple, dimensions: numpy.ndarray = numpy.ones(2), *, all_borders: bool = False):
+    def initialize_geometry(self, sprite_info: tuple, *, dimensions: numpy.ndarray = numpy.ones(2), all_borders: bool = False):
         sprite_path, sprite_scale, sprite_width, sprite_height = sprite_info
         axis1_norm = numpy.array([math.cos(self._rotation_angle), math.sin(self._rotation_angle)])
         axis2_norm = numpy.array([-math.sin(self._rotation_angle), math.cos(self._rotation_angle)])
@@ -160,8 +159,8 @@ class WorldObject:
 class Wall(WorldObject):
     def __init__(self, position: numpy.ndarray, dimensions: numpy.ndarray, rotation_angle: float):
         super().__init__(position, rotation_angle, is_interactable=False)
-        self.initialize_geometry(util.WALL_SPRITE_INFO, dimensions, all_borders=False)
-        self.initialize_sprites(util.WALL_SPRITE_INFO, dimensions)
+        self.initialize_geometry(util.WALL_SPRITE_INFO, dimensions=dimensions, all_borders=False)
+        self.initialize_sprites(util.WALL_SPRITE_INFO, dimensions=dimensions)
 
 
 class Mirror(WorldObject):
@@ -178,8 +177,8 @@ class Mirror(WorldObject):
 class Lens(WorldObject):
     def __init__(self, position: numpy.ndarray, rotation_angle: float):
         super().__init__(position, rotation_angle)
-        radius_of_curvature = (util.PLACEHOLDER_SPRITE_INFO[1] * util.PLACEHOLDER_SPRITE_INFO[2])
-        coverage_angle = numpy.pi / 4
+        radius_of_curvature = 110
+        coverage_angle = numpy.pi / 5
         short_axis = (
             numpy.array([math.cos(rotation_angle), math.sin(rotation_angle)])
             * math.cos(coverage_angle / 2)
@@ -213,6 +212,8 @@ class LightSource(WorldObject):
 
     def move(self, move_distance: numpy.ndarray, rotate_angle: float = 0):
         super().move_geometry(move_distance, rotate_angle)
+        self._sprite_list[0].center_x = self._position[0]
+        self._sprite_list[0].center_y = self._position[1]
         self.calculate_light_ray_positions()
 
     def draw(self):
@@ -276,8 +277,8 @@ class ParallelLightSource(LightSource):
 class LightReceiver(WorldObject):
     def __init__(self, position: numpy.ndarray, rotation_angle: float):
         super().__init__(position, rotation_angle)
-        self.initialize_geometry(util.SOURCE_SPRITE_INFO, all_borders=False)
-        self.initialize_sprites(util.SOURCE_SPRITE_INFO)
+        self.initialize_geometry(util.RECEIVER_SPRITE_INFO, all_borders=False)
+        self.initialize_sprites(util.RECEIVER_SPRITE_INFO)
         self._geometry_segments[0].is_receiver = True
         self._geometry_segments[1].is_receiver = True
         self.charge = 0

@@ -13,6 +13,8 @@ import heapq
 WORLD_WIDTH: int = 1280  # Width of the game for calculating coordinates and positions
 WORLD_HEIGHT: int = 720  # Height of the game
 WINDOW_TITLE: str = "IllumiGator"
+mouseX = 0
+mouseY = 0
 
 # Monitor
 for m in get_monitors():
@@ -57,11 +59,11 @@ STARTING_DISTANCE_VALUE = (
 MAX_RAY_DISTANCE = math.sqrt(
     STARTING_DISTANCE_VALUE
 )  # Max distance before ray goes off-screen
-MAX_GENERATIONS: int = 50
+MAX_GENERATIONS: int = 20
 INDEX_OF_REFRACTION: float = 1.3
 
 # Light Source Constants
-NUM_LIGHT_RAYS: int = 5
+NUM_LIGHT_RAYS: int = 40
 
 # Light Receiver Constants
 CHARGE_DECAY: float = 0.99

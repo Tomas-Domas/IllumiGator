@@ -212,6 +212,8 @@ class LightSource(WorldObject):
 
     def move(self, move_distance: numpy.ndarray, rotate_angle: float = 0):
         super().move_geometry(move_distance, rotate_angle)
+        self._sprite_list[0].center_x = self._position[0]
+        self._sprite_list[0].center_y = self._position[1]
         self.calculate_light_ray_positions()
 
     def draw(self):

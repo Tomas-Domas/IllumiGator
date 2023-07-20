@@ -151,7 +151,7 @@ class Arc(Geometry):
         self.is_reflective = is_reflective
         self.is_refractive = is_refractive
 
-    def _constrain_angles(self):  # Constrain between (0, 2PI) and in increasing order
+    def _constrain_angles(self):  # Constrain between (-PI, PI)
         if self._start_angle > numpy.pi:
             self._start_angle -= 2 * numpy.pi
         elif self._start_angle < -numpy.pi:
@@ -260,9 +260,9 @@ class Arc(Geometry):
                 num_segments=512,
             )
 
-    def get_refracted_direction(self, ray, point: numpy.ndarray):
+    def get_refracted_direction(self, ray):
         # Determine normal
-        normal = (point - self.center) / self.radius
+        normal = (ray._end - self.center) / self.radius
         # Determine whether coming into or out of shape
         dot_product = normal @ ray._direction
 

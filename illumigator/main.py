@@ -41,6 +41,9 @@ class GameObject(arcade.Window):
         self.music_volume = self.settings["volume"]["music"] * self.master_volume
         self.effects_volume = self.settings["volume"]["effects"] * self.master_volume
 
+    def on_mouse_drag(self, x: int, y: int, dx: int, dy: int, buttons: int, modifiers: int):
+        util.mouseX, util.mouseY = x, y
+
     def setup(self):
         self.game_state = "menu"
         self.background_sprite = util.load_sprite(
@@ -78,7 +81,7 @@ class GameObject(arcade.Window):
         if self.game_state == "game":
             self.character.update(self.current_level, self.effects_volume)
             self.enemy.update(self.current_level, self.character)
-            self.current_level.update(self.character)
+            self.current_level.update(self.character, util.mouseX, util.mouseY)  # Pass mouse coords for debugging light sources
             if any(light_receiver.charge >= util.RECEIVER_THRESHOLD for light_receiver in self.current_level.light_receiver_list):
                 self.game_state = "win"
 
@@ -305,10 +308,12 @@ def main():
     window = GameObject()
     window.setup()
 
-    # arcade.run()
-
     window.game_state = "game"
     window.on_update(1 / 60)
+    window.game_state = "menu"
+
+    arcade.run()
+
 
     # window.game_state = "game"
     # command = "for _ in range(100):\n\twindow.on_update(1/60)"

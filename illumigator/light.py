@@ -39,6 +39,7 @@ def update(self):
     self.flicker = 10 * math.sin(time.time())
 
 def get_line_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, line_x1, line_y1, line_x2, line_y2) -> tuple[numpy.ndarray, numpy.ndarray]:  # distances, line indices
+    inf = float('inf')
     # Don't @ me...    https://en.wikipedia.org/wiki/Line-line_intersection#Given_two_points_on_each_line_segment
     ray_dx_dy = numpy.array(((ray_x1 - ray_x2), (ray_y1 - ray_y2)))
     line_dx_dy = numpy.array(((line_x1 - line_x2), (line_y1 - line_y2)))
@@ -49,22 +50,22 @@ def get_line_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, line_x1, line_y1, l
     t = numpy.where(
         denominators != 0,
         (x_dif * ray_dx_dy[1] - y_dif * ray_dx_dy[0]) / denominators,
-        float('inf')
+        inf
     )
     u = numpy.where(
         denominators != 0,
         (x_dif.T * line_dx_dy[1] - y_dif.T * line_dx_dy[0]).T / denominators,
-        float('inf')
+        inf
     )
 
-    u[(u < 0) | (t < 0) | (t > 1)] = float('inf')  # u
+    u[(u < 0) | (t < 0) | (t > 1)] = inf  # u
     min_indices = numpy.argmin(u, axis=0)
 
     return u.T[:, min_indices].diagonal(), min_indices
 
-def get_arc_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, arc_x, arc_y, arc_r, arc_angle1, arc_angle2) -> tuple[numpy.ndarray, numpy.ndarray]:  # distances, line indices
+def get_arc_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, arc_x, arc_y, arc_r, arc_angle1, arc_angle2) -> numpy.ndarray:  # distances, line indices
+    inf = float('inf')
     # Don't @ me...    https://en.wikipedia.org/wiki/Line-sphere_intersection#Calculation_using_vectors_in_3D
-    arc_centers = numpy.array((arc_x, arc_y)).T
     ray_origins = numpy.array((ray_x1, ray_y1)).T
     ray_dx_dy = numpy.array(((ray_x2 - ray_x1), (ray_y2 - ray_y1)))
     diff_x = numpy.subtract.outer(ray_x1, arc_x).T
@@ -80,116 +81,68 @@ def get_arc_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, arc_x, arc_y, arc_r,
     intersection_distance1 = numpy.where(
         nabla_sqrt != -1,
         -nabla_sqrt - temp_calculation1,
-        -1
-    )
+        -1)
     point1_x = numpy.where(
         intersection_distance1 > 0,
         ray_origins.T[0] + ray_dx_dy[0] * intersection_distance1,
-        float('inf')
-    )
+        inf)
     point1_y = numpy.where(
         intersection_distance1 > 0,
         ray_origins.T[1] + ray_dx_dy[1] * intersection_distance1,
-        float('inf')
-    )
+        inf)
     point1_angle = numpy.arctan2(
-        point1_y,
-        point1_x,
-        where=(
-                (point1_x != float('inf')) & (point1_y != float('inf'))
-        )
+        point1_y.T - arc_y,
+        point1_x.T - arc_x
+    )
+    intersection_distance1 = numpy.where(
+        (intersection_distance1.T > 0) &
+        (((arc_angle1 < point1_angle) & (point1_angle < arc_angle2)) | (
+            (arc_angle2 < arc_angle1) & (
+                ((0 <= arc_angle1) & (arc_angle1 <= point1_angle)) |
+                ((point1_angle <= arc_angle2) & (arc_angle2 <= 0))
+            )
+        )),
+        intersection_distance1.T,
+        inf
     ).T
-    point1_x = numpy.where(
-        ((arc_angle1 < point1_angle) & (point1_angle < arc_angle2)) | (
-                (arc_angle2 < arc_angle1) & (
-                ((0 <= arc_angle1) & (arc_angle1 <= point1_angle)) |
-                ((point1_angle <= arc_angle2) & (arc_angle2 <= 0))
-            )
-        ),
-        point1_x.T,
-        float('inf')
-    )
-    point1_y = numpy.where(
-        ((arc_angle1 < point1_angle) & (point1_angle < arc_angle2)) | (
-                (arc_angle2 < arc_angle1) & (
-                ((0 <= arc_angle1) & (arc_angle1 <= point1_angle)) |
-                ((point1_angle <= arc_angle2) & (arc_angle2 <= 0))
-            )
-        ),
-        point1_y.T,
-        float('inf')
-    )
 
     intersection_distance2 = numpy.where(
-        nabla_sqrt != -1,
-        nabla_sqrt - temp_calculation1,
-        -1
-    )
+            nabla_sqrt != -1,
+            nabla_sqrt - temp_calculation1,
+            -1)
     point2_x = numpy.where(
         intersection_distance2 > 0,
         ray_origins.T[0] + ray_dx_dy[0] * intersection_distance2,
-        float('inf')
-    )
+        inf)
     point2_y = numpy.where(
         intersection_distance2 > 0,
         ray_origins.T[1] + ray_dx_dy[1] * intersection_distance2,
-        float('inf')
+        inf)
+    point2_angle = numpy.where(
+        point2_x.T != inf,
+        numpy.arctan2(
+            point2_y.T - arc_y,
+            point2_x.T - arc_x
+        ),
+        inf
     )
-    point2_angle = numpy.arctan2(
-        point2_y,
-        point2_x,
-        where=(
-                (point2_x != float('inf')) & (point2_y != float('inf'))
-        )
+    intersection_distance2 = numpy.where(
+        (intersection_distance2.T > 0) &
+        (((arc_angle1 < point2_angle) & (point2_angle < arc_angle2)) | (
+            (arc_angle2 < arc_angle1) & (
+                ((0 <= arc_angle1) & (arc_angle1 <= point2_angle)) |
+                ((point2_angle <= arc_angle2) & (arc_angle2 <= 0))
+            )
+        )),
+        intersection_distance2.T,
+        inf
     ).T
-    point2_x = numpy.where(
-        ((arc_angle2 < point2_angle) & (point2_angle < arc_angle2)) | (
-                (arc_angle2 < arc_angle1) & (
-                ((0 <= arc_angle1) & (arc_angle1 <= point2_angle)) |
-                ((point2_angle <= arc_angle2) & (arc_angle2 <= 0))
-            )
-        ),
-        point2_x.T,
-        float('inf')
+
+    return numpy.where(
+        numpy.min(intersection_distance1, axis=0) < numpy.min(intersection_distance2, axis=0),
+        [numpy.min(intersection_distance1, axis=0), numpy.argmin(intersection_distance1, axis=0)],
+        [numpy.min(intersection_distance2, axis=0), numpy.argmin(intersection_distance2, axis=0)]
     )
-    point2_y = numpy.where(
-        ((arc_angle1 < point2_angle) & (point2_angle < arc_angle2)) | (
-                (arc_angle2 < arc_angle1) & (
-                ((0 <= arc_angle1) & (arc_angle1 <= point2_angle)) |
-                ((point2_angle <= arc_angle2) & (arc_angle2 <= 0))
-            )
-        ),
-        point2_y.T,
-        float('inf')
-    )
-
-
-
-    print("===================================\nNEW WAY:\ntemp1")
-    # print(temp_calculation1)
-    # print("temp2")
-    # print(temp_calculation2)
-    # print("nabla")
-    # print(nabla)
-    print("nabla_sqrt")
-    print(nabla_sqrt)
-    print("intersect1")
-    print(intersection_distance1)
-    print("point1 x, y")
-    print(point1_x)
-    print(point1_y)
-    print("point2 x, y")
-    print(point2_x)
-    print(point2_y)
-
-    # print("intersect2")
-    # print(intersection_distance2)
-
-
-    # min_indices = numpy.argmin(u, axis=0)
-
-    return
-    return u.T[:, min_indices].diagonal(), min_indices
 
 
 

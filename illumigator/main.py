@@ -356,7 +356,6 @@ class GameObject(arcade.Window):
 
     def reset_level(self):
         self.current_level = level.load_level(util.load_data(self.current_level_path, True), self.character, self.enemy)
-        self.enemy.reset_pos(util.WORLD_WIDTH - 200, util.WORLD_HEIGHT - 200)
         self.game_state = "game"
 
 

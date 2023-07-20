@@ -46,6 +46,16 @@ class Line(Geometry):
             util.rotate_around_center(world_object_center, self._point2, rotate_angle)
             + move_distance
         )
+        self.calculate_normal()
+
+    def calculate_normal(self):
+        normal_unscaled = numpy.array(
+            [-(self._point2[1] - self._point1[1]), self._point2[0] - self._point1[0]]
+        )
+        self._normal = normal_unscaled / numpy.linalg.norm(normal_unscaled)
+
+    def get_reflected_direction(self, ray):
+        return ray._direction - (2 * self._normal * (self._normal @ ray._direction))
 
     def draw(self):
         if self.is_reflective:

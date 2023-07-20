@@ -15,17 +15,12 @@ import heapq
 WORLD_WIDTH: int = 1280  # Width of the game for calculating coordinates and positions
 WORLD_HEIGHT: int = 720  # Height of the game
 WINDOW_TITLE: str = "IllumiGator"
-mouseX = 0
-mouseY = 0
 
 # Monitor
 for m in get_monitors():
     if m.is_primary:
         SCREEN_WIDTH = m.width
         SCREEN_HEIGHT = m.height
-
-# Debug
-DEBUG_GEOMETRY: bool = True  # Toggle with G
 
 
 
@@ -69,7 +64,7 @@ MAX_GENERATIONS: int = 20
 INDEX_OF_REFRACTION: float = 1.3
 
 # Light Source Constants
-NUM_LIGHT_RAYS: int = 30
+NUM_LIGHT_RAYS: int = 20
 
 # Light Receiver Constants
 CHARGE_DECAY: float = 0.99
@@ -284,7 +279,13 @@ def get_community_metadata(page_size: int = 15, page: int = 1) -> tuple[int, lis
 
 
 
-# ========================= Profiling Timer =========================
+# ========================= Development Help =========================
+# Debug
+DEBUG_GEOMETRY: bool = True  # Toggle with G
+DEBUG_LIGHTS: bool = False  # Toggle with L
+mouseX = 0
+mouseY = 0
+
 class Timer:
     def __init__(self, name="Timer"):
         self.name = name

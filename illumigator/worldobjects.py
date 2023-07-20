@@ -169,7 +169,9 @@ class Mirror(WorldObject):
         self.initialize_geometry(util.MIRROR_SPRITE_INFO, all_borders=True)
         self.initialize_sprites(util.MIRROR_SPRITE_INFO)
         self._geometry_segments[0].is_reflective = True
+        self._geometry_segments[0].calculate_normal()
         self._geometry_segments[2].is_reflective = True
+        self._geometry_segments[2].calculate_normal()
 
 
 class Lens(WorldObject):

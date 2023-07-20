@@ -41,9 +41,6 @@ class GameObject(arcade.Window):
         self.music_volume = self.settings["volume"]["music"] * self.master_volume
         self.effects_volume = self.settings["volume"]["effects"] * self.master_volume
 
-    def on_mouse_drag(self, x: int, y: int, dx: int, dy: int, buttons: int, modifiers: int):
-        util.mouseX, util.mouseY = x, y
-
     def setup(self):
         self.game_state = "menu"
         self.background_sprite = util.load_sprite(
@@ -159,6 +156,8 @@ class GameObject(arcade.Window):
         elif self.game_state == "game":
             if key == arcade.key.G:
                 util.DEBUG_GEOMETRY = not util.DEBUG_GEOMETRY
+            if key == arcade.key.L:
+                util.DEBUG_LIGHTS = not util.DEBUG_LIGHTS
 
             if key == arcade.key.ESCAPE:
                 self.game_state = "paused"
@@ -288,7 +287,7 @@ class GameObject(arcade.Window):
                             height_difference)
 
     def on_mouse_motion(self, x: int, y: int, dx: int, dy: int):
-        self.mouse_x, self.mouse_y = x, y
+        util.mouseX, util.mouseY = x, y
 
     def on_close(self):
         self.settings["volume"]["master"] = self.master_volume
@@ -308,9 +307,9 @@ def main():
     window = GameObject()
     window.setup()
 
-    # window.game_state = "game"
-    # window.on_update(1 / 60)
-    # window.game_state = "menu"
+    window.game_state = "game"
+    window.on_update(1 / 60)
+    window.game_state = "menu"
 
     arcade.run()
 

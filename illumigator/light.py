@@ -34,7 +34,7 @@ class LightRay:
             self._child_ray.draw(alpha)
 
 
-def get_raycast_results(ray_p1, ray_p2, line_p1, line_p2, line_reflect, line_len) -> tuple[numpy.ndarray, numpy.ndarray]:  # distances, line indices
+def get_raycast_results(ray_p1, ray_p2, line_p1, line_p2) -> tuple[numpy.ndarray, numpy.ndarray]:  # distances, line indices
     # Don't @ me...    https://en.wikipedia.org/wiki/Line-line_intersection#Given_two_points_on_each_line_segment
     ray_dx_dy = -ray_p2.T
     line_dx_dy = numpy.array(((line_p1[:, 0] - line_p2[:, 0]), (line_p1[:, 1] - line_p2[:, 1])))
@@ -59,10 +59,9 @@ def get_raycast_results(ray_p1, ray_p2, line_p1, line_p2, line_reflect, line_len
     return u.T[:, min_indices].diagonal(), min_indices
 
 def get_arc_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, arc_x, arc_y, arc_r, arc_angle1, arc_angle2) -> numpy.ndarray:  # distances, line indices
-    inf = float('inf')
     # Don't @ me...    https://en.wikipedia.org/wiki/Line-sphere_intersection#Calculation_using_vectors_in_3D
     ray_origins = numpy.array((ray_x1, ray_y1)).T
-    ray_dx_dy = numpy.array(((ray_x2 - ray_x1), (ray_y2 - ray_y1)))
+    ray_dx_dy = numpy.array((ray_x2, ray_y2))
     diff_x = numpy.subtract.outer(ray_x1, arc_x).T
     diff_y = numpy.subtract.outer(ray_y1, arc_y).T
     temp_calculation1 = numpy.multiply(ray_dx_dy[0], diff_x) + numpy.multiply(ray_dx_dy[1], diff_y)
@@ -80,11 +79,11 @@ def get_arc_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, arc_x, arc_y, arc_r,
     point1_x = numpy.where(
         intersection_distance1 > 0,
         ray_origins.T[0] + ray_dx_dy[0] * intersection_distance1,
-        inf)
+        float('inf'))
     point1_y = numpy.where(
         intersection_distance1 > 0,
         ray_origins.T[1] + ray_dx_dy[1] * intersection_distance1,
-        inf)
+        float('inf'))
     point1_angle = numpy.arctan2(
         point1_y.T - arc_y,
         point1_x.T - arc_x
@@ -98,7 +97,7 @@ def get_arc_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, arc_x, arc_y, arc_r,
             )
         )),
         intersection_distance1.T,
-        inf
+        float('inf')
     ).T
 
     intersection_distance2 = numpy.where(
@@ -108,18 +107,18 @@ def get_arc_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, arc_x, arc_y, arc_r,
     point2_x = numpy.where(
         intersection_distance2 > 0,
         ray_origins.T[0] + ray_dx_dy[0] * intersection_distance2,
-        inf)
+        float('inf'))
     point2_y = numpy.where(
         intersection_distance2 > 0,
         ray_origins.T[1] + ray_dx_dy[1] * intersection_distance2,
-        inf)
+        float('inf'))
     point2_angle = numpy.where(
-        point2_x.T != inf,
+        point2_x.T != float('inf'),
         numpy.arctan2(
             point2_y.T - arc_y,
             point2_x.T - arc_x
         ),
-        inf
+        float('inf')
     )
     intersection_distance2 = numpy.where(
         (intersection_distance2.T > 0) &
@@ -130,7 +129,7 @@ def get_arc_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, arc_x, arc_y, arc_r,
             )
         )),
         intersection_distance2.T,
-        inf
+        float('inf')
     ).T
 
     return numpy.where(

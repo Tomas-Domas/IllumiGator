@@ -1,13 +1,17 @@
 {
-  "level_name": "Level 2",
-  "planet": "mars",
+  "level_name": "Level 1",
+  "planet": "earth",
   "level_data": {
     "mirror_coordinate_list": [
       [140, 580, -0.785398163397],
-      [340, 180, 1.57079632679]
+      [340, 180, 1.57079632679],
+      [740, 580, 0],
+      [900, 180, 0]
     ],
     "wall_coordinate_list": [
-      [340, 540, 1, 7, 0]
+      [340, 540, 1, 7, 0],
+      [740, 180, 1, 7, 0],
+      [900, 540, 1, 7, 0]
     ],
     "light_receiver_coordinate_list": [
       [1180, 620, 0]
@@ -17,6 +21,8 @@
     ],
     "animated_wall_coordinate_list": [
       [1100, 460, 1, 1, 0, 40, 0, 0.025, 3.141519]
-    ]
+    ],
+    "character_coordinates": [640, 360, 0],
+    "enemy_coordinates": [1080, 520, 0]
   }
 }

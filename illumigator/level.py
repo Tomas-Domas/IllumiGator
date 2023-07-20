@@ -1,19 +1,25 @@
 import numpy
 
 from illumigator import worldobjects, entity, util, light
-from util import WALL_SIZE
+from illumigator.worldobjects import WorldObject
+from util import WALL_SIZE, PLAYER_SPRITE_INFO
 
 
 class Level:
     def __init__(
             self,
+            character: entity.Character,
+            enemy: entity.Enemy,
             wall_coordinate_list: list[list] = None,
             mirror_coordinate_list: list[list] = None,
             light_receiver_coordinate_list: list[list] = None,
             light_source_coordinate_list: list[list] = None,
             animated_wall_coordinate_list: list[list] = None,
-            name="default",
+            character_coordinates: list = None,
+            enemy_coordinates: list = None,
+            name="default"
     ):
+
         self.background = None
         self.name = name
         self.line_segments = []
@@ -21,6 +27,28 @@ class Level:
         self.mirror_list = []
         self.light_receiver_list = []
         self.light_sources_list = []
+        self.entity_world_object_list = []
+
+        character.character_sprite.position = numpy.array([character_coordinates[0], character_coordinates[1]])
+        character.world_object = WorldObject(
+            numpy.array([
+                        character_coordinates[0],
+                        character_coordinates[1]]),
+                        character_coordinates[2])
+        character.world_object.initialize_geometry(PLAYER_SPRITE_INFO)
+        character.status = "alive"
+
+        enemy.character_sprite.position = numpy.array([enemy_coordinates[0], enemy_coordinates[1]])
+        enemy.world_object = WorldObject(
+            numpy.array([
+                        enemy_coordinates[0],
+                        enemy_coordinates[1]]),
+                        enemy_coordinates[2])
+        enemy.world_object.initialize_geometry(PLAYER_SPRITE_INFO)
+        enemy.state = "asleep"
+
+        self.entity_world_object_list.append(character.world_object)
+        self.entity_world_object_list.append(enemy.world_object)
 
         # ========================= Outer Walls =========================
         self.wall_list: list[worldobjects.WorldObject] = [
@@ -117,7 +145,7 @@ class Level:
                                            animated_wall_coordinates[7], animated_wall_coordinates[8])
             self.wall_list.append(animated_wall)
 
-        for world_object in (self.wall_list + self.mirror_list + self.light_receiver_list):
+        for world_object in (self.wall_list + self.mirror_list + self.light_receiver_list + self.entity_world_object_list):
             self.line_segments.extend(world_object._geometry_segments)
 
     def update(self, character: entity.Character):
@@ -128,7 +156,7 @@ class Level:
         line_coordinates = numpy.ndarray((len(self.line_segments), 4))
         for line_i in range(len(self.line_segments)):
             line_coordinates[line_i, :] = self.line_segments[line_i]._point1[0], self.line_segments[line_i]._point1[1], \
-            self.line_segments[line_i]._point2[0], self.line_segments[line_i]._point2[1]
+                self.line_segments[line_i]._point2[0], self.line_segments[line_i]._point2[1]
 
         for light_source in self.light_sources_list:
             ray_queue = light_source.light_rays[:]
@@ -140,8 +168,8 @@ class Level:
                 ray_coordinates = numpy.ndarray((queue_length, 4))
                 for ray_i in range(queue_length):
                     ray_coordinates[ray_i, :] = ray_queue[ray_i]._origin[0], ray_queue[ray_i]._origin[1], \
-                    ray_queue[ray_i]._origin[0] + ray_queue[ray_i]._direction[0], ray_queue[ray_i]._origin[1] + \
-                    ray_queue[ray_i]._direction[1]
+                        ray_queue[ray_i]._origin[0] + ray_queue[ray_i]._direction[0], ray_queue[ray_i]._origin[1] + \
+                        ray_queue[ray_i]._direction[1]
                 ray_x1, ray_y1, ray_x2, ray_y2 = ray_coordinates[:, 0], ray_coordinates[:, 1], ray_coordinates[:,
                                                                                                2], ray_coordinates[:, 3]
                 nearest_distances, nearest_line_indeces = light.get_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2,
@@ -181,6 +209,8 @@ class Level:
             mirror.draw()
         for light_receiver in self.light_receiver_list:
             light_receiver.draw()
+        for entity_world_object in self.entity_world_object_list:
+            entity_world_object.draw()
 
     def check_collisions(self, character: entity.Character):
         for wall in self.wall_list:
@@ -194,11 +224,15 @@ class Level:
                 return True
 
 
-def load_level(level: dict) -> Level:
+def load_level(level: dict, character: entity.Character, enemy: entity.Enemy) -> Level:
     level_data = level["level_data"]
-    return Level(level_data["wall_coordinate_list"],
+    return Level(character,
+                 enemy,
+                 level_data["wall_coordinate_list"],
                  level_data["mirror_coordinate_list"],
                  level_data["light_receiver_coordinate_list"],
                  level_data["light_source_coordinate_list"],
                  level_data["animated_wall_coordinate_list"],
+                 level_data["character_coordinates"],
+                 level_data["enemy_coordinates"],
                  level["level_name"])

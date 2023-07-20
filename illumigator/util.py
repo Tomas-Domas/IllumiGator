@@ -6,7 +6,7 @@ import numpy
 import math
 import json
 import heapq
-
+import subprocess
 
 # ========================= Game Constants =========================
 # Window
@@ -30,6 +30,7 @@ MIRROR_SPRITE_INFO: tuple = ("mirror.png", 1.3, 9, 48)
 SOURCE_SPRITE_INFO: tuple = ("light_source.png", 2, 16, 16)
 RECEIVER_SPRITE_INFO: tuple = ("light_receiver.png", 2, 32, 32)
 PLACEHOLDER_SPRITE_INFO: tuple = ("sprite.png", 0.25, 128, 128)
+PLAYER_SPRITE_INFO: tuple = ("00_gator_left.png", 1, 24, 24)
 WALL_SIZE = WALL_SPRITE_INFO[1] * WALL_SPRITE_INFO[2]
 
 # Player
@@ -299,3 +300,12 @@ def get_level_metadata(page_size: int = 15, page: int = 1, is_community=False) -
         level_list_sorted.append(levels[level])
 
     return len(levels), level_list_sorted[min_at_page:max_at_page], filenames_sorted[min_at_page:max_at_page]
+
+
+def opendir(filename):
+    try:
+        os.startfile(filename)
+    except FileNotFoundError:
+        raise FileNotFoundError
+    except:
+        subprocess.Popen(['xdg-open', filename])

@@ -22,13 +22,10 @@ class GameObject(arcade.Window):
         self.mouse_x = util.WORLD_WIDTH // 2
         self.mouse_y = util.WORLD_HEIGHT // 2
 
-        # ========================= State =========================
-        self.game_state = None
-
         # ========================= Menus =========================
         self.main_menu = None
-        self.win_screen = None
-        self.lose_screen = None
+        self.win_menu = None
+        self.lose_menu = None
         self.options_menu = None
         self.game_menu = None
         self.controls_menu = None
@@ -36,15 +33,20 @@ class GameObject(arcade.Window):
         self.official_selector_menu = None
         self.community_selector_menu = None
         self.final_win_menu = None
+        self.community_win_menu = None
 
         # ========================= Settings =========================
         self.settings = util.load_data("config.json")
-        self.official_level_count = util.load_data("levels.json", True, True)["level_count"]
-        self.official_level_index = self.settings["current_level"]
-        self.current_level_path = "level_" + str(self.official_level_index) + ".json"
         self.master_volume = self.settings["volume"]["master"]
         self.music_volume = self.settings["volume"]["music"] * self.master_volume
         self.effects_volume = self.settings["volume"]["effects"] * self.master_volume
+
+        # ========================= State =========================
+        self.game_state = None
+        self.official_level_count = util.load_data("levels.json", True, True)["level_count"]
+        self.official_level_index = self.settings["current_level"]
+        self.current_level_path = "level_" + str(self.official_level_index) + ".json"
+        self.official_level_status = True
 
     def setup(self):
         self.game_state = "menu"
@@ -58,7 +60,7 @@ class GameObject(arcade.Window):
         self.character = entity.Character(walking_volume=self.effects_volume)
         self.enemy = entity.Enemy()
 
-        self.current_level = level.load_level(util.load_data(self.current_level_path, True))
+        self.current_level = level.load_level(util.load_data(self.current_level_path, True), self.character, self.enemy)
 
         # ========================= Sounds =========================
         self.menu_sound = util.load_sound("retro_blip.wav")
@@ -71,15 +73,16 @@ class GameObject(arcade.Window):
         # ========================= Menus =========================
         self.main_menu = menus.MainMenu()
         self.game_menu = menus.GenericMenu("PAUSED", ("RESUME", "RESTART", "OPTIONS", "QUIT TO MENU"), overlay=True)
-        self.win_screen = menus.GenericMenu("LEVEL COMPLETED", ("CONTINUE", "RETRY", "QUIT TO MENU"))
+        self.win_menu = menus.GenericMenu("LEVEL COMPLETED", ("CONTINUE", "RETRY", "QUIT TO MENU"))
         self.final_win_menu = menus.GenericMenu("YOU WIN", ("RETRY", "QUIT TO MENU"))
-        self.lose_screen = menus.GenericMenu("YOU DIED", ("RETRY", "QUIT TO MENU"))
+        self.lose_menu = menus.GenericMenu("YOU DIED", ("RETRY", "QUIT TO MENU"))
         self.options_menu = menus.GenericMenu("OPTIONS", ("RETURN", "CONTROLS", "AUDIO", "FULLSCREEN"))
         self.controls_menu = menus.ControlsMenu()
         self.audio_menu = menus.AudioMenu(("MASTER", "MUSIC", "EFFECTS"),
                                           (self.master_volume, self.music_volume, self.effects_volume))
         self.official_selector_menu = LevelSelector()
         self.community_selector_menu = LevelSelector(is_community=True)
+        self.community_win_menu = menus.GenericMenu("YOU WIN", ("RETRY", "QUIT TO MENU"))
 
     # def reload(self):
 
@@ -89,14 +92,23 @@ class GameObject(arcade.Window):
             self.enemy.update(self.current_level, self.character)
             self.current_level.update(self.character)
             if any(light_receiver.charge >= util.RECEIVER_THRESHOLD for light_receiver in self.current_level.light_receiver_list):
-                if self.official_level_index == self.official_level_count:
+                if not self.official_level_status:
+                    self.game_state = "community_win"
+                    self.official_level_status = False
+                elif self.official_level_index == self.official_level_count:
+                    self.official_level_status = True
+                    self.current_level_path = "level_" + str(self.official_level_index) + ".json"
                     self.game_state = "final_win"
                 else:
                     self.official_level_index += 1
+                    self.official_level_status = True
+                    self.current_level_path = "level_" + str(self.official_level_index) + ".json"
                     self.game_state = "win"
 
-                self.current_level_path = "level_" + str(self.official_level_index) + ".json"
-                self.current_level = level.load_level(util.load_data(self.current_level_path, True, True))
+                self.current_level = level.load_level(
+                    util.load_data(self.current_level_path, True, self.official_level_status),
+                    self.character,
+                    self.enemy)
 
             if self.character.status == "dead":
                 self.game_state = "game_over"
@@ -126,11 +138,11 @@ class GameObject(arcade.Window):
                 self.game_menu.draw()
 
         if self.game_state == "win":
-            self.win_screen.draw()
+            self.win_menu.draw()
             self.music_player.pause()
 
         if self.game_state == "game_over":
-            self.lose_screen.draw()
+            self.lose_menu.draw()
             self.music_player.pause()
 
         if self.game_state == "options":
@@ -156,6 +168,10 @@ class GameObject(arcade.Window):
 
         if self.game_state == "final_win":
             self.final_win_menu.draw()
+            self.music_player.pause()
+
+        if self.game_state == "community_win":
+            self.community_win_menu.draw()
             self.music_player.pause()
 
     def on_key_press(self, key, key_modifiers):
@@ -218,7 +234,7 @@ class GameObject(arcade.Window):
                     self.game_state = "menu"
 
         elif self.game_state == "win" or self.game_state == "final_win":
-            win_screen = {"win": self.win_screen,
+            win_screen = {"win": self.win_menu,
                           "final_win": self.final_win_menu}
             if key == arcade.key.S or key == arcade.key.DOWN:
                 win_screen[self.game_state].increment_selection()
@@ -245,16 +261,16 @@ class GameObject(arcade.Window):
                         self.music_player.seek(0.0)
                         self.game_state = "menu"
 
-        elif self.game_state == "game_over":
+        elif self.game_state == "game_over" or self.game_state == "community_win":
             if key == arcade.key.S or key == arcade.key.DOWN:
-                self.lose_screen.increment_selection()
+                self.lose_menu.increment_selection()
             if key == arcade.key.W or key == arcade.key.UP:
-                self.lose_screen.decrement_selection()
+                self.lose_menu.decrement_selection()
             if key == arcade.key.ENTER:
-                if self.lose_screen.selection == 0:
+                if self.lose_menu.selection == 0:
                     self.reset_level()
                     self.game_state = "game"
-                elif self.lose_screen.selection == 1:
+                elif self.lose_menu.selection == 1:
                     self.music_player.seek(0.0)
                     self.reset_level()
                     self.game_state = "menu"
@@ -305,10 +321,20 @@ class GameObject(arcade.Window):
             if key == arcade.key.R and self.game_state == "community_level_select":
                 util.update_community_metadata()
                 level_selector[self.game_state].update()
+            if key == arcade.key.F and self.game_state == "community_level_select":
+                try:
+                    util.opendir(util.ENVIRON_DATA_PATH + "levels/community")
+                except FileNotFoundError:
+                    util.opendir(util.VENV_DATA_PATH + "levels/community")
             if key == arcade.key.ESCAPE:
                 self.game_state = "menu"
             if key == arcade.key.ENTER:
-                self.current_level = level_selector[self.game_state].load_selection()
+                self.current_level_path = level_selector[self.game_state].get_selection()
+                self.official_level_status = True if self.game_state == "official_level_select" else False
+                self.current_level = level.load_level(
+                    util.load_data(self.current_level_path, True, self.official_level_status),
+                    self.character,
+                    self.enemy)
                 if self.game_state == "official_level_select":
                     self.official_level_index = level_selector[self.game_state].selection + 1
                 self.game_state = "menu"
@@ -356,9 +382,9 @@ class GameObject(arcade.Window):
         arcade.close_window()
 
     def reset_level(self):
-        self.current_level = level.load_level(util.load_data(self.current_level_path, True))
-        self.character.reset_pos(util.WORLD_WIDTH // 2, util.WORLD_HEIGHT // 2)
-        self.enemy.reset_pos(util.WORLD_WIDTH - 200, util.WORLD_HEIGHT - 200)
+        self.current_level = level.load_level(util.load_data(
+            self.current_level_path, True, self.official_level_status), self.character, self.enemy)
+        self.game_state = "game"
 
 
 def main():

@@ -320,6 +320,11 @@ class GameObject(arcade.Window):
             if key == arcade.key.R and self.game_state == "community_level_select":
                 util.update_community_metadata()
                 level_selector[self.game_state].update()
+            if key == arcade.key.F and self.game_state == "community_level_select":
+                try:
+                    util.opendir(util.ENVIRON_DATA_PATH + "levels/community")
+                except FileNotFoundError:
+                    util.opendir(util.VENV_DATA_PATH + "levels/community")
             if key == arcade.key.ESCAPE:
                 self.game_state = "menu"
             if key == arcade.key.ENTER:

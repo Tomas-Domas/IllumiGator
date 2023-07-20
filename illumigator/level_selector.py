@@ -29,15 +29,16 @@ class LevelSelector:
         self.planet_filenames = []
         self.planets = []
         self.keys = []
-        self.key_text = [("ESC", "RETURN TO MENU"), ("ENTER", "LOAD LEVEL")]
+        self.key_text = [("ESC", "RETURN TO MENU"), ("ENTER", "LOAD UP LEVEL")]
         if is_community:
             self.key_text.append(("R", "REFRESH LEVELS"))
+            self.key_text.append(("F", "OPEN FOLDER"))
 
         for index in range(0, len(self.key_text)):
-            starting_point = 100
+            starting_point = 50
             self.keys.append(util.load_sprite("key.png",
                              1,
-                             center_x=starting_point + index * util.WORLD_WIDTH // 3,
+                             center_x=starting_point + index * util.WORLD_WIDTH // 4,
                              center_y=util.WORLD_HEIGHT - 120))
 
         for i in range(0, len(self.levels)):

@@ -289,21 +289,21 @@ class GameObject(arcade.Window):
                         self.game_state = "game"
                     elif selection == 1:
                         self.bgm_player.seek(0.0)
-                        self.pause_player.seek(0.0)
                         self.game_state = "menu"
 
         elif self.game_state == "game_over" or self.game_state == "community_win":
+            menu = {"game_over": self.lose_menu,
+                    "community_win": self.community_win_menu}
             if key == arcade.key.S or key == arcade.key.DOWN:
-                self.lose_menu.increment_selection()
+                menu[self.game_state].increment_selection()
             if key == arcade.key.W or key == arcade.key.UP:
-                self.lose_menu.decrement_selection()
+                menu[self.game_state].decrement_selection()
             if key == arcade.key.ENTER:
-                if self.lose_menu.selection == 0:
+                if menu[self.game_state].selection == 0:
                     self.reset_level()
                     self.game_state = "game"
-                elif self.lose_menu.selection == 1:
+                elif menu[self.game_state].selection == 1:
                     self.bgm_player.seek(0.0)
-                    self.pause_player.seek(0.0)
                     self.reset_level()
                     self.game_state = "menu"
 

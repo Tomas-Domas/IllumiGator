@@ -216,9 +216,6 @@ class Enemy(Character):
             + (self.character_sprite.center_y - player.character_sprite.center_y) ** 2
         )
 
-        if self.state == "asleep" and dist < 300:
-            self.state = "aggro"
-
         if self.state == "aggro":
             direction = numpy.array(
                 [

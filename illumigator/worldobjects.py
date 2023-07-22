@@ -200,6 +200,7 @@ class Lens(WorldObject):
                 coverage_angle,
             ),
         ]
+        self.initialize_sprites(util.LENS_SPRITE_INFO)
 
 
 class LightSource(WorldObject):

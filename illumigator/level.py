@@ -17,10 +17,16 @@ class Level:
             lens_coordinate_list: list[list] = None,
             character_coordinates: list = None,
             enemy_coordinates: list = None,
-            name="default"
+            name="default",
+            background="space"
     ):
 
-        self.background = None
+        self.background = background + ".png"
+        self.background_sprite = util.load_sprite(self.background,
+                                                  scale=2/3,
+                                                  center_x=util.WORLD_WIDTH // 2,
+                                                  center_y=util.WORLD_HEIGHT // 2)
+        self.background_sprite.alpha = 100
         self.name = name
         self.line_segments = []
         self.arcs = []
@@ -250,6 +256,7 @@ class Level:
         del ray
 
     def draw(self):
+        self.background_sprite.draw()
         for light_source in self.light_sources_list:
             light_source.draw()
         for wall in self.wall_list:

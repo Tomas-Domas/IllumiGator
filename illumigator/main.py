@@ -21,7 +21,6 @@ class GameObject(arcade.Window):
 
         # ========================= Window =========================
         arcade.set_background_color(arcade.color.BLACK)
-        self.background_sprite = None
         self.mouse_x = util.WORLD_WIDTH // 2
         self.mouse_y = util.WORLD_HEIGHT // 2
 
@@ -53,13 +52,6 @@ class GameObject(arcade.Window):
 
     def setup(self):
         self.game_state = "menu"
-        self.background_sprite = util.load_sprite(
-            "flowers.jpg",
-            0.333333,
-            center_x=WORLD_WIDTH // 2,
-            center_y=WORLD_HEIGHT // 2,
-        )
-        self.background_sprite.alpha = 100
         self.character = entity.Character(walking_volume=self.effects_volume)
         self.enemy = entity.Enemy()
 
@@ -135,7 +127,6 @@ class GameObject(arcade.Window):
                 self.menu_player.volume = self.music_volume * 0.5
                 self.menu_player.play()
         elif self.game_state == "game" or self.game_state == "paused":
-            self.background_sprite.draw()
             self.current_level.draw()
             self.character.draw()
             self.enemy.draw()

@@ -132,7 +132,7 @@ class GameObject(arcade.Window):
                 self.bgm_player.volume = self.music_volume
                 self.bgm_player.play()
 
-        if self.game_state == "paused":
+        if self.game_state == "paused" or self.game_state == "audio":
             self.bgm_player.pause()
             if self.pause_player is None:
                 self.pause_player = arcade.play_sound(self.pause_music, self.music_volume, looping=True)

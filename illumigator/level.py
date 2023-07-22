@@ -22,6 +22,7 @@ class Level:
             planet="moon"
     ):
 
+        self.enemy = enemy
         self.background = background + ".png"
         self.background_sprite = util.load_sprite(self.background,
                                                   scale=2/3,
@@ -75,6 +76,8 @@ class Level:
             0
         )
         enemy.world_object.initialize_geometry(PLAYER_SPRITE_INFO)
+        enemy.world_object._geometry_segments[0].is_enemy = True
+        enemy.world_object._geometry_segments[1].is_enemy = True
         enemy.state = "asleep"
 
         self.entity_world_object_list.append(character.world_object)
@@ -236,6 +239,8 @@ class Level:
                             ray_queue.append(ray._child_ray)
                         elif nearest_line.is_receiver:  # Charge receiver when a light ray hits it
                             nearest_line.parent_object.charge += util.LIGHT_INCREMENT
+                        elif nearest_line.is_enemy:
+                            self.enemy.state = "aggro"
                         else:
                             ray._child_ray = None
                     else:

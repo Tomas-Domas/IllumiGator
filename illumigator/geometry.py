@@ -7,11 +7,12 @@ from illumigator import util
 
 
 class Geometry(ABC):
-    def __init__(self, parent_object, is_reflective: bool, is_refractive: bool, is_receiver: bool):
+    def __init__(self, parent_object, is_reflective: bool, is_refractive: bool, is_receiver: bool, is_enemy: bool):
         self.parent_object = parent_object
         self.is_reflective = is_reflective
         self.is_refractive = is_refractive
         self.is_receiver = is_receiver
+        self.is_enemy = is_enemy
 
     @abstractmethod
     def draw(self):
@@ -30,9 +31,10 @@ class Line(Geometry):
         point2: numpy.ndarray,
         is_reflective: bool = False,
         is_refractive: bool = False,
-        is_receiver: bool = False
+        is_receiver: bool = False,
+        is_enemy: bool = False
     ):
-        super().__init__(parent_object, is_reflective, is_refractive, is_receiver)
+        super().__init__(parent_object, is_reflective, is_refractive, is_receiver, is_enemy)
         self._point1 = point1
         self._point2 = point2
         self._length = numpy.linalg.norm(point2 - point1)
@@ -83,9 +85,10 @@ class Circle(Geometry):
         radius: float,
         is_reflective: bool = False,
         is_refractive: bool = False,
-        is_receiver: bool = False
+        is_receiver: bool = False,
+        is_enemy: bool = False
     ):
-        super().__init__(parent_object, is_reflective, is_refractive, is_receiver)
+        super().__init__(parent_object, is_reflective, is_refractive, is_receiver, is_enemy)
         self.center = center
         self.radius = radius
 
@@ -136,9 +139,10 @@ class Arc(Geometry):
         angular_width: float,
         is_reflective: bool = False,
         is_refractive: bool = True,
-        is_receiver: bool = False
+        is_receiver: bool = False,
+        is_enemy: bool = False
     ):
-        super().__init__(parent_object, is_reflective, is_refractive, is_receiver)
+        super().__init__(parent_object, is_reflective, is_refractive, is_receiver, is_enemy)
         if angular_width > numpy.pi:
             raise ValueError("Arc angle cannot be greater than PI")
         self._start_angle = rotation_angle - angular_width / 2

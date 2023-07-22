@@ -38,8 +38,8 @@ class Slider:
         ) + self._pos * self.slider_width
 
     def draw(self):
-        self.slider.draw()
-        self.cursor.draw()
+        self.slider.draw(pixelated=True)
+        self.cursor.draw(pixelated=True)
 
     @property
     def pos(self):
@@ -111,7 +111,7 @@ class GenericMenu:
     def draw(self):
         dy = 0
         if self.overlay:
-            self.overlay_sprite.draw()
+            self.overlay_sprite.draw(pixelated=True)
         else:
             arcade.set_background_color(arcade.color.BLACK)
         arcade.draw_text(
@@ -165,21 +165,21 @@ class ControlsMenu:
             1,
             center_x=util.WORLD_WIDTH // 4,
             center_y=util.WORLD_HEIGHT // 2,
-        ).draw()
+        ).draw(pixelated=True)
         for index in range(-1, 2):
             util.load_sprite(
                 "key.png",
                 1,
                 center_x=util.WORLD_WIDTH // 4 + index * 64,
                 center_y=util.WORLD_HEIGHT // 2 - 64,
-            ).draw()
+            ).draw(pixelated=True)
 
         util.load_sprite(
             "arrow.png",
             1,
             center_x=util.WORLD_WIDTH // 4,
             center_y=util.WORLD_HEIGHT // 2 - 164,
-        ).draw()
+        ).draw(pixelated=True)
         for index in range(-1, 2):
             util.load_sprite(
                 "arrow.png",
@@ -187,7 +187,7 @@ class ControlsMenu:
                 center_x=util.WORLD_WIDTH // 4 + index * 64,
                 center_y=util.WORLD_HEIGHT // 2 - 228,
                 angle=90 + (index + 1) * 90,
-            ).draw()
+            ).draw(pixelated=True)
 
         # ========================= Rotation Key Sprites =========================
         util.load_sprite(
@@ -195,13 +195,13 @@ class ControlsMenu:
             1,
             center_x=util.WORLD_WIDTH * 3 // 4 - 32,
             center_y=util.WORLD_HEIGHT // 2,
-        ).draw()
+        ).draw(pixelated=True)
         util.load_sprite(
             "key.png",
             1,
             center_x=util.WORLD_WIDTH * 3 // 4 + 32,
             center_y=util.WORLD_HEIGHT // 2,
-        ).draw()
+        ).draw(pixelated=True)
 
         # ========================= Titles =========================
         arcade.draw_text(

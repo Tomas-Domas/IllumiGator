@@ -259,7 +259,7 @@ class Level:
         del ray
 
     def draw(self):
-        self.background_sprite.draw()
+        self.background_sprite.draw(pixelated=True)
         for light_source in self.light_sources_list:
             light_source.draw()
         for wall in self.wall_list:

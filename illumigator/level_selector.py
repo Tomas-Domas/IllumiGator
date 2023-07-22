@@ -99,7 +99,7 @@ class LevelSelector:
                          )
 
         for index, key in enumerate(self.keys):
-            key.draw()
+            key.draw(pixelated=True)
             arcade.draw_text(self.key_text[index][0],
                              start_x=key.center_x,
                              start_y=key.center_y,
@@ -130,7 +130,7 @@ class LevelSelector:
                              anchor_x="center")
 
         for planet in self.planets:
-            planet.draw()
+            planet.draw(pixelated=True)
 
     @property
     def selection(self):

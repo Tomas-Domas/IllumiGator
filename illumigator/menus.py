@@ -101,17 +101,17 @@ class GenericMenu:
         self.options = options
         self._selection = selection
         self.overlay = overlay
+        self.overlay_sprite = util.load_sprite(
+                "overlay_background.png",
+                scale=4,
+                center_x=x_midpoint,
+                center_y=y_midpoint,
+            )
 
     def draw(self):
         dy = 0
         if self.overlay:
-            arcade.draw_rectangle_filled(
-                x_midpoint,
-                y_midpoint,
-                util.WORLD_WIDTH // 3,
-                util.WORLD_HEIGHT // 2,
-                arcade.color.BLACK,
-            )
+            self.overlay_sprite.draw()
         else:
             arcade.set_background_color(arcade.color.BLACK)
         arcade.draw_text(
@@ -127,7 +127,7 @@ class GenericMenu:
         for index, option in enumerate(self.options):
             color = arcade.color.WHITE
             if index == self._selection:
-                color = arcade.color.RED
+                color = arcade.color.YELLOW if self.overlay else arcade.color.RED
             arcade.draw_text(
                 option,
                 x_midpoint,

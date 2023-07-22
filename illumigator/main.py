@@ -184,6 +184,12 @@ class GameObject(arcade.Window):
             self.music_volume = self.audio_menu.slider_list[1].pos * self.master_volume
             self.effects_volume = self.audio_menu.slider_list[2].pos * self.master_volume
             self.audio_menu.draw()
+            # The pause music volume should change upon moving the slider.
+            self.pause_player.volume = self.music_volume
+            if self.pause_player.volume == 0:
+                self.pause_player.pause()
+            else:
+                self.pause_player.play()
 
         elif self.game_state == "official_level_select":
             self.official_selector_menu.draw()
@@ -207,7 +213,7 @@ class GameObject(arcade.Window):
                            or key == arcade.key.S or key == arcade.key.D or key == arcade.key.ENTER \
                            or key == arcade.key.ESCAPE
         game_paused = self.game_state == "paused" or self.game_state == "win" or self.game_state == "options" \
-                      or self.game_state == "audio"
+                      or self.game_state == "audio" or self.game_state == "final_win"
         if game_paused and valid_menu_press:
             if self.effects_volume != 0:
                 arcade.play_sound(self.menu_sound, self.effects_volume)

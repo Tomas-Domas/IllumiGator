@@ -1,5 +1,5 @@
 {
-  "level_count": 2,
+  "level_count": 5,
   "levels": {
     "level_1.json": {
       "level_name": "Level 1",
@@ -7,7 +7,19 @@
     },
     "level_2.json": {
       "level_name": "Level 2",
+      "planet_name": "moon"
+    },
+    "level_3.json": {
+      "level_name": "Level 3",
       "planet_name": "mars"
+    },
+    "level_4.json": {
+      "level_name": "Level 4",
+      "planet_name": "sun"
+    },
+    "level_5.json": {
+      "level_name": "Level 5",
+      "planet_name": "earth"
     }
   }
 }

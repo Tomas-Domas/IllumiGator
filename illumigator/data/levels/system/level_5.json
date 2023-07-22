@@ -1,6 +1,6 @@
 {
-  "level_name": "Level 3",
-  "planet": "mars",
+  "level_name": "Level 5",
+  "planet": "earth",
   "level_data": {
     "mirror_coordinate_list": [
       [140, 580, -0.785398163397],

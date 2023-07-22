@@ -65,7 +65,7 @@ class MainMenu:
 
         arcade.draw_text(
             "Illumi",
-            x_midpoint,
+            x_midpoint + 25,
             y_midpoint,
             arcade.color.YELLOW,
             util.H2_FONT_SIZE,
@@ -74,7 +74,7 @@ class MainMenu:
         )
         arcade.draw_text(
             "Gator",
-            x_midpoint,
+            x_midpoint + 25,
             y_midpoint,
             arcade.color.GREEN,
             util.H2_FONT_SIZE,

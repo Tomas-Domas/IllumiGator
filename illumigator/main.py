@@ -84,6 +84,7 @@ class GameObject(arcade.Window):
     # def reload(self):
 
     def on_update(self, delta_time):
+        # STATE MACHINE FOR UPDATING LEVEL
         if self.game_state == "game":
             self.character.update(self.current_level, self.effects_volume)
             self.enemy.update(self.current_level, self.character)
@@ -110,20 +111,21 @@ class GameObject(arcade.Window):
             if self.character.status == "dead":
                 self.game_state = "game_over"
 
-        if self.game_state == "audio":
+        elif self.game_state == "audio":
             self.audio_menu.update()
 
+        # STATE MACHINE FOR UPDATING AUDIO PLAYER
         if self.game_state == "menu":
             if self.pause_player is not None:
                 self.pause_player.pause()
-            # This mp3 is a little loud, so the volume is automatically halved.
+            # This mp3 is a little loud, so the volume is automatically downscaled.
             if self.menu_player is None:
                 self.menu_player = arcade.play_sound(self.menu_music, self.music_volume * 0.5, looping=True)
             else:
                 self.menu_player.volume = self.music_volume * 0.5
                 self.menu_player.play()
 
-        if self.game_state == "game":
+        elif self.game_state == "game":
             if self.pause_player is not None:
                 self.pause_player.pause()
             if self.bgm_player is None:
@@ -134,10 +136,11 @@ class GameObject(arcade.Window):
 
         if self.game_state == "paused" or self.game_state == "audio":
             self.bgm_player.pause()
+            # This mp3 is a little loud, so the volume is automatically downscaled.
             if self.pause_player is None:
-                self.pause_player = arcade.play_sound(self.pause_music, self.music_volume, looping=True)
+                self.pause_player = arcade.play_sound(self.pause_music, self.music_volume * 0.1, looping=True)
             else:
-                self.pause_player.volume = self.music_volume
+                self.pause_player.volume = self.music_volume * 0.1
                 self.pause_player.play()
 
         if self.game_state == "game_over" or self.game_state == "final_win" or self.game_state == "win"\
@@ -150,45 +153,48 @@ class GameObject(arcade.Window):
         if self.game_state == "menu":
             self.main_menu.draw()
 
-        if self.game_state == "game" or self.game_state == "paused":
+        elif self.game_state == "game":
             self.current_level.draw()
             self.character.draw()
             self.enemy.draw()
 
-            if self.game_state == "paused":
-                self.game_menu.draw()
+        elif self.game_state == "paused":
+            self.current_level.draw()
+            self.character.draw()
+            self.enemy.draw()
+            self.game_menu.draw()
 
-        if self.game_state == "win":
+        elif self.game_state == "win":
             self.win_menu.draw()
 
-        if self.game_state == "game_over":
+        elif self.game_state == "game_over":
             self.lose_menu.draw()
 
-        if self.game_state == "options":
+        elif self.game_state == "options":
             self.options_menu.draw()
 
-        if self.game_state == "video":
+        elif self.game_state == "video":
             self.video_menu.draw()
 
-        if self.game_state == "controls":
+        elif self.game_state == "controls":
             self.controls_menu.draw()
 
-        if self.game_state == "audio":
+        elif self.game_state == "audio":
             self.master_volume = self.audio_menu.slider_list[0].pos
             self.music_volume = self.audio_menu.slider_list[1].pos * self.master_volume
             self.effects_volume = self.audio_menu.slider_list[2].pos * self.master_volume
             self.audio_menu.draw()
 
-        if self.game_state == "official_level_select":
+        elif self.game_state == "official_level_select":
             self.official_selector_menu.draw()
 
-        if self.game_state == "community_level_select":
+        elif self.game_state == "community_level_select":
             self.community_selector_menu.draw()
 
-        if self.game_state == "final_win":
+        elif self.game_state == "final_win":
             self.final_win_menu.draw()
 
-        if self.game_state == "community_win":
+        elif self.game_state == "community_win":
             self.community_win_menu.draw()
 
     def on_key_press(self, key, key_modifiers):

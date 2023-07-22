@@ -234,30 +234,33 @@ class Arc(Geometry):
         self._constrain_angles()
 
     def draw(self):
-        if self._start_angle < self._end_angle:
-            arcade.draw_arc_outline(
-                self.center[0],
-                self.center[1],
-                2 * self.radius,
-                2 * self.radius,
-                arcade.color.MAGENTA,
-                self._start_angle * 180 / numpy.pi,
-                self._end_angle * 180 / numpy.pi,
-                border_width=3,
-                num_segments=512,
-            )
-        else:
-            arcade.draw_arc_outline(
-                self.center[0],
-                self.center[1],
-                2 * self.radius,
-                2 * self.radius,
-                arcade.color.MAGENTA,
-                self._start_angle * 180 / numpy.pi,
-                self._end_angle * 180 / numpy.pi + 360,
-                border_width=3,
-                num_segments=512,
-            )
+        # if self._start_angle < self._end_angle:
+        #     arcade.draw_arc_outline(
+        #         self.center[0],
+        #         self.center[1],
+        #         2 * self.radius,
+        #         2 * self.radius,
+        #         arcade.color.MAGENTA,
+        #         self._start_angle * 180 / numpy.pi,
+        #         self._end_angle * 180 / numpy.pi,
+        #         border_width=3,
+        #         num_segments=512,
+        #     )
+        # else:
+        #     arcade.draw_arc_outline(
+        #         self.center[0],
+        #         self.center[1],
+        #         2 * self.radius,
+        #         2 * self.radius,
+        #         arcade.color.MAGENTA,
+        #         self._start_angle * 180 / numpy.pi,
+        #         self._end_angle * 180 / numpy.pi + 360,
+        #         border_width=3,
+        #         num_segments=512,
+        #     )
+        arcade.draw_circle_outline(
+            self.center[0], self.center[1], self.radius, arcade.color.MAGENTA
+        )
 
     def get_refracted_direction(self, ray):
         # Determine normal

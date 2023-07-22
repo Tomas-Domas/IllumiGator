@@ -215,7 +215,7 @@ class Level:
 
                 # raysT.lap("  Rays Prep")
 
-                nearest_line_distances, nearest_line_indices = light.get_raycast_results(ray_p1, ray_dir, line_p1, line_p2)
+                nearest_line_distances, nearest_line_indices = light.get_line_raycast_results(ray_p1, ray_dir, line_p1, line_p2)
 
                 # raysT.lap("  Line Raycast")
 

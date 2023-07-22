@@ -34,7 +34,7 @@ class LightRay:
             self._child_ray.draw(alpha)
 
 
-def get_raycast_results(ray_p1, ray_p2, line_p1, line_p2) -> tuple[numpy.ndarray, numpy.ndarray]:  # distances, line indices
+def get_line_raycast_results(ray_p1, ray_p2, line_p1, line_p2) -> tuple[numpy.ndarray, numpy.ndarray]:  # distances, line indices
     # Don't @ me...    https://en.wikipedia.org/wiki/Line-line_intersection#Given_two_points_on_each_line_segment
     ray_dx_dy = -ray_p2.T
     line_dx_dy = numpy.array(((line_p1[:, 0] - line_p2[:, 0]), (line_p1[:, 1] - line_p2[:, 1])))
@@ -58,77 +58,47 @@ def get_raycast_results(ray_p1, ray_p2, line_p1, line_p2) -> tuple[numpy.ndarray
 
     return u.T[:, min_indices].diagonal(), min_indices
 
-def get_arc_raycast_results(ray_x1, ray_y1, ray_x2, ray_y2, arc_x, arc_y, arc_r, arc_angle1, arc_angle2) -> numpy.ndarray:  # distances, line indices
+def get_arc_raycast_results(ray_ori_x, ray_ori_y, ray_dir_x, ray_dir_y, arc_x, arc_y, arc_r, arc_angle1, arc_angle2) -> numpy.ndarray:  # distances, line indices
     # Don't @ me...    https://en.wikipedia.org/wiki/Line-sphere_intersection#Calculation_using_vectors_in_3D
-    ray_origins = numpy.array((ray_x1, ray_y1)).T
-    ray_dx_dy = numpy.array((ray_x2, ray_y2))
-    diff_x = numpy.subtract.outer(ray_x1, arc_x).T
-    diff_y = numpy.subtract.outer(ray_y1, arc_y).T
-    temp_calculation1 = numpy.multiply(ray_dx_dy[0], diff_x) + numpy.multiply(ray_dx_dy[1], diff_y)
-    temp_calculation2 = numpy.linalg.norm(numpy.array([diff_x, diff_y]), axis=0)
+    temp_calc = ((ray_ori_x * (ray_ori_y + ray_dir_y) - (ray_ori_x + ray_dir_x) * ray_ori_y) - numpy.multiply.outer(arc_x, ray_dir_y) + numpy.multiply.outer(arc_y, ray_dir_x))
+    nabla = (arc_r*arc_r - numpy.square(temp_calc.T)).T
+    numpy.sqrt(nabla, where=nabla > 0, out=nabla)
 
-    nabla = (temp_calculation1 * temp_calculation1) - (
-                numpy.subtract((temp_calculation2 * temp_calculation2).T, arc_r * arc_r).T
-            )
-    nabla_sqrt = numpy.where(nabla >= 0, numpy.sqrt(nabla), -1)
-
+    point1_rel_x = (ray_dir_y*temp_calc - ray_dir_x*nabla).T
+    point1_rel_y = -(ray_dir_x*temp_calc + ray_dir_y*nabla).T
+    point1_dst_x = (point1_rel_x + arc_x).T - ray_ori_x
+    point1_dst_y = (point1_rel_y + arc_y).T - ray_ori_y
+    point1_rel_angle = numpy.arctan2(point1_rel_y, point1_rel_x)
     intersection_distance1 = numpy.where(
-        nabla_sqrt != -1,
-        -nabla_sqrt - temp_calculation1,
-        -1)
-    point1_x = numpy.where(
-        intersection_distance1 > 0,
-        ray_origins.T[0] + ray_dx_dy[0] * intersection_distance1,
-        float('inf'))
-    point1_y = numpy.where(
-        intersection_distance1 > 0,
-        ray_origins.T[1] + ray_dx_dy[1] * intersection_distance1,
-        float('inf'))
-    point1_angle = numpy.arctan2(
-        point1_y.T - arc_y,
-        point1_x.T - arc_x
-    )
-    intersection_distance1 = numpy.where(
-        (intersection_distance1.T > 0) &
-        (((arc_angle1 < point1_angle) & (point1_angle < arc_angle2)) | (
-            (arc_angle2 < arc_angle1) & (
-                ((0 <= arc_angle1) & (arc_angle1 <= point1_angle)) |
-                ((point1_angle <= arc_angle2) & (arc_angle2 <= 0))
+        ((nabla >= 0) & (point1_dst_x * ray_dir_x >= 0) & (point1_dst_y * ray_dir_y >= 0)).T &
+        (
+            ((arc_angle1 < point1_rel_angle) & (point1_rel_angle < arc_angle2)) | (
+                (arc_angle2 < arc_angle1) & (
+                    ((0 <= arc_angle1) & (arc_angle1 <= point1_rel_angle)) |
+                    ((point1_rel_angle <= arc_angle2) & (arc_angle2 <= 0))
+                )
             )
-        )),
-        intersection_distance1.T,
+        ),
+        numpy.sqrt(point1_dst_x*point1_dst_x + point1_dst_y*point1_dst_y).T,
         float('inf')
     ).T
 
+    point2_rel_x = (ray_dir_y*temp_calc + ray_dir_x*nabla).T
+    point2_rel_y = (ray_dir_y*nabla - ray_dir_x*temp_calc).T
+    point2_dst_x = (point2_rel_x + arc_x).T - ray_ori_x
+    point2_dst_y = (point2_rel_y + arc_y).T - ray_ori_y
+    point2_rel_angle = numpy.arctan2(point2_rel_y, point2_rel_x)
     intersection_distance2 = numpy.where(
-            nabla_sqrt != -1,
-            nabla_sqrt - temp_calculation1,
-            -1)
-    point2_x = numpy.where(
-        intersection_distance2 > 0,
-        ray_origins.T[0] + ray_dx_dy[0] * intersection_distance2,
-        float('inf'))
-    point2_y = numpy.where(
-        intersection_distance2 > 0,
-        ray_origins.T[1] + ray_dx_dy[1] * intersection_distance2,
-        float('inf'))
-    point2_angle = numpy.where(
-        point2_x.T != float('inf'),
-        numpy.arctan2(
-            point2_y.T - arc_y,
-            point2_x.T - arc_x
-        ),
-        float('inf')
-    )
-    intersection_distance2 = numpy.where(
-        (intersection_distance2.T > 0) &
-        (((arc_angle1 < point2_angle) & (point2_angle < arc_angle2)) | (
-            (arc_angle2 < arc_angle1) & (
-                ((0 <= arc_angle1) & (arc_angle1 <= point2_angle)) |
-                ((point2_angle <= arc_angle2) & (arc_angle2 <= 0))
+        ((nabla >= 0) & (point2_dst_x * ray_dir_x >= 0) & (point2_dst_y * ray_dir_y >= 0)).T &
+        (
+            ((arc_angle1 < point2_rel_angle) & (point2_rel_angle < arc_angle2)) | (
+                (arc_angle2 < arc_angle1) & (
+                    ((0 <= arc_angle1) & (arc_angle1 <= point2_rel_angle)) |
+                    ((point2_rel_angle <= arc_angle2) & (arc_angle2 <= 0))
+                )
             )
-        )),
-        intersection_distance2.T,
+        ),
+        numpy.sqrt(point2_dst_x*point2_dst_x + point2_dst_y*point2_dst_y).T,
         float('inf')
     ).T
 

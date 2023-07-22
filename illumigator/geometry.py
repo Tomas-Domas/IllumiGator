@@ -258,6 +258,9 @@ class Arc(Geometry):
                 border_width=3,
                 num_segments=512,
             )
+        # arcade.draw_circle_outline(
+        #     self.center[0], self.center[1], self.radius, arcade.color.MAGENTA
+        # )
 
     def get_refracted_direction(self, ray):
         # Determine normal

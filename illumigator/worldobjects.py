@@ -275,16 +275,18 @@ class ParallelLightSource(LightSource):
 
 
 class LightReceiver(WorldObject):
-    def __init__(self, position: numpy.ndarray, rotation_angle: float):
+    def __init__(self, position: numpy.ndarray, rotation_angle: float, planet: str = "moon"):
         super().__init__(position, rotation_angle)
-        self.initialize_geometry(util.RECEIVER_SPRITE_INFO, all_borders=False)
-        self.initialize_sprites(util.RECEIVER_SPRITE_INFO)
+        receiver_sprite_info : tuple = (planet + ".png", 2, 32, 32)
+        self.initialize_geometry(receiver_sprite_info, all_borders=False)
+        self.initialize_sprites(receiver_sprite_info)
         self._geometry_segments[0].is_receiver = True
         self._geometry_segments[1].is_receiver = True
         self.charge = 0
 
     def draw(self):
-        color = min(255 * self.charge / util.RECEIVER_THRESHOLD, 255)
+        # color = min(255 * self.charge / util.RECEIVER_THRESHOLD, 255)
+        color = max(255 * (1.0 - self.charge / util.RECEIVER_THRESHOLD), 0)
         for sprite in self._sprite_list:
-            sprite.color = (color, color, 70)
+            sprite.color = (255, color, color)
         super().draw()

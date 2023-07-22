@@ -272,7 +272,6 @@ class GameObject(arcade.Window):
                         self.game_state = "game"
                     elif selection == 2:
                         self.bgm_player.seek(0.0)
-                        self.pause_player.seek(0.0)
                         self.game_state = "menu"
                 elif self.game_state == "final_win":
                     if selection == 0:

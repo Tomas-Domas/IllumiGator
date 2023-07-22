@@ -18,7 +18,8 @@ class Level:
             character_coordinates: list = None,
             enemy_coordinates: list = None,
             name="default",
-            background="space"
+            background="space",
+            planet="moon"
     ):
 
         self.background = background + ".png"
@@ -27,6 +28,7 @@ class Level:
                                                   center_x=util.WORLD_WIDTH // 2,
                                                   center_y=util.WORLD_HEIGHT // 2)
         self.background_sprite.alpha = 100
+        self.planet = planet
         self.name = name
         self.line_segments = []
         self.arcs = []
@@ -109,7 +111,8 @@ class Level:
                     numpy.array([
                         light_receiver_coordinates[0], light_receiver_coordinates[1]
                     ]),
-                    light_receiver_coordinates[2]
+                    light_receiver_coordinates[2],
+                    planet=self.planet
                 )
             )
 
@@ -284,6 +287,7 @@ class Level:
 
 def load_level(level: dict, character: entity.Character, enemy: entity.Enemy) -> Level:
     level_data = level["level_data"]
+    print(level["level_name"])
     return Level(character,
                  enemy,
                  level_data["wall_coordinate_list"],
@@ -294,4 +298,5 @@ def load_level(level: dict, character: entity.Character, enemy: entity.Enemy) ->
                  level_data["lens_coordinate_list"],
                  level_data["character_coordinates"],
                  level_data["enemy_coordinates"],
-                 level["level_name"])
+                 level["level_name"],
+                 planet=level["planet"])

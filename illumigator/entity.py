@@ -41,6 +41,42 @@ class SpriteLoader:
     def sprite_files(self):
         return self._sprite_files
 
+class PlayerSpriteLoader(SpriteLoader):
+    """
+    Sprites manager and Iterator for a specific direction
+    """
+
+    def __init__(self, direction, sprite_format_string: str = util.PLAYER_SPRITE):
+        self.suffix = direction
+        self._sprites = []
+        self._sprite_files = []
+        self._index = -1
+        for i in range(6):
+            fname = sprite_format_string.format(i=i, direction=direction)
+            self._sprite_files.append(fname)
+            sprite = util.load_texture(fname)
+            self._sprites.append(sprite)
+        self.stationary = self._sprites[0]
+        self.dead = False
+
+
+class EnemySpriteLoader(SpriteLoader):
+    """
+    Sprites manager and Iterator for a specific direction
+    """
+
+    def __init__(self, direction, sprite_format_string: str = util.ENEMY_SPRITE):
+        self.suffix = direction
+        self._sprites = []
+        self._sprite_files = []
+        self._index = -1
+        fnames = [sprite_format_string.format(i=i, direction=direction) for i in range(1, 5)]
+        for fname in fnames:
+            self._sprite_files.append(fname)
+            sprite = util.load_texture(fname)
+            self._sprites.append(sprite)
+        self.stationary = util.load_texture(util.ENEMY_SLEEP_SPRITE)
+
 
 class Character:
     def __init__(
@@ -53,8 +89,8 @@ class Character:
 
         self.world_object = None
         self.status = None
-        self.left_character_loader = SpriteLoader("left")
-        self.right_character_loader = SpriteLoader("right")
+        self.left_character_loader = PlayerSpriteLoader("left")
+        self.right_character_loader = PlayerSpriteLoader("right")
 
         self.character_sprite = util.load_sprite(
             self.right_character_loader._sprite_files[0],
@@ -197,12 +233,11 @@ class Enemy(Character):
         super().__init__(scale_factor, image_width, image_height)
         self.state = "asleep"
 
-        # Change util.ENEMY_SPRITE to use enemy sprite
-        self.left_character_loader = SpriteLoader("left", util.PLAYER_SPRITE)
-        self.right_character_loader = SpriteLoader("right", util.PLAYER_SPRITE)
+        self.left_character_loader = EnemySpriteLoader("left")
+        self.right_character_loader = EnemySpriteLoader("right")
 
         self.character_sprite = util.load_sprite(
-            self.right_character_loader.sprite_files[0],
+            util.ENEMY_SLEEP_SPRITE,
             scale_factor,
             image_width=image_width,
             image_height=image_height,
@@ -210,13 +245,25 @@ class Enemy(Character):
         )
 
     def update(self, level, player):
+        self.right = self.left = False
+        print(self.state, self.walk)
+        if self.state == "aggro":
+            x_diff = (player.character_sprite.center_x - self.character_sprite.center_x)
+            if x_diff < 0:
+                self.right = False
+                self.left = True
+            elif x_diff > 0:
+                self.left = False
+                self.right = True
+        print("GOGING", self.right, self.left)
         self.walk(level)
         dist = numpy.sqrt(
             (self.character_sprite.center_x - player.character_sprite.center_x) ** 2
             + (self.character_sprite.center_y - player.character_sprite.center_y) ** 2
         )
-
-        if self.state == "aggro":
+        if self.state == "asleep":
+            self.character_sprite.texture = self.left_character_loader.stationary
+        elif self.state == "aggro":
             direction = numpy.array(
                 [
                     player.character_sprite.center_x - self.character_sprite.center_x,

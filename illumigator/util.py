@@ -37,11 +37,13 @@ WALL_SIZE = WALL_SPRITE_INFO[1] * WALL_SPRITE_INFO[2]
 
 # Player
 PLAYER_SPRITE = "0{i}_gator_{direction}.png"
-ENEMY_SPRITE = "0{i}_enemy_{direction}.png"
+PLAYER_DEAD_SPRITE = "Gator_death_{direction}{i}.png"
+ENEMY_SPRITE = "FLman_running_{direction}{i}.png"
+ENEMY_SLEEP_SPRITE = "FLman_sleeping0.png"
 
 # Paths
 ENVIRON_ASSETS_PATH = os.path.join(os.path.split(__file__)[0], "assets/")
-VENV_ASSETS_PATH = "./venv/Lib/site-packages/illumigator/assets/"
+VENV_ASSETS_PATH = os.path.join(os.path.split(__file__)[0], "assets/")
 ENVIRON_DATA_PATH = os.path.join(os.path.split(__file__)[0], "data/")
 VENV_DATA_PATH = "./venv/Lib/site-packages/illumigator/data/"
 

@@ -1,8 +1,9 @@
+import time
 import arcade
 import pyglet.media
 import numpy
 
-from illumigator.util import PLAYER_MOVEMENT_SPEED, ENEMY_MOVEMENT_SPEED, PLAYER_SPRITE_INFO
+from illumigator.util import PLAYER_IDLE_TIME, PLAYER_MOVEMENT_SPEED, ENEMY_MOVEMENT_SPEED, PLAYER_SPRITE_INFO
 from illumigator import util
 
 
@@ -11,17 +12,8 @@ class SpriteLoader:
     Sprites manager and Iterator for a specific direction
     """
 
-    def __init__(self, direction, sprite_format_string: str = util.PLAYER_SPRITE):
-        self.suffix = direction
-        self._sprites = []
-        self._sprite_files = []
-        self._index = -1
-        for i in range(6):
-            fname = sprite_format_string.format(i=i, direction=direction)
-            self._sprite_files.append(fname)
-            sprite = util.load_texture(fname)
-            self._sprites.append(sprite)
-        self.stationary = self._sprites[0]
+    def __init__(self):
+        pass
 
     def reset(self):
         self._index = -1
@@ -46,15 +38,21 @@ class PlayerSpriteLoader(SpriteLoader):
     Sprites manager and Iterator for a specific direction
     """
 
-    def __init__(self, direction, sprite_format_string: str = util.PLAYER_SPRITE, dead_sprite_format_string: str = util.PLAYER_DEAD_SPRITE):
+    def __init__(self, direction, sprite_format_string: str = util.PLAYER_SPRITE, idle_sprite_format: str = util.PLAYER_IDLE_SPRITE, dead_sprite_format_string: str = util.PLAYER_DEAD_SPRITE):
         self.suffix = direction
+        
         self._sprites = []
         self._sprite_files = []
-        self._dead_sprites = []
         self._index = -1
+        
+        self._dead_sprites = []
         self._dead_index = -1
         self._dead_frames_shown = 0
         self.dead = False
+
+        self._idle_sprites = []
+        self._idle_index = -1
+        self.idle = True
 
         for i in range(6):
             fname = sprite_format_string.format(i=i, direction=direction)
@@ -65,6 +63,11 @@ class PlayerSpriteLoader(SpriteLoader):
         for i in range(1, 4):
             fname = dead_sprite_format_string.format(i=i, direction=direction)
             self._dead_sprites.append(util.load_texture(fname))
+        
+        for i in range(0, 3):
+            
+            fname = idle_sprite_format.format(i=i, direction=direction)
+            self._idle_sprites.append(util.load_texture(fname))
 
         self.stationary = self._sprites[0]
         
@@ -80,7 +83,14 @@ class PlayerSpriteLoader(SpriteLoader):
             else:
                 self._dead_index = (self._dead_index + 1) % len(self._dead_sprites)
             return self._dead_sprites[self._dead_index]
+        elif self.idle:
+            if self._idle_index > len(self._idle_sprites)-2:
+                return self._idle_sprites[-1]
+            else:
+                self._idle_index = (self._idle_index + 1) % len(self._idle_sprites)
+            return self._idle_sprites[self._idle_index]
         else:
+            self._idle_index = self._dead_index = -1
             return super().__next__()
 
 
@@ -116,6 +126,9 @@ class Character:
         self.left_character_loader = PlayerSpriteLoader("left")
         self.right_character_loader = PlayerSpriteLoader("right")
 
+        # To check if gator is idle
+        self.last_movement_timestamp = time.time()
+
         self.character_sprite = util.load_sprite(
             self.right_character_loader._sprite_files[0],
             scale_factor,
@@ -143,12 +156,25 @@ class Character:
 
     def update(self, level, walking_volume):
         self.walking_volume = walking_volume
+
+        # Toggle Idle state
+        if any([self.up, self.down, self.left, self.right]):
+            self.last_movement_timestamp = time.time() 
+            self.right_character_loader.idle = False
+            self.left_character_loader.idle = False
+        else:
+            # IDLE after PLAYER_IDLE_TIME seconds
+            if time.time() - self.last_movement_timestamp > PLAYER_IDLE_TIME:
+                self.right_character_loader.idle = True
+                self.left_character_loader.idle = True
+
         if self.walk(level) is False:
             return False
             
         if self.rotation_dir == 0:
             self.rotation_factor = 0
             return
+        
 
         self.rotate_surroundings(level)
         if self.rotation_factor < 3.00:
@@ -193,12 +219,13 @@ class Character:
         
         if getattr(self.right_character_loader, "dead", False):
             return
-
-        dir_is_right = "_right.png" in self.character_sprite.texture.name
+        dir_is_right = "_right" in self.character_sprite.texture.name
         if self.up or self.down:
             if dir_is_right:
+                
                 self.character_sprite.texture = next(self.right_character_loader)
             else:
+                
                 self.character_sprite.texture = next(self.left_character_loader)
         if self.up:
             direction[1] += 1

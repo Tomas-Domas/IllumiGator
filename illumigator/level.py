@@ -1,7 +1,7 @@
 import numpy
 
 from illumigator import worldobjects, entity, util, light
-from util import WALL_SIZE, PLAYER_SPRITE_INFO, Timer
+from illumigator.util import WALL_SIZE, PLAYER_SPRITE_INFO, Timer
 
 
 class Level:

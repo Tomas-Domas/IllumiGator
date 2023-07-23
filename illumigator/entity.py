@@ -46,18 +46,42 @@ class PlayerSpriteLoader(SpriteLoader):
     Sprites manager and Iterator for a specific direction
     """
 
-    def __init__(self, direction, sprite_format_string: str = util.PLAYER_SPRITE):
+    def __init__(self, direction, sprite_format_string: str = util.PLAYER_SPRITE, dead_sprite_format_string: str = util.PLAYER_DEAD_SPRITE):
         self.suffix = direction
         self._sprites = []
         self._sprite_files = []
+        self._dead_sprites = []
         self._index = -1
+        self._dead_index = -1
+        self._dead_frames_shown = 0
+        self.dead = False
+
         for i in range(6):
             fname = sprite_format_string.format(i=i, direction=direction)
             self._sprite_files.append(fname)
             sprite = util.load_texture(fname)
             self._sprites.append(sprite)
+        
+        for i in range(1, 4):
+            fname = dead_sprite_format_string.format(i=i, direction=direction)
+            self._dead_sprites.append(util.load_texture(fname))
+
         self.stationary = self._sprites[0]
-        self.dead = False
+        
+    
+    def __next__(self):
+        if self.dead:
+            # Show last death sprite for a 5 frames
+            if self._dead_index > len(self._dead_sprites)-2:
+                if self._dead_frames_shown > 5:
+                    # If death animation over return None
+                    return None
+                self._dead_frames_shown += 1
+            else:
+                self._dead_index = (self._dead_index + 1) % len(self._dead_sprites)
+            return self._dead_sprites[self._dead_index]
+        else:
+            return super().__next__()
 
 
 class EnemySpriteLoader(SpriteLoader):
@@ -119,7 +143,9 @@ class Character:
 
     def update(self, level, walking_volume):
         self.walking_volume = walking_volume
-        self.walk(level)
+        if self.walk(level) is False:
+            return False
+            
         if self.rotation_dir == 0:
             self.rotation_factor = 0
             return
@@ -135,15 +161,38 @@ class Character:
         self.right_character_loader.reset()
         self.status = None
         self.character_sprite.texture = next(self.right_character_loader)
+    
+    def update_sprite(self, direction=None):
+        if self.right:
+            next_sprite = next(self.right_character_loader)
+            if next_sprite is None:
+                return False
+            self.character_sprite.texture = next_sprite
+            if direction is not None:
+                direction[0] += 1
+        if self.left:
+            next_sprite = next(self.left_character_loader)
+            if next_sprite is None:
+                return False
+            self.character_sprite.texture = next_sprite
+            if direction is not None:
+                direction[0] -= 1
 
     def walk(self, level):
         direction = numpy.zeros(2)
-        if self.right:
-            self.character_sprite.texture = next(self.right_character_loader)
-            direction[0] += 1
-        if self.left:
-            self.character_sprite.texture = next(self.left_character_loader)
-            direction[0] -= 1
+        if getattr(self.right_character_loader, "dead", False):
+            if "_right.png" in self.character_sprite.texture.name:
+                self.right = True
+                self.left = False
+            else:
+                self.right = True
+                self.left = False
+
+        if self.update_sprite(direction) is False:
+            return False
+        
+        if getattr(self.right_character_loader, "dead", False):
+            return
 
         dir_is_right = "_right.png" in self.character_sprite.texture.name
         if self.up or self.down:
@@ -245,8 +294,6 @@ class Enemy(Character):
         )
 
     def update(self, level, player):
-        self.right = self.left = False
-        print(self.state, self.walk)
         if self.state == "aggro":
             x_diff = (player.character_sprite.center_x - self.character_sprite.center_x)
             if x_diff < 0:
@@ -255,8 +302,10 @@ class Enemy(Character):
             elif x_diff > 0:
                 self.left = False
                 self.right = True
-        print("GOGING", self.right, self.left)
-        self.walk(level)
+        
+        if self.update_sprite() is False:
+            return False
+        self.right = self.left = False
         dist = numpy.sqrt(
             (self.character_sprite.center_x - player.character_sprite.center_x) ** 2
             + (self.character_sprite.center_y - player.character_sprite.center_y) ** 2

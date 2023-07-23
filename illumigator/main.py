@@ -2,7 +2,7 @@ import cProfile
 import arcade
 
 from illumigator import entity, level, menus, util, level_selector
-from util import ENVIRON_ASSETS_PATH, WORLD_WIDTH, WORLD_HEIGHT, WINDOW_TITLE
+from illumigator.util import ENVIRON_ASSETS_PATH, WORLD_WIDTH, WORLD_HEIGHT, WINDOW_TITLE
 
 
 class GameObject(arcade.Window):
@@ -60,7 +60,7 @@ class GameObject(arcade.Window):
         # ========================= Sounds =========================
         self.menu_sound = util.load_sound("retro_blip.wav")
         self.background_music = util.load_sound("ocean-of-ice.mp3")
-        self.menu_music = util.load_sound("SF_Dramatic.mp3")
+        self.menu_music = util.load_sound("Hina_Fallen_leaves.mp3")
         self.pause_music = util.load_sound("Hina_Fallen_leaves.mp3")
 
         # ========================= Fonts =========================
@@ -86,7 +86,9 @@ class GameObject(arcade.Window):
     def on_update(self, delta_time):
         # STATE MACHINE FOR UPDATING LEVEL
         if self.game_state == "game":
-            self.character.update(self.current_level, self.effects_volume*self.master_volume)
+            if self.character.update(self.current_level, self.effects_volume*self.master_volume) is False:
+                self.game_state = "game_over"
+
             self.enemy.update(self.current_level, self.character)
             self.current_level.update(self.character)
             if any(light_receiver.charge >= util.RECEIVER_THRESHOLD for light_receiver in self.current_level.light_receiver_list):
@@ -109,7 +111,11 @@ class GameObject(arcade.Window):
                     self.enemy)
 
             if self.character.status == "dead":
-                self.game_state = "game_over"
+                # Show dead animations
+                self.character.left_character_loader.dead = True
+                self.character.right_character_loader.dead = True
+                self.enemy.state = "player_dead"
+                # self.game_state = "game_over"
 
         elif self.game_state == "audio":
             self.audio_menu.update()
@@ -265,6 +271,8 @@ class GameObject(arcade.Window):
                     self.game_state = "options"
                 elif self.game_menu.selection == 3:
                     self.bgm_player.seek(0.0)
+                    if self.pause_player is not None:
+                        self.pause_player.seek(0.0)
                     self.reset_level()
                     self.game_state = "menu"
 
@@ -395,7 +403,9 @@ class GameObject(arcade.Window):
             self.character.rotation_dir -= 1
         if key == arcade.key.E:
             self.character.rotation_dir += 1
-        self.character.update(self.current_level, self.effects_volume*self.master_volume)
+
+        if self.character.update(self.current_level, self.effects_volume*self.master_volume) is False:
+            self.game_state = "game_over"
 
         if key == arcade.key.LEFT:
             self.audio_menu.slider_list[self.audio_menu.selection].left = False
@@ -423,6 +433,11 @@ class GameObject(arcade.Window):
         arcade.close_window()
 
     def reset_level(self):
+        self.enemy.state = "asleep"
+
+        # Create New character model
+        self.character = entity.Character(walking_volume=self.effects_volume)
+        
         self.current_level = level.load_level(util.load_data(
             self.current_level_path, True, self.official_level_status), self.character, self.enemy)
         self.game_state = "game"

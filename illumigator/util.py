@@ -31,8 +31,8 @@ MIRROR_SPRITE_INFO: tuple = ("mirror.png", 1.3, 9, 48)
 LENS_SPRITE_INFO: tuple = ("lens.png", 1.3, 9, 48)
 SOURCE_SPRITE_INFO: tuple = ("sun.png", 1, 32, 32)
 RECEIVER_SPRITE_INFO: tuple = ("<PLANET NAME>", 2, 32, 32)
-PLACEHOLDER_SPRITE_INFO: tuple = ("sprite.png", 0.25, 128, 128)
 PLAYER_SPRITE_INFO: tuple = ("00_gator_left.png", 1, 24, 24)
+PLACEHOLDER_SPRITE_INFO: tuple = ("sprite.png", 0.25, 128, 128)
 WALL_SIZE = WALL_SPRITE_INFO[1] * WALL_SPRITE_INFO[2]
 
 # Player
@@ -61,12 +61,7 @@ H1_FONT_SIZE = 48
 
 # ========================= Script Constants =========================
 # Ray Casting Constants
-STARTING_DISTANCE_VALUE = (
-        WORLD_WIDTH ** 2 + WORLD_HEIGHT ** 2
-)  # Large number for starting out min distance calculations
-MAX_RAY_DISTANCE = math.sqrt(
-    STARTING_DISTANCE_VALUE
-)  # Max distance before ray goes off-screen
+MAX_RAY_DISTANCE = math.sqrt(WORLD_WIDTH**2 + WORLD_HEIGHT**2)  # Max distance before ray goes off-screen
 MAX_GENERATIONS: int = 20
 INDEX_OF_REFRACTION: float = 1.5
 
@@ -79,8 +74,8 @@ LIGHT_INCREMENT: float = 0.012 / NUM_LIGHT_RAYS
 RECEIVER_THRESHOLD: float = 0.55
 
 # Player Constants
-PLAYER_REACH_DISTANCE_SQUARED: int = 200 ** 2
-PLAYER_MOVEMENT_SPEED = 10
+PLAYER_REACH_DISTANCE_SQUARED: int = 120 ** 2
+PLAYER_MOVEMENT_SPEED = 8
 OBJECT_ROTATION_AMOUNT: float = 0.004
 
 # Enemy Constants

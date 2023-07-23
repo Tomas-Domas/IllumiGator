@@ -15,7 +15,7 @@ class Geometry(ABC):
         self.is_enemy = is_enemy
 
     @abstractmethod
-    def draw(self):
+    def draw(self, *, color=arcade.color.BLUE, thickness=3):
         pass
 
     @abstractmethod
@@ -58,23 +58,13 @@ class Line(Geometry):
     def get_reflected_direction(self, ray):
         return ray._direction - (2 * self._normal * (self._normal @ ray._direction))
 
-    def draw(self):
-        if self.is_reflective:
-            arcade.draw_line(
-                self._point1[0],
-                self._point1[1],
-                self._point2[0],
-                self._point2[1],
-                arcade.color.WHITE,
-            )
-        else:
-            arcade.draw_line(
-                self._point1[0],
-                self._point1[1],
-                self._point2[0],
-                self._point2[1],
-                arcade.color.BLUE,
-            )
+    def draw(self, *, color=arcade.color.BLUE, thickness=1):
+        arcade.draw_line(
+            self._point1[0], self._point1[1],
+            self._point2[0], self._point2[1],
+            color,
+            line_width=thickness
+        )
 
 
 class Circle(Geometry):
@@ -92,40 +82,17 @@ class Circle(Geometry):
         self.center = center
         self.radius = radius
 
-    def get_intersection(self, ray) -> numpy.ndarray:  # TODO: optimize if necessary
-        # Don't @ me...    https://en.wikipedia.org/wiki/Line-sphere_intersection#Calculation_using_vectors_in_3D
-        temp_calculation1 = ray._direction @ (ray._origin - self.center)
-        temp_calculation2 = numpy.linalg.norm(ray._origin - self.center)
-        nabla = (temp_calculation1 * temp_calculation1) - (
-            (temp_calculation2 * temp_calculation2) - self.radius * self.radius
-        )
-        if nabla < 0:
-            return None
-
-        nabla_sqrt = math.sqrt(nabla)
-        intersection_distance1 = -nabla_sqrt - temp_calculation1
-        intersection_distance2 = nabla_sqrt - temp_calculation1
-
-        if intersection_distance1 > 0 and intersection_distance2 > 0:
-            return ray._origin + ray._direction * min(
-                intersection_distance1, intersection_distance2
-            )
-        elif intersection_distance1 > 0 or intersection_distance2 > 0:
-            return ray._origin + ray._direction * max(
-                intersection_distance1, intersection_distance2
-            )
-        else:
-            return None
-
     def move(self, world_object_center, move_distance, rotate_angle=0):
         self.center = (
             util.rotate_around_center(world_object_center, self.center, rotate_angle)
             + move_distance
         )
 
-    def draw(self):
+    def draw(self, *, color=arcade.color.MAGENTA, thickness=1):
         arcade.draw_circle_outline(
-            self.center[0], self.center[1], self.radius, arcade.color.MAGENTA
+            self.center[0], self.center[1],
+            self.radius, color,
+            border_width=thickness
         )
 
 
@@ -163,67 +130,6 @@ class Arc(Geometry):
         elif self._end_angle < -numpy.pi:
             self._end_angle += 2 * numpy.pi
 
-    def get_intersection(self, ray) -> numpy.ndarray:  # TODO: optimize if necessary
-        # Don't @ me...    https://en.wikipedia.org/wiki/Line-sphere_intersection#Calculation_using_vectors_in_3D
-        temp_calculation1 = ray._direction @ (ray._origin - self.center)
-        temp_calculation2 = numpy.linalg.norm(ray._origin - self.center)
-        nabla = (temp_calculation1 * temp_calculation1) - (
-            (temp_calculation2 * temp_calculation2) - self.radius * self.radius
-        )
-        if nabla < 0:
-            return None
-
-        nabla_sqrt = math.sqrt(nabla)
-        intersection_distance1 = -nabla_sqrt - temp_calculation1
-        intersection_distance2 = nabla_sqrt - temp_calculation1
-
-        point1: numpy.ndarray = None
-        point2: numpy.ndarray = None
-        point1_angle, point2_angle = None, None
-
-        if intersection_distance1 > 0:
-            point1 = ray._origin + intersection_distance1 * ray._direction
-            point1_angle = math.atan2(
-                point1[1] - self.center[1], point1[0] - self.center[0]
-            )
-            if not (
-                (self._start_angle < point1_angle < self._end_angle) or (
-                    self._end_angle < self._start_angle and (
-                        0 <= self._start_angle <= point1_angle
-                        or point1_angle <= self._end_angle <= 0
-                    )
-                )
-            ):
-                point1 = None
-        if intersection_distance2 > 0:
-            point2 = ray._origin + intersection_distance2 * ray._direction
-            point2_angle = math.atan2(
-                point2[1] - self.center[1], point2[0] - self.center[0]
-            )
-            if not (
-                (self._start_angle < point2_angle < self._end_angle)
-                or (
-                    self._end_angle < self._start_angle
-                    and (
-                        0 <= self._start_angle <= point2_angle
-                        or point2_angle <= self._end_angle <= 0
-                    )
-                )
-            ):
-                point2 = None
-
-        if point1 is None and point2 is None:
-            return None
-        if point1 is None:
-            return point2
-        if point2 is None:
-            return point1
-
-        if intersection_distance1 < intersection_distance2:
-            return point1
-        else:
-            return point2
-
     def move(self, world_object_center, move_distance, rotate_angle=0):
         self.center = (
             util.rotate_around_center(world_object_center, self.center, rotate_angle)
@@ -235,34 +141,27 @@ class Arc(Geometry):
         self._end_angle += rotate_angle
         self._constrain_angles()
 
-    def draw(self):
+    def draw(self, *, color=arcade.color.MAGENTA, thickness=3):
         if self._start_angle < self._end_angle:
             arcade.draw_arc_outline(
-                self.center[0],
-                self.center[1],
-                2 * self.radius,
-                2 * self.radius,
-                arcade.color.MAGENTA,
+                self.center[0], self.center[1],
+                2 * self.radius, 2 * self.radius,
+                color,
                 self._start_angle * 180 / numpy.pi,
                 self._end_angle * 180 / numpy.pi,
-                border_width=3,
+                border_width=thickness,
                 num_segments=512,
             )
         else:
             arcade.draw_arc_outline(
-                self.center[0],
-                self.center[1],
-                2 * self.radius,
-                2 * self.radius,
-                arcade.color.MAGENTA,
+                self.center[0], self.center[1],
+                2 * self.radius, 2 * self.radius,
+                color,
                 self._start_angle * 180 / numpy.pi,
                 self._end_angle * 180 / numpy.pi + 360,
-                border_width=3,
+                border_width=thickness,
                 num_segments=512,
             )
-        # arcade.draw_circle_outline(
-        #     self.center[0], self.center[1], self.radius, arcade.color.MAGENTA
-        # )
 
     def get_refracted_direction(self, ray):
         # Determine normal

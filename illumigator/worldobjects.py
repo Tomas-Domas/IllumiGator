@@ -102,7 +102,10 @@ class WorldObject:
         self._sprite_list.draw(pixelated=True)
         if util.DEBUG_GEOMETRY:
             for segment in self._geometry_segments:
-                segment.draw()
+                if segment.is_reflective:
+                    segment.draw(color=arcade.color.MAGENTA)
+                else:
+                    segment.draw()
 
     def distance_squared_to_center(self, point_x, point_y):
         return util.distance_squared(self._position, numpy.array([point_x, point_y]))
@@ -182,6 +185,11 @@ class Mirror(WorldObject):
         self._geometry_segments[0].calculate_normal()
         self._geometry_segments[2].is_reflective = True
         self._geometry_segments[2].calculate_normal()
+
+    def draw_outline(self):
+        thickness = int(2.5 + math.sin(15 * time.time()))
+        for segment in self._geometry_segments:
+            segment.draw(thickness=thickness, color=arcade.color.RED)
 
 
 class Lens(WorldObject):
@@ -276,7 +284,7 @@ class ParallelLightSource(LightSource):
         for n in range(num_rays):
             self.light_rays[n]._origin = (
                 self._position
-                - spread_direction * (self._width * (n / (util.NUM_LIGHT_RAYS - 1) - 0.5))
+                - spread_direction * ((self._width-7) * (n / (util.NUM_LIGHT_RAYS - 1) - 0.5))
             )
             self.light_rays[n]._direction = ray_direction
 

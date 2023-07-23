@@ -3,7 +3,6 @@ import arcade
 import pyglet.media
 import numpy
 
-from illumigator.util import PLAYER_IDLE_TIME, PLAYER_MOVEMENT_SPEED, ENEMY_MOVEMENT_SPEED, PLAYER_SPRITE_INFO
 from illumigator import util
 
 
@@ -142,7 +141,7 @@ class Character:
         self.up = False
         self.down = False
 
-        self.interactive_line = None
+        self.mirror_in_reach = None
         self.rotation_dir = 0
         self.player = pyglet.media.player.Player()
 
@@ -152,33 +151,42 @@ class Character:
         self.walking_volume = walking_volume
 
     def draw(self):
+        if self.mirror_in_reach is not None:
+            self.mirror_in_reach.draw_outline()
         self.character_sprite.draw(pixelated=True)
 
     def update(self, level, walking_volume):
         self.walking_volume = walking_volume
 
-        # Toggle Idle state
+        # Idle state animation
         if any([self.up, self.down, self.left, self.right]):
             self.last_movement_timestamp = time.time() 
             self.right_character_loader.idle = False
             self.left_character_loader.idle = False
-        else:
+        elif time.time() - self.last_movement_timestamp > util.PLAYER_IDLE_TIME:
             # IDLE after PLAYER_IDLE_TIME seconds
-            if time.time() - self.last_movement_timestamp > PLAYER_IDLE_TIME:
-                self.right_character_loader.idle = True
-                self.left_character_loader.idle = True
+            self.right_character_loader.idle = True
+            self.left_character_loader.idle = True
 
+        # Walking. Return False if player died
         if self.walk(level) is False:
             return False
-            
+
+        # Rotation
         if self.rotation_dir == 0:
             self.rotation_factor = 0
-            return
-        
-
-        self.rotate_surroundings(level)
         if self.rotation_factor < 3.00:
             self.rotation_factor += 1 / 15
+
+        self.mirror_in_reach = self.get_mirror_in_reach(level)
+        if self.mirror_in_reach is not None:
+            self.mirror_in_reach.move_if_safe(
+                self,
+                numpy.zeros(2),
+                self.rotation_dir
+                * util.OBJECT_ROTATION_AMOUNT
+                * (2**self.rotation_factor),
+            )
 
     def reset_pos(self, c_x, c_y):
         self.character_sprite.center_x = c_x
@@ -243,7 +251,7 @@ class Character:
         direction_mag = numpy.linalg.norm(direction)
         if direction_mag > 0:
             direction = (
-                direction * PLAYER_MOVEMENT_SPEED / direction_mag
+                direction * util.PLAYER_MOVEMENT_SPEED / direction_mag
             )  # Normalize and scale with speed
 
             # Checking if x movement is valid
@@ -273,30 +281,18 @@ class Character:
         print("YOU DIED")
         self.status = "dead"
 
-    def rotate_surroundings(self, level):
-        closest_distance_squared = (
-            util.STARTING_DISTANCE_VALUE
-        )  # arbitrarily large number
+    def get_mirror_in_reach(self, level):
+        closest_distance_squared = float('inf')
         closest_mirror = None
         for mirror in level.mirror_list:
-            distance = mirror.distance_squared_to_center(
-                self.character_sprite.center_x, self.character_sprite.center_y
+            distance_squared = mirror.distance_squared_to_center(
+                self.character_sprite.center_x,
+                self.character_sprite.center_y
             )
-            if distance < closest_distance_squared:
+            if distance_squared < closest_distance_squared:
                 closest_mirror = mirror
-                closest_distance_squared = distance
-
-        if (
-            closest_mirror is not None
-            and closest_distance_squared <= util.PLAYER_REACH_DISTANCE_SQUARED
-        ):
-            closest_mirror.move_if_safe(
-                self,
-                numpy.zeros(2),
-                self.rotation_dir
-                * util.OBJECT_ROTATION_AMOUNT
-                * (2**self.rotation_factor),
-            )
+                closest_distance_squared = distance_squared
+        return closest_mirror if closest_distance_squared <= util.PLAYER_REACH_DISTANCE_SQUARED else None
 
 
 class Enemy(Character):
@@ -350,7 +346,7 @@ class Enemy(Character):
             direction_mag = numpy.linalg.norm(direction)
             if direction_mag > 0:
                 direction = (
-                    direction * ENEMY_MOVEMENT_SPEED / direction_mag
+                    direction * util.ENEMY_MOVEMENT_SPEED / direction_mag
                 )  # Normalize and scale with speed
 
                 self.character_sprite.center_x += direction[0]

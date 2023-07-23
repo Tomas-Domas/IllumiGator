@@ -338,8 +338,12 @@ class GameObject(arcade.Window):
             if key == arcade.key.RIGHT:
                 self.audio_menu.slider_list[self.audio_menu.selection].right = True
             if key == arcade.key.UP:
+                self.audio_menu.slider_list[self.audio_menu.selection].left = False
+                self.audio_menu.slider_list[self.audio_menu.selection].right = False
                 self.audio_menu.decrement_selection()
             if key == arcade.key.DOWN:
+                self.audio_menu.slider_list[self.audio_menu.selection].left = False
+                self.audio_menu.slider_list[self.audio_menu.selection].right = False
                 self.audio_menu.increment_selection()
 
         if self.game_state == "community_level_select" or self.game_state == "official_level_select":
@@ -390,11 +394,10 @@ class GameObject(arcade.Window):
             self.character.rotation_dir += 1
         self.character.update(self.current_level, self.effects_volume)
 
-        if self.game_state == "audio":
-            if key == arcade.key.LEFT:
-                self.audio_menu.slider_list[self.audio_menu.selection].left = False
-            if key == arcade.key.RIGHT:
-                self.audio_menu.slider_list[self.audio_menu.selection].right = False
+        if key == arcade.key.LEFT:
+            self.audio_menu.slider_list[self.audio_menu.selection].left = False
+        if key == arcade.key.RIGHT:
+            self.audio_menu.slider_list[self.audio_menu.selection].right = False
 
     def on_resize(self, width: float, height: float):
         min_ratio = min(width / WORLD_WIDTH, height / WORLD_HEIGHT)

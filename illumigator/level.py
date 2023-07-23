@@ -75,9 +75,7 @@ class Level:
             numpy.array([enemy_coordinates[0], enemy_coordinates[1]]),
             0
         )
-        enemy.world_object.initialize_geometry(PLAYER_SPRITE_INFO)
-        enemy.world_object._geometry_segments[0].is_enemy = True
-        enemy.world_object._geometry_segments[1].is_enemy = True
+        enemy.world_object.initialize_geometry(PLAYER_SPRITE_INFO, is_enemy=True)
         enemy.state = "asleep"
 
         self.entity_world_object_list.append(character.world_object)

@@ -151,8 +151,6 @@ class Arc(Geometry):
 
         self.center = center
         self.radius = radius
-        self.is_reflective = is_reflective
-        self.is_refractive = is_refractive
 
     def _constrain_angles(self):  # Constrain between (-PI, PI)
         if self._start_angle > numpy.pi:

@@ -1,3 +1,4 @@
+import arcade
 import numpy
 
 from illumigator import worldobjects, entity, util, light
@@ -25,7 +26,7 @@ class Level:
         self.enemy = enemy
         self.background = background + ".png"
         self.background_sprite = util.load_sprite(self.background,
-                                                  scale=2/3,
+                                                  scale=2 / 3,
                                                   center_x=util.WORLD_WIDTH // 2,
                                                   center_y=util.WORLD_HEIGHT // 2)
         self.background_sprite.alpha = 100
@@ -154,8 +155,9 @@ class Level:
                     animated_wall_coordinates[4]
                 )
             )
-            self.wall_list[-1].create_animation(numpy.array([animated_wall_coordinates[5], animated_wall_coordinates[6]]),
-                                           animated_wall_coordinates[7], animated_wall_coordinates[8])
+            self.wall_list[-1].create_animation(
+                numpy.array([animated_wall_coordinates[5], animated_wall_coordinates[6]]),
+                animated_wall_coordinates[7], animated_wall_coordinates[8])
 
         for lens_coordinates in lens_coordinate_list:
             print(lens_coordinates)
@@ -170,11 +172,11 @@ class Level:
             )
 
         #  Append line segments and arcs to geometry lists
-        for world_object in (self.wall_list + self.mirror_list + self.light_receiver_list + self.entity_world_object_list):
+        for world_object in (
+                self.wall_list + self.mirror_list + self.light_receiver_list + self.entity_world_object_list):
             self.line_segments.extend(world_object._geometry_segments)
         for world_object in self.lens_list:
             self.arcs.extend(world_object._geometry_segments)
-
 
     def update(self, character: entity.Character):
         for wall in self.wall_list:
@@ -190,7 +192,6 @@ class Level:
             for source in self.light_sources_list:
                 source.move(numpy.array([util.mouseX - source._position[0], util.mouseY - source._position[1]]))
 
-
         #  ==================== Raycasting and update rays ====================
         # raysT = Timer("RAYCAST")
 
@@ -199,7 +200,7 @@ class Level:
         for line_i in range(len(self.line_segments)):
             line_p1[line_i], line_p2[line_i] = self.line_segments[line_i]._point1, self.line_segments[line_i]._point2
         arc_center = numpy.ndarray((len(self.arcs), 2))
-        arc_radius = numpy.ndarray((len(self.arcs),  ))
+        arc_radius = numpy.ndarray((len(self.arcs),))
         arc_angles = numpy.ndarray((len(self.arcs), 2))
         for arc_i in range(len(self.arcs)):
             arc_center[arc_i], arc_radius[arc_i], arc_angles[arc_i][0], arc_angles[arc_i][1] = self.arcs[arc_i].center, self.arcs[arc_i].radius, self.arcs[arc_i]._start_angle, self.arcs[arc_i]._end_angle
@@ -223,7 +224,9 @@ class Level:
                 # raysT.lap("  Line Raycast")
 
                 if len(self.arcs) > 0:
-                    nearest_arc_distance, nearest_arc_indices = light.get_arc_raycast_results(ray_p1[:, 0], ray_p1[:, 1], ray_dir[:, 0], ray_dir[:, 1], arc_center[:, 0], arc_center[:, 1], arc_radius, arc_angles[:, 0], arc_angles[:, 1])
+                    nearest_arc_distance, nearest_arc_indices = light.get_arc_raycast_results(
+                        ray_p1[:, 0], ray_p1[:, 1], ray_dir[:, 0], ray_dir[:, 1], arc_center[:, 0], arc_center[:, 1],
+                        arc_radius, arc_angles[:, 0], arc_angles[:, 1])
                     # raysT.lap("  Arc Raycast")
                 else:
                     nearest_arc_distance, nearest_arc_indices = numpy.full_like(nearest_line_distances, float('inf')), numpy.full_like(nearest_line_distances, -1)

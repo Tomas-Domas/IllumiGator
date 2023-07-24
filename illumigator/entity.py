@@ -74,7 +74,7 @@ class PlayerSpriteLoader(SpriteLoader):
 
     def __next__(self):
         if self.dead:
-            # Show last death sprite for a 5 frames
+            # Show last death sprite for 5 frames
             if self._dead_index > len(self._dead_sprites) - 2:
                 if self._dead_frames_shown > 5:
                     # If death animation over return None
@@ -100,6 +100,7 @@ class EnemySpriteLoader(SpriteLoader):
     """
 
     def __init__(self, direction, sprite_format_string: str = util.ENEMY_SPRITE):
+        super().__init__()
         self.suffix = direction
         self._sprites = []
         self._sprite_files = []
@@ -116,8 +117,8 @@ class Character:
     def __init__(
             self,
             scale_factor=2,
-            image_width=24,
-            image_height=24,
+            image_width=20,
+            image_height=18,
             walking_volume=1
     ):
 
@@ -298,8 +299,8 @@ class Enemy(Character):
     def __init__(
             self,
             scale_factor=2.5,
-            image_width=24,
-            image_height=24,
+            image_width=20,
+            image_height=18,
     ):
         super().__init__(scale_factor, image_width, image_height)
         self.state = "asleep"

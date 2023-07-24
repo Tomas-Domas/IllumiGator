@@ -195,10 +195,9 @@ class Character:
         if self.mirror_in_reach is not None:
             self.mirror_in_reach.move_if_safe(
                 self,
+                enemy,
                 numpy.zeros(2),
-                self.rotation_dir
-                * util.OBJECT_ROTATION_AMOUNT
-                * (2**self.rotation_factor),
+                self.rotation_dir * util.OBJECT_ROTATION_AMOUNT * (2**self.rotation_factor),
             )
 
     def reset_pos(self, c_x, c_y):

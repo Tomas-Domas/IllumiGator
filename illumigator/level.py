@@ -176,10 +176,10 @@ class Level:
         for world_object in self.lens_list:
             self.arcs.extend(world_object._geometry_segments)
 
-    def update(self, character: entity.Character):
+    def update(self, character: entity.Character, enemy: entity.Enemy):
         for wall in self.wall_list:
             if wall.obj_animation is not None:
-                wall.apply_object_animation(character)
+                wall.apply_object_animation(character, enemy)
 
         # receiverT = Timer("Receivers")
         for light_receiver in self.light_receiver_list:

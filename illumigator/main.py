@@ -91,7 +91,7 @@ class GameObject(arcade.Window):
                 self.game_state = "game_over"
 
             self.enemy.update(self.current_level, self.character)
-            self.current_level.update(self.character)
+            self.current_level.update(self.character, self.enemy)
             if any(light_receiver.charge >= util.RECEIVER_THRESHOLD for light_receiver in self.current_level.light_receiver_list):
                 time.sleep(0.5)
                 if not self.official_level_status:

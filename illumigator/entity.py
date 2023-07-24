@@ -1,3 +1,4 @@
+import itertools
 import time
 import arcade
 import pyglet.media
@@ -54,7 +55,7 @@ class PlayerSpriteLoader(SpriteLoader):
 
         self._idle_sprites = []
         self._idle_index = -1
-        self.idle = True
+        self.idle = False
 
         for i in range(6):
             fname = sprite_format_string.format(i=i, direction=direction)
@@ -104,13 +105,23 @@ class EnemySpriteLoader(SpriteLoader):
         self.suffix = direction
         self._sprites = []
         self._sprite_files = []
+        self._sleep_sprites_files = []
         self._index = -1
         fnames = [sprite_format_string.format(i=i, direction=direction) for i in range(1, 5)]
         for fname in fnames:
             self._sprite_files.append(fname)
             sprite = util.load_texture(fname)
             self._sprites.append(sprite)
-        self.stationary = util.load_texture(util.ENEMY_SLEEP_SPRITE)
+        self.stationary = []
+        for i in range(2):
+            fname = util.ENEMY_SLEEP_SPRITE.format(i=i)
+            self._sleep_sprites_files.append(fname)
+            self.stationary.append(util.load_texture(fname))
+    
+    def iter_sleep_sprite(self):
+        for texture in itertools.cycle(self.stationary):
+            for _ in range(6):
+                yield texture
 
 
 class Character:
@@ -311,8 +322,10 @@ class Enemy(Character):
         self.left_character_loader = EnemySpriteLoader("left")
         self.right_character_loader = EnemySpriteLoader("right")
 
+        self.sleep_texture_iter = self.left_character_loader.iter_sleep_sprite()
+
         self.character_sprite = util.load_sprite(
-            util.ENEMY_SLEEP_SPRITE,
+            self.left_character_loader._sleep_sprites_files[0],
             scale_factor,
             image_width=image_width,
             image_height=image_height,
@@ -336,7 +349,7 @@ class Enemy(Character):
         self.right = self.left = False
 
         if self.state == "asleep":
-            self.character_sprite.texture = self.left_character_loader.stationary
+            self.character_sprite.texture = next(self.sleep_texture_iter)
         elif self.state == "aggro":
             x_diff = (player.character_sprite.center_x - self.character_sprite.center_x)
             if x_diff < 0:

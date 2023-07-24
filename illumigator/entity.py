@@ -348,7 +348,7 @@ class Enemy(Character):
                 player.character_sprite.center_y - self.character_sprite.center_y,
             ])
             direction_to_player = direction_to_player.astype(float)
-            direction_to_player /= numpy.linalg.norm(direction_to_player)
+            direction_to_player = direction_to_player / numpy.linalg.norm(direction_to_player)
 
             nearest_obstacle = self.find_nearest_obstacle(level)
 
@@ -356,10 +356,10 @@ class Enemy(Character):
                 self.character_sprite.center_x - nearest_obstacle._position[0],
                 self.character_sprite.center_y - nearest_obstacle._position[1],
             ])
-            direction_from_obstacle /= numpy.linalg.norm(direction_from_obstacle)
+            direction_from_obstacle = direction_from_obstacle / numpy.linalg.norm(direction_from_obstacle)
 
             direction = 0.7 * direction_to_player + 0.3 * direction_from_obstacle
-            direction /= numpy.linalg.norm(direction)
+            direction = direction / numpy.linalg.norm(direction)
 
             direction *= util.ENEMY_MOVEMENT_SPEED
             self.move_and_check(direction, level)

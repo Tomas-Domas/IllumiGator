@@ -176,7 +176,10 @@ class Character:
         # Rotation
         if self.rotation_dir == 0:
             self.rotation_factor = 0
-        if self.rotation_factor < 3.00:
+
+        if self.mirror_in_reach is None:
+            self.rotation_factor = 0
+        elif self.rotation_factor < 3.00:
             self.rotation_factor += 1 / 15
 
         self.mirror_in_reach = self.get_mirror_in_reach(level)

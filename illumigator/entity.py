@@ -67,9 +67,10 @@ class PlayerSpriteLoader(SpriteLoader):
             fname = dead_sprite_format_string.format(i=i, direction=direction)
             self._dead_sprites.append(util.load_texture(fname))
 
-        for i in range(0, 3):
+        for i in range(0, 4):
             fname = idle_sprite_format.format(i=i, direction=direction)
-            self._idle_sprites.append(util.load_texture(fname))
+            for _ in range(0, 6):
+                self._idle_sprites.append(util.load_texture(fname))
 
         self.stationary = self._sprites[0]
 
@@ -86,9 +87,12 @@ class PlayerSpriteLoader(SpriteLoader):
             return self._dead_sprites[self._dead_index]
         elif self.idle:
             if self._idle_index > len(self._idle_sprites) - 2:
+                print(self._idle_index)
+                self._idle_index = -1
                 return self._idle_sprites[-1]
             else:
                 self._idle_index = (self._idle_index + 1) % len(self._idle_sprites)
+                print(self._idle_index)
             return self._idle_sprites[self._idle_index]
         else:
             self._idle_index = self._dead_index = -1

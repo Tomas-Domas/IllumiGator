@@ -1,8 +1,9 @@
 import cProfile
 import arcade
+import time
 
 from illumigator import entity, level, menus, util, level_selector
-from util import ENVIRON_ASSETS_PATH, WORLD_WIDTH, WORLD_HEIGHT, WINDOW_TITLE
+from illumigator.util import ENVIRON_ASSETS_PATH, WORLD_WIDTH, WORLD_HEIGHT, WINDOW_TITLE
 
 
 class GameObject(arcade.Window):
@@ -40,8 +41,8 @@ class GameObject(arcade.Window):
         # ========================= Settings =========================
         self.settings = util.load_data("config.json")
         self.master_volume = self.settings["volume"]["master"]
-        self.music_volume = self.settings["volume"]["music"] * self.master_volume
-        self.effects_volume = self.settings["volume"]["effects"] * self.master_volume
+        self.music_volume = self.settings["volume"]["music"]
+        self.effects_volume = self.settings["volume"]["effects"]
 
         # ========================= State =========================
         self.game_state = None
@@ -52,7 +53,7 @@ class GameObject(arcade.Window):
 
     def setup(self):
         self.game_state = "menu"
-        self.character = entity.Character(walking_volume=self.effects_volume)
+        self.character = entity.Character(walking_volume=self.effects_volume*self.master_volume)
         self.enemy = entity.Enemy()
 
         self.current_level = level.load_level(util.load_data(self.current_level_path, True), self.character, self.enemy)
@@ -60,7 +61,7 @@ class GameObject(arcade.Window):
         # ========================= Sounds =========================
         self.menu_sound = util.load_sound("retro_blip.wav")
         self.background_music = util.load_sound("ocean-of-ice.mp3")
-        self.menu_music = util.load_sound("SF_Dramatic.mp3")
+        self.menu_music = util.load_sound("Hina_Fallen_leaves.mp3")
         self.pause_music = util.load_sound("Hina_Fallen_leaves.mp3")
 
         # ========================= Fonts =========================
@@ -86,10 +87,14 @@ class GameObject(arcade.Window):
     def on_update(self, delta_time):
         # STATE MACHINE FOR UPDATING LEVEL
         if self.game_state == "game":
-            self.character.update(self.current_level, self.effects_volume)
+            if self.character.update(self.current_level, self.effects_volume*self.master_volume, self.enemy) is False:
+                time.sleep(0.75)
+                self.game_state = "game_over"
+
             self.enemy.update(self.current_level, self.character)
             self.current_level.update(self.character)
             if any(light_receiver.charge >= util.RECEIVER_THRESHOLD for light_receiver in self.current_level.light_receiver_list):
+                time.sleep(0.5)
                 if not self.official_level_status:
                     self.game_state = "community_win"
                     self.official_level_status = False
@@ -109,38 +114,48 @@ class GameObject(arcade.Window):
                     self.enemy)
 
             if self.character.status == "dead":
-                self.game_state = "game_over"
+                # Show dead animations
+                self.character.left_character_loader.dead = True
+                self.character.right_character_loader.dead = True
+                self.enemy.state = "player_dead"
+                # self.game_state = "game_over"
 
         elif self.game_state == "audio":
             self.audio_menu.update()
 
         # STATE MACHINE FOR UPDATING AUDIO PLAYER
+        scaled_music_volume = self.music_volume * self.master_volume
+
         if self.game_state == "menu":
             if self.pause_player is not None:
                 self.pause_player.pause()
+            if self.bgm_player is not None:
+                self.bgm_player.pause()
             # This mp3 is a little loud, so the volume is automatically downscaled.
             if self.menu_player is None:
-                self.menu_player = arcade.play_sound(self.menu_music, self.music_volume * 0.5, looping=True)
+                self.menu_player = arcade.play_sound(self.menu_music, scaled_music_volume * 0.5, looping=True)
             else:
-                self.menu_player.volume = self.music_volume * 0.5
+                self.menu_player.volume = scaled_music_volume * 0.5
                 self.menu_player.play()
 
         elif self.game_state == "game":
             if self.pause_player is not None:
                 self.pause_player.pause()
+            if self.menu_player is not None:
+                self.menu_player.pause()
             if self.bgm_player is None:
-                self.bgm_player = arcade.play_sound(self.background_music, self.music_volume, looping=True)
+                self.bgm_player = arcade.play_sound(self.background_music, scaled_music_volume, looping=True)
             else:
-                self.bgm_player.volume = self.music_volume
+                self.bgm_player.volume = scaled_music_volume
                 self.bgm_player.play()
 
         if self.game_state == "paused" or self.game_state == "audio":
-            self.bgm_player.pause()
-            # This mp3 is a little loud, so the volume is automatically downscaled.
+            if self.bgm_player is not None:
+                self.bgm_player.pause()
             if self.pause_player is None:
-                self.pause_player = arcade.play_sound(self.pause_music, self.music_volume * 0.1, looping=True)
+                self.pause_player = arcade.play_sound(self.pause_music, scaled_music_volume, looping=True)
             else:
-                self.pause_player.volume = self.music_volume * 0.1
+                self.pause_player.volume = scaled_music_volume
                 self.pause_player.play()
 
         if self.game_state == "game_over" or self.game_state == "final_win" or self.game_state == "win"\
@@ -181,15 +196,9 @@ class GameObject(arcade.Window):
 
         elif self.game_state == "audio":
             self.master_volume = self.audio_menu.slider_list[0].pos
-            self.music_volume = self.audio_menu.slider_list[1].pos * self.master_volume
-            self.effects_volume = self.audio_menu.slider_list[2].pos * self.master_volume
+            self.music_volume = self.audio_menu.slider_list[1].pos
+            self.effects_volume = self.audio_menu.slider_list[2].pos
             self.audio_menu.draw()
-            # The pause music volume should change upon moving the slider.
-            self.pause_player.volume = self.music_volume
-            if self.pause_player.volume == 0:
-                self.pause_player.pause()
-            else:
-                self.pause_player.play()
 
         elif self.game_state == "official_level_select":
             self.official_selector_menu.draw()
@@ -215,8 +224,8 @@ class GameObject(arcade.Window):
         game_paused = self.game_state == "paused" or self.game_state == "win" or self.game_state == "options" \
                       or self.game_state == "audio" or self.game_state == "final_win"
         if game_paused and valid_menu_press:
-            if self.effects_volume != 0:
-                arcade.play_sound(self.menu_sound, self.effects_volume)
+            if self.effects_volume * self.master_volume != 0:
+                arcade.play_sound(self.menu_sound, self.effects_volume * self.master_volume)
 
         if key == arcade.key.F11:
             self.set_fullscreen(not self.fullscreen)
@@ -224,7 +233,6 @@ class GameObject(arcade.Window):
         if self.game_state == "menu":
             if key == arcade.key.ENTER:
                 self.game_state = "game"
-                self.menu_player.pause()
             if key == arcade.key.ESCAPE:
                 self.on_close()
             if key == arcade.key.O:
@@ -240,7 +248,6 @@ class GameObject(arcade.Window):
 
             if key == arcade.key.ESCAPE:
                 self.game_state = "paused"
-                self.bgm_player.pause()
             if key == arcade.key.W or key == arcade.key.UP:
                 self.character.up = True
             if key == arcade.key.A or key == arcade.key.LEFT:
@@ -253,7 +260,6 @@ class GameObject(arcade.Window):
         elif self.game_state == "paused":
             if key == arcade.key.ESCAPE:
                 self.game_state = "game"
-                self.pause_player.pause()
             if key == arcade.key.S or key == arcade.key.DOWN:
                 self.game_menu.increment_selection()
             if key == arcade.key.W or key == arcade.key.UP:
@@ -268,7 +274,8 @@ class GameObject(arcade.Window):
                     self.game_state = "options"
                 elif self.game_menu.selection == 3:
                     self.bgm_player.seek(0.0)
-                    self.pause_player.seek(0.0)
+                    if self.pause_player is not None:
+                        self.pause_player.seek(0.0)
                     self.reset_level()
                     self.game_state = "menu"
 
@@ -345,8 +352,12 @@ class GameObject(arcade.Window):
             if key == arcade.key.RIGHT:
                 self.audio_menu.slider_list[self.audio_menu.selection].right = True
             if key == arcade.key.UP:
+                self.audio_menu.slider_list[self.audio_menu.selection].left = False
+                self.audio_menu.slider_list[self.audio_menu.selection].right = False
                 self.audio_menu.decrement_selection()
             if key == arcade.key.DOWN:
+                self.audio_menu.slider_list[self.audio_menu.selection].left = False
+                self.audio_menu.slider_list[self.audio_menu.selection].right = False
                 self.audio_menu.increment_selection()
 
         if self.game_state == "community_level_select" or self.game_state == "official_level_select":
@@ -391,17 +402,16 @@ class GameObject(arcade.Window):
             self.character.down = False
         if key == arcade.key.D or key == arcade.key.RIGHT:
             self.character.right = False
+
         if key == arcade.key.Q:
             self.character.rotation_dir -= 1
         if key == arcade.key.E:
             self.character.rotation_dir += 1
-        self.character.update(self.current_level, self.effects_volume)
 
-        if self.game_state == "audio":
-            if key == arcade.key.LEFT:
-                self.audio_menu.slider_list[self.audio_menu.selection].left = False
-            if key == arcade.key.RIGHT:
-                self.audio_menu.slider_list[self.audio_menu.selection].right = False
+        if key == arcade.key.LEFT:
+            self.audio_menu.slider_list[self.audio_menu.selection].left = False
+        if key == arcade.key.RIGHT:
+            self.audio_menu.slider_list[self.audio_menu.selection].right = False
 
     def on_resize(self, width: float, height: float):
         min_ratio = min(width / WORLD_WIDTH, height / WORLD_HEIGHT)
@@ -424,6 +434,11 @@ class GameObject(arcade.Window):
         arcade.close_window()
 
     def reset_level(self):
+        self.enemy.state = "asleep"
+
+        # Create New character model
+        self.character = entity.Character(walking_volume=self.effects_volume)
+        
         self.current_level = level.load_level(util.load_data(
             self.current_level_path, True, self.official_level_status), self.character, self.enemy)
         self.game_state = "game"

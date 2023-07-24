@@ -28,6 +28,7 @@ class WorldObject:
 
     def initialize_sprites(self, sprite_info: tuple, *, dimensions: numpy.ndarray | None = None):
         sprite_path, sprite_scale, sprite_width, sprite_height = sprite_info
+        self._sprite_list = arcade.SpriteList()
         if dimensions is None:
             self._sprite_list.append(
                 util.load_sprite(
@@ -68,7 +69,11 @@ class WorldObject:
                         )
                     )
 
-    def initialize_geometry(self, sprite_info: tuple, *, dimensions: numpy.ndarray = numpy.ones(2), all_borders: bool = False):
+    def initialize_geometry(
+        self, sprite_info: tuple, *, dimensions: numpy.ndarray = numpy.ones(2),
+        all_borders: bool = False, spokes: int = 0,
+        is_reflective: bool = False, is_refractive: bool = False, is_receiver: bool = False, is_enemy: bool = False
+    ):
         sprite_path, sprite_scale, sprite_width, sprite_height = sprite_info
         axis1_norm = numpy.array([math.cos(self._rotation_angle), math.sin(self._rotation_angle)])
         axis2_norm = numpy.array([-math.sin(self._rotation_angle), math.cos(self._rotation_angle)])
@@ -76,15 +81,21 @@ class WorldObject:
         axis2 = 0.5 * sprite_height * sprite_scale * dimensions[1] * axis2_norm
         if all_borders is True:
             self._geometry_segments = [
-                geometry.Line(self, self._position - axis1 - axis2, self._position - axis1 + axis2),
-                geometry.Line(self, self._position - axis1 + axis2, self._position + axis1 + axis2),
-                geometry.Line(self, self._position + axis1 + axis2, self._position + axis1 - axis2),
-                geometry.Line(self, self._position + axis1 - axis2, self._position - axis1 - axis2),
+                geometry.Line(self, self._position - axis1 - axis2, self._position - axis1 + axis2, is_reflective, is_refractive, is_receiver, is_enemy),
+                geometry.Line(self, self._position - axis1 + axis2, self._position + axis1 + axis2, is_reflective, is_refractive, is_receiver, is_enemy),
+                geometry.Line(self, self._position + axis1 + axis2, self._position + axis1 - axis2, is_reflective, is_refractive, is_receiver, is_enemy),
+                geometry.Line(self, self._position + axis1 - axis2, self._position - axis1 - axis2, is_reflective, is_refractive, is_receiver, is_enemy),
             ]
+        elif spokes != 0:
+            for _ in range(spokes):
+                self._geometry_segments.append(
+                    geometry.Line(self, self._position + axis1, self._position - axis1, is_reflective, is_refractive, is_receiver, is_enemy)
+                )
+                axis1 = util.rotate_around_center(numpy.zeros(2), axis1, numpy.pi / spokes)
         else:  # Only do the diagonals
             self._geometry_segments = [
-                geometry.Line(self, self._position - axis1 - axis2, self._position + axis1 + axis2),
-                geometry.Line(self, self._position - axis1 + axis2, self._position + axis1 - axis2),
+                geometry.Line(self, self._position - axis1 - axis2, self._position + axis1 + axis2, is_reflective, is_refractive, is_receiver, is_enemy),
+                geometry.Line(self, self._position - axis1 + axis2, self._position + axis1 - axis2, is_reflective, is_refractive, is_receiver, is_enemy),
             ]
 
 
@@ -92,7 +103,10 @@ class WorldObject:
         self._sprite_list.draw(pixelated=True)
         if util.DEBUG_GEOMETRY:
             for segment in self._geometry_segments:
-                segment.draw()
+                if segment.is_reflective:
+                    segment.draw(color=arcade.color.MAGENTA)
+                else:
+                    segment.draw()
 
     def distance_squared_to_center(self, point_x, point_y):
         return util.distance_squared(self._position, numpy.array([point_x, point_y]))
@@ -159,7 +173,7 @@ class WorldObject:
 class Wall(WorldObject):
     def __init__(self, position: numpy.ndarray, dimensions: numpy.ndarray, rotation_angle: float):
         super().__init__(position, rotation_angle, is_interactable=False)
-        self.initialize_geometry(util.WALL_SPRITE_INFO, dimensions=dimensions, all_borders=False)
+        self.initialize_geometry(util.WALL_SPRITE_INFO, dimensions=dimensions)
         self.initialize_sprites(util.WALL_SPRITE_INFO, dimensions=dimensions)
 
 
@@ -172,6 +186,11 @@ class Mirror(WorldObject):
         self._geometry_segments[0].calculate_normal()
         self._geometry_segments[2].is_reflective = True
         self._geometry_segments[2].calculate_normal()
+
+    def draw_outline(self):
+        thickness = int(2.5 + math.sin(15 * time.time()))
+        for segment in self._geometry_segments:
+            segment.draw(thickness=thickness, color=arcade.color.RED)
 
 
 class Lens(WorldObject):
@@ -231,7 +250,6 @@ class LightSource(WorldObject):
 class RadialLightSource(LightSource):
     def __init__(self, position: numpy.ndarray, rotation_angle: float, angular_spread: float):
         super().__init__(position, rotation_angle)
-        self.initialize_geometry(util.SOURCE_SPRITE_INFO, all_borders=False)
         self.initialize_sprites(util.SOURCE_SPRITE_INFO)
         self._angular_spread = angular_spread
         self.calculate_light_ray_positions()
@@ -250,27 +268,24 @@ class RadialLightSource(LightSource):
 class ParallelLightSource(LightSource):
     def __init__(self, position: numpy.ndarray, rotation_angle: float):
         super().__init__(position, rotation_angle)
-        self.initialize_geometry(util.SOURCE_SPRITE_INFO, all_borders=False)
         self.initialize_sprites(util.SOURCE_SPRITE_INFO)
         self._width = util.SOURCE_SPRITE_INFO[1] * util.SOURCE_SPRITE_INFO[2]
         self.calculate_light_ray_positions()
 
     def calculate_light_ray_positions(self):
         num_rays = len(self.light_rays)
-        ray_direction = numpy.array(
-            [math.cos(self._rotation_angle), math.sin(self._rotation_angle)]
-        )
-        spread_direction = numpy.array(
-            [
-                math.cos(self._rotation_angle + 0.5 * numpy.pi),
-                math.sin(self._rotation_angle + 0.5 * numpy.pi),
-            ]
-        )
+        ray_direction = numpy.array([
+            math.cos(self._rotation_angle),
+            math.sin(self._rotation_angle)
+        ])
+        spread_direction = numpy.array([
+            math.cos(self._rotation_angle + numpy.pi/2),
+            math.sin(self._rotation_angle + numpy.pi/2),
+        ])
         for n in range(num_rays):
             self.light_rays[n]._origin = (
                 self._position
-                - (self._width * (n / (util.NUM_LIGHT_RAYS - 1) - 0.5))
-                * spread_direction
+                - spread_direction * ((self._width-7) * (n / (util.NUM_LIGHT_RAYS - 1) - 0.5))
             )
             self.light_rays[n]._direction = ray_direction
 
@@ -278,16 +293,25 @@ class ParallelLightSource(LightSource):
 class LightReceiver(WorldObject):
     def __init__(self, position: numpy.ndarray, rotation_angle: float, planet: str = "moon"):
         super().__init__(position, rotation_angle)
-        receiver_sprite_info : tuple = (planet + ".png", 2, 32, 32)
-        self.initialize_geometry(receiver_sprite_info, all_borders=False)
-        self.initialize_sprites(receiver_sprite_info)
-        self._geometry_segments[0].is_receiver = True
-        self._geometry_segments[1].is_receiver = True
+        self.initialize_geometry(util.RECEIVER_SPRITE_INFO, spokes=4, is_receiver=True)
+        self.initialize_sprites((planet+".png",) + util.RECEIVER_SPRITE_INFO[1:])
+        self.exploded_sprite = util.load_sprite(planet+"_exploded.png",
+                                                util.RECEIVER_SPRITE_INFO[1],
+                                                image_width=util.RECEIVER_SPRITE_INFO[2],
+                                                image_height=util.RECEIVER_SPRITE_INFO[3],
+                                                center_x=self._position[0],
+                                                center_y=self._position[1])
+        self.planet = planet
         self.charge = 0
 
     def draw(self):
         # color = min(255 * self.charge / util.RECEIVER_THRESHOLD, 255)
         color = max(255 * (1.0 - self.charge / util.RECEIVER_THRESHOLD), 0)
+
+        if self.charge >= util.RECEIVER_THRESHOLD - 0.01:
+            self._sprite_list[0] = self.exploded_sprite
+
         for sprite in self._sprite_list:
             sprite.color = (255, color, color)
+
         super().draw()

@@ -7,19 +7,19 @@
     },
     "level_2.json": {
       "level_name": "Level 2",
-      "planet_name": "moon"
+      "planet_name": "mars"
     },
     "level_3.json": {
       "level_name": "Level 3",
-      "planet_name": "mars"
+      "planet_name": "moon"
     },
     "level_4.json": {
       "level_name": "Level 4",
-      "planet_name": "sun"
+      "planet_name": "earth"
     },
     "level_5.json": {
       "level_name": "Level 5",
-      "planet_name": "earth"
+      "planet_name": "mars"
     }
   }
 }

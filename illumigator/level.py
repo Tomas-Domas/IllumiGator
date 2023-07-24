@@ -2,7 +2,7 @@ import arcade
 import numpy
 
 from illumigator import worldobjects, entity, util, light
-from util import WALL_SIZE, PLAYER_SPRITE_INFO, Timer
+from illumigator.util import WALL_SIZE, PLAYER_SPRITE_INFO, Timer
 
 
 class Level:
@@ -76,9 +76,7 @@ class Level:
             numpy.array([enemy_coordinates[0], enemy_coordinates[1]]),
             0
         )
-        enemy.world_object.initialize_geometry(PLAYER_SPRITE_INFO)
-        enemy.world_object._geometry_segments[0].is_enemy = True
-        enemy.world_object._geometry_segments[1].is_enemy = True
+        enemy.world_object.initialize_geometry(PLAYER_SPRITE_INFO, is_enemy=True)
         enemy.state = "asleep"
 
         self.entity_world_object_list.append(character.world_object)
@@ -282,15 +280,11 @@ class Level:
             entity_world_object.draw()
 
     def check_collisions(self, character: entity.Character):
-        for wall in self.wall_list:
+        for wall in (self.wall_list + self.mirror_list + self.lens_list + self.light_receiver_list):
             if wall.check_collision(character.character_sprite):
                 return True
-        for mirror in self.mirror_list:
-            if mirror.check_collision(character.character_sprite):
-                return True
-        for light_receiver in self.light_receiver_list:
-            if light_receiver.check_collision(character.character_sprite):
-                return True
+        else:
+            return False
 
 
 def load_level(level: dict, character: entity.Character, enemy: entity.Enemy) -> Level:

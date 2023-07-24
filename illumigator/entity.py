@@ -1,8 +1,8 @@
+import time
 import arcade
 import pyglet.media
 import numpy
 
-from illumigator.util import PLAYER_MOVEMENT_SPEED, ENEMY_MOVEMENT_SPEED, PLAYER_SPRITE_INFO
 from illumigator import util
 
 
@@ -11,17 +11,8 @@ class SpriteLoader:
     Sprites manager and Iterator for a specific direction
     """
 
-    def __init__(self, direction, sprite_format_string: str = util.PLAYER_SPRITE):
-        self.suffix = direction
-        self._sprites = []
-        self._sprite_files = []
-        self._index = -1
-        for i in range(6):
-            fname = sprite_format_string.format(i=i, direction=direction)
-            self._sprite_files.append(fname)
-            sprite = util.load_texture(fname)
-            self._sprites.append(sprite)
-        self.stationary = self._sprites[0]
+    def __init__(self):
+        pass
 
     def reset(self):
         self._index = -1
@@ -42,6 +33,85 @@ class SpriteLoader:
         return self._sprite_files
 
 
+class PlayerSpriteLoader(SpriteLoader):
+    """
+    Sprites manager and Iterator for a specific direction
+    """
+
+    def __init__(self, direction, sprite_format_string: str = util.PLAYER_SPRITE,
+                 idle_sprite_format: str = util.PLAYER_IDLE_SPRITE,
+                 dead_sprite_format_string: str = util.PLAYER_DEAD_SPRITE):
+        self.suffix = direction
+
+        self._sprites = []
+        self._sprite_files = []
+        self._index = -1
+
+        self._dead_sprites = []
+        self._dead_index = -1
+        self._dead_frames_shown = 0
+        self.dead = False
+
+        self._idle_sprites = []
+        self._idle_index = -1
+        self.idle = True
+
+        for i in range(6):
+            fname = sprite_format_string.format(i=i, direction=direction)
+            self._sprite_files.append(fname)
+            sprite = util.load_texture(fname)
+            self._sprites.append(sprite)
+
+        for i in range(1, 4):
+            fname = dead_sprite_format_string.format(i=i, direction=direction)
+            self._dead_sprites.append(util.load_texture(fname))
+
+        for i in range(0, 3):
+            fname = idle_sprite_format.format(i=i, direction=direction)
+            self._idle_sprites.append(util.load_texture(fname))
+
+        self.stationary = self._sprites[0]
+
+    def __next__(self):
+        if self.dead:
+            # Show last death sprite for a 5 frames
+            if self._dead_index > len(self._dead_sprites) - 2:
+                if self._dead_frames_shown > 5:
+                    # If death animation over return None
+                    return None
+                self._dead_frames_shown += 1
+            else:
+                self._dead_index = (self._dead_index + 1) % len(self._dead_sprites)
+            return self._dead_sprites[self._dead_index]
+        elif self.idle:
+            if self._idle_index > len(self._idle_sprites) - 2:
+                return self._idle_sprites[-1]
+            else:
+                self._idle_index = (self._idle_index + 1) % len(self._idle_sprites)
+            return self._idle_sprites[self._idle_index]
+        else:
+            self._idle_index = self._dead_index = -1
+            return super().__next__()
+
+
+class EnemySpriteLoader(SpriteLoader):
+    """
+    Sprites manager and Iterator for a specific direction
+    """
+
+    def __init__(self, direction, sprite_format_string: str = util.ENEMY_SPRITE):
+        self.suffix = direction
+        self._sprites = []
+        self._sprite_files = []
+        self._index = -1
+        fnames = [sprite_format_string.format(i=i, direction=direction) for i in range(1, 5)]
+        for fname in fnames:
+            self._sprite_files.append(fname)
+            sprite = util.load_texture(fname)
+            self._sprites.append(sprite)
+        self.stationary = util.load_texture(util.ENEMY_SLEEP_SPRITE)
+
+
 class Character:
     def __init__(
             self,
@@ -53,8 +123,11 @@ class Character:
 
         self.world_object = None
         self.status = None
-        self.left_character_loader = SpriteLoader("left")
-        self.right_character_loader = SpriteLoader("right")
+        self.left_character_loader = PlayerSpriteLoader("left")
+        self.right_character_loader = PlayerSpriteLoader("right")
+
+        # To check if gator is idle
+        self.last_movement_timestamp = time.time()
 
         self.character_sprite = util.load_sprite(
             self.right_character_loader._sprite_files[0],
@@ -69,7 +142,7 @@ class Character:
         self.up = False
         self.down = False
 
-        self.interactive_line = None
+        self.mirror_in_reach = None
         self.rotation_dir = 0
         self.player = pyglet.media.player.Player()
 
@@ -79,18 +152,42 @@ class Character:
         self.walking_volume = walking_volume
 
     def draw(self):
+        if self.mirror_in_reach is not None:
+            self.mirror_in_reach.draw_outline()
         self.character_sprite.draw(pixelated=True)
 
-    def update(self, level, walking_volume):
+    def update(self, level, walking_volume, enemy):
         self.walking_volume = walking_volume
-        self.walk(level)
+
+        # Idle state animation
+        if any([self.up, self.down, self.left, self.right]):
+            self.last_movement_timestamp = time.time()
+            self.right_character_loader.idle = False
+            self.left_character_loader.idle = False
+        elif time.time() - self.last_movement_timestamp > util.PLAYER_IDLE_TIME:
+            # IDLE after PLAYER_IDLE_TIME seconds
+            self.right_character_loader.idle = True
+            self.left_character_loader.idle = True
+
+        # Walking. Return False if player died
+        if self.walk(level, enemy) is False:
+            return False
+
+        # Rotation
         if self.rotation_dir == 0:
             self.rotation_factor = 0
-            return
-
-        self.rotate_surroundings(level)
         if self.rotation_factor < 3.00:
             self.rotation_factor += 1 / 15
+
+        self.mirror_in_reach = self.get_mirror_in_reach(level)
+        if self.mirror_in_reach is not None:
+            self.mirror_in_reach.move_if_safe(
+                self,
+                numpy.zeros(2),
+                self.rotation_dir
+                * util.OBJECT_ROTATION_AMOUNT
+                * (2**self.rotation_factor),
+            )
 
     def reset_pos(self, c_x, c_y):
         self.character_sprite.center_x = c_x
@@ -113,16 +210,39 @@ class Character:
             self.character_sprite.center_y -= direction[1]
             self.world_object.move_geometry(numpy.array([0, -direction[1]]), 0)
 
-    def walk(self, level):
-        direction = numpy.zeros(2)
-        if self.right:
-            self.character_sprite.texture = next(self.right_character_loader)
-            direction[0] += 1
-        if self.left:
-            self.character_sprite.texture = next(self.left_character_loader)
-            direction[0] -= 1
 
-        dir_is_right = "_right.png" in self.character_sprite.texture.name
+def update_sprite(self, direction=None):
+        if self.right:
+            next_sprite = next(self.right_character_loader)
+            if next_sprite is None:
+                return False
+            self.character_sprite.texture = next_sprite
+            if direction is not None:
+                direction[0] += 1
+        if self.left:
+            next_sprite = next(self.left_character_loader)
+            if next_sprite is None:
+                return False
+            self.character_sprite.texture = next_sprite
+            if direction is not None:
+                direction[0] -= 1
+
+    def walk(self, level, enemy):
+        direction = numpy.zeros(2)
+        if getattr(self.right_character_loader, "dead", False):
+            if "_right.png" in self.character_sprite.texture.name:
+                self.right = True
+                self.left = False
+            else:
+                self.right = True
+                self.left = False
+
+        if self.update_sprite(direction) is False:
+            return False
+
+        if getattr(self.right_character_loader, "dead", False):
+            return
+        dir_is_right = "_right" in self.character_sprite.texture.name
         if self.up or self.down:
             if dir_is_right:
                 self.character_sprite.texture = next(self.right_character_loader)
@@ -144,9 +264,21 @@ class Character:
         direction_mag = numpy.linalg.norm(direction)
         if direction_mag > 0:
             direction = (
-                    direction * PLAYER_MOVEMENT_SPEED / direction_mag
+                direction * util.PLAYER_MOVEMENT_SPEED / direction_mag
             )
             self.move_and_check(direction, level)
+
+            self.character_sprite.center_x += direction[0]
+            self.world_object.move_geometry(numpy.array([direction[0], 0]), 0)
+            if level.check_collisions(self) or self.character_sprite.collides_with_sprite(enemy.character_sprite):
+                self.character_sprite.center_x -= direction[0]
+                self.world_object.move_geometry(numpy.array([-direction[0], 0]), 0)
+
+            self.character_sprite.center_y += direction[1]
+            self.world_object.move_geometry(numpy.array([0, direction[1]]), 0)
+            if level.check_collisions(self) or self.character_sprite.collides_with_sprite(enemy.character_sprite):
+                self.character_sprite.center_y -= direction[1]
+                self.world_object.move_geometry(numpy.array([0, -direction[1]]), 0)
 
             # Check if sound should be played
             if not arcade.Sound.is_playing(self.walking_sound, self.player):
@@ -161,30 +293,18 @@ class Character:
         print("YOU DIED")
         self.status = "dead"
 
-    def rotate_surroundings(self, level):
-        closest_distance_squared = (
-            util.STARTING_DISTANCE_VALUE
-        )  # arbitrarily large number
+    def get_mirror_in_reach(self, level):
+        closest_distance_squared = float('inf')
         closest_mirror = None
         for mirror in level.mirror_list:
-            distance = mirror.distance_squared_to_center(
-                self.character_sprite.center_x, self.character_sprite.center_y
+            distance_squared = mirror.distance_squared_to_center(
+                self.character_sprite.center_x,
+                self.character_sprite.center_y
             )
-            if distance < closest_distance_squared:
+            if distance_squared < closest_distance_squared:
                 closest_mirror = mirror
-                closest_distance_squared = distance
-
-        if (
-                closest_mirror is not None
-                and closest_distance_squared <= util.PLAYER_REACH_DISTANCE_SQUARED
-        ):
-            closest_mirror.move_if_safe(
-                self,
-                numpy.zeros(2),
-                self.rotation_dir
-                * util.OBJECT_ROTATION_AMOUNT
-                * (2 ** self.rotation_factor),
-            )
+                closest_distance_squared = distance_squared
+        return closest_mirror if closest_distance_squared <= util.PLAYER_REACH_DISTANCE_SQUARED else None
 
 
 class Enemy(Character):
@@ -197,12 +317,11 @@ class Enemy(Character):
         super().__init__(scale_factor, image_width, image_height)
         self.state = "asleep"
 
-        # Change util.ENEMY_SPRITE to use enemy sprite
-        self.left_character_loader = SpriteLoader("left", util.ENEMY_SPRITE)
-        self.right_character_loader = SpriteLoader("right", util.ENEMY_SPRITE)
+        self.left_character_loader = EnemySpriteLoader("left")
+        self.right_character_loader = EnemySpriteLoader("right")
 
         self.character_sprite = util.load_sprite(
-            self.right_character_loader.sprite_files[0],
+            util.ENEMY_SLEEP_SPRITE,
             scale_factor,
             image_width=image_width,
             image_height=image_height,
@@ -223,6 +342,21 @@ class Enemy(Character):
     def update(self, level, player):
         self.walk(level)
         if self.state == "aggro":
+            x_diff = (player.character_sprite.center_x - self.character_sprite.center_x)
+            if x_diff < 0:
+                self.right = False
+                self.left = True
+            elif x_diff > 0:
+                self.left = False
+                self.right = True
+
+        if self.update_sprite() is False:
+            return False
+        self.right = self.left = False
+
+        if self.state == "asleep":
+            self.character_sprite.texture = self.left_character_loader.stationary
+        elif self.state == "aggro":
             direction_to_player = numpy.array([
                 player.character_sprite.center_x - self.character_sprite.center_x,
                 player.character_sprite.center_y - self.character_sprite.center_y,
@@ -231,6 +365,12 @@ class Enemy(Character):
             direction_to_player /= numpy.linalg.norm(direction_to_player)
 
             nearest_obstacle = self.find_nearest_obstacle(level)
+
+            direction_mag = numpy.linalg.norm(direction)
+            if direction_mag > 0:
+                direction = (
+                    direction * util.ENEMY_MOVEMENT_SPEED / direction_mag
+                )  # Normalize and scale with speed
 
             direction_from_obstacle = numpy.array([
                 self.character_sprite.center_x - nearest_obstacle._position[0],
@@ -244,7 +384,5 @@ class Enemy(Character):
             direction *= ENEMY_MOVEMENT_SPEED
             self.move_and_check(direction, level)
 
-            if arcade.check_for_collision(
-                    self.character_sprite, player.character_sprite
-            ):
+            if self.character_sprite.collides_with_sprite(player.character_sprite):
                 player.kill()

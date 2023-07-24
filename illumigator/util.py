@@ -30,18 +30,22 @@ WALL_SPRITE_INFO: tuple = ("wall2.png", 2.5, 16, 16)  # path, scale, width, heig
 MIRROR_SPRITE_INFO: tuple = ("mirror.png", 1.3, 9, 48)
 LENS_SPRITE_INFO: tuple = ("lens.png", 1.3, 9, 48)
 SOURCE_SPRITE_INFO: tuple = ("sun.png", 1, 32, 32)
-RECEIVER_SPRITE_INFO: tuple = ("light_receiver.png", 2, 32, 32)
-PLACEHOLDER_SPRITE_INFO: tuple = ("sprite.png", 0.25, 128, 128)
+RECEIVER_SPRITE_INFO: tuple = ("<PLANET NAME>", 2, 32, 32)
 PLAYER_SPRITE_INFO: tuple = ("00_gator_left.png", 1, 24, 24)
+PLACEHOLDER_SPRITE_INFO: tuple = ("sprite.png", 0.25, 128, 128)
 WALL_SIZE = WALL_SPRITE_INFO[1] * WALL_SPRITE_INFO[2]
 
 # Player
+PLAYER_IDLE_TIME = 2
 PLAYER_SPRITE = "0{i}_gator_{direction}.png"
-ENEMY_SPRITE = "0{i}_enemy_{direction}.png"
+PLAYER_DEAD_SPRITE = "Gator_death_{direction}{i}.png"
+PLAYER_IDLE_SPRITE = "Gator_idle_{direction}{i}.png"
+ENEMY_SPRITE = "FLman_running_{direction}{i}.png"
+ENEMY_SLEEP_SPRITE = "FLman_sleeping0.png"
 
 # Paths
 ENVIRON_ASSETS_PATH = os.path.join(os.path.split(__file__)[0], "assets/")
-VENV_ASSETS_PATH = "./venv/Lib/site-packages/illumigator/assets/"
+VENV_ASSETS_PATH = os.path.join(os.path.split(__file__)[0], "assets/")
 ENVIRON_DATA_PATH = os.path.join(os.path.split(__file__)[0], "data/")
 VENV_DATA_PATH = "./venv/Lib/site-packages/illumigator/data/"
 
@@ -57,12 +61,7 @@ H1_FONT_SIZE = 48
 
 # ========================= Script Constants =========================
 # Ray Casting Constants
-STARTING_DISTANCE_VALUE = (
-        WORLD_WIDTH ** 2 + WORLD_HEIGHT ** 2
-)  # Large number for starting out min distance calculations
-MAX_RAY_DISTANCE = math.sqrt(
-    STARTING_DISTANCE_VALUE
-)  # Max distance before ray goes off-screen
+MAX_RAY_DISTANCE = math.sqrt(WORLD_WIDTH**2 + WORLD_HEIGHT**2)  # Max distance before ray goes off-screen
 MAX_GENERATIONS: int = 20
 INDEX_OF_REFRACTION: float = 1.5
 
@@ -72,11 +71,11 @@ NUM_LIGHT_RAYS: int = 20
 # Light Receiver Constants
 CHARGE_DECAY: float = 0.99
 LIGHT_INCREMENT: float = 0.012 / NUM_LIGHT_RAYS
-RECEIVER_THRESHOLD: float = 0.7
+RECEIVER_THRESHOLD: float = 0.55
 
 # Player Constants
-PLAYER_REACH_DISTANCE_SQUARED: int = 200 ** 2
-PLAYER_MOVEMENT_SPEED = 10
+PLAYER_REACH_DISTANCE_SQUARED: int = 120 ** 2
+PLAYER_MOVEMENT_SPEED = 8
 OBJECT_ROTATION_AMOUNT: float = 0.004
 
 # Enemy Constants
@@ -90,9 +89,7 @@ def distance_squared(point1: numpy.ndarray, point2: numpy.ndarray) -> float:
     return dx * dx + dy * dy
 
 
-def rotate_around_center(
-        center: numpy.ndarray, point: numpy.ndarray, angle: float
-) -> numpy.ndarray:
+def rotate_around_center(center: numpy.ndarray, point: numpy.ndarray, angle: float) -> numpy.ndarray:
     relative_point = point - center
     rotated_point = numpy.array(
         [
@@ -103,7 +100,7 @@ def rotate_around_center(
     return rotated_point + center
 
 
-def two_d_cross_product(vector1: numpy.ndarray, vector2: numpy.ndarray):
+def two_d_cross_product(vector1: numpy.ndarray, vector2: numpy.ndarray) -> float:
     return vector1[0] * vector2[1] - vector1[1] * vector2[0]
 
 

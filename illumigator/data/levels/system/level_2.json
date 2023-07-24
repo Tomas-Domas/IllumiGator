@@ -1,27 +1,27 @@
 {
   "level_name": "Level 2",
-  "planet": "moon",
+  "planet": "mars",
   "level_data": {
     "mirror_coordinate_list": [
       [85, 360, 0],
-      [1150, 480, 0],
-      [1150, 240, 0]
+      [1100, 465, 0],
+      [1100, 255, 0]
     ],
     "wall_coordinate_list": [],
     "light_receiver_coordinate_list": [
-      [1050, 360, 0]
+      [950, 360, 0]
     ],
     "light_source_coordinate_list": [
       [90, 60, 1.57079632679]
     ],
     "animated_wall_coordinate_list": [
-      [900, 475, 1, 2, 0, 0, 50, 0.025, 0],
-      [900, 245, 1, 2, 0, 0, -50, 0.025, 0],
-      [800, 380, 1, 1, 0, 0, 10, 0.012, 0],
-      [800, 340, 1, 1, 0, 0, -10, 0.012, 0]
+      [850, 505, 1, 2, 0, 0, -280, 0.007, 0],
+      [760, 385, 1, 1, 0, 0, 5, 0.012, 0],
+      [760, 335, 1, 1, 0, 0, -5, 0.012, 0]
     ],
     "lens_coordinate_list": [
-      [160, 355, 0]
+      [160, 355, 0],
+      [660, 355, 0]
     ],
     "character_coordinates": [640, 360, 0],
     "enemy_coordinates": [-10, -10, 0]

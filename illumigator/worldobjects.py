@@ -295,11 +295,23 @@ class LightReceiver(WorldObject):
         super().__init__(position, rotation_angle)
         self.initialize_geometry(util.RECEIVER_SPRITE_INFO, spokes=4, is_receiver=True)
         self.initialize_sprites((planet+".png",) + util.RECEIVER_SPRITE_INFO[1:])
+        self.exploded_sprite = util.load_sprite(planet+"_exploded.png",
+                                                util.RECEIVER_SPRITE_INFO[1],
+                                                image_width=util.RECEIVER_SPRITE_INFO[2],
+                                                image_height=util.RECEIVER_SPRITE_INFO[3],
+                                                center_x=self._position[0],
+                                                center_y=self._position[1])
+        self.planet = planet
         self.charge = 0
 
     def draw(self):
         # color = min(255 * self.charge / util.RECEIVER_THRESHOLD, 255)
         color = max(255 * (1.0 - self.charge / util.RECEIVER_THRESHOLD), 0)
+
+        if self.charge >= util.RECEIVER_THRESHOLD - 0.01:
+            self._sprite_list[0] = self.exploded_sprite
+
         for sprite in self._sprite_list:
             sprite.color = (255, color, color)
+
         super().draw()

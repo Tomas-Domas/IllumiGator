@@ -131,11 +131,10 @@ class GameObject(arcade.Window):
                 self.pause_player.pause()
             if self.bgm_player is not None:
                 self.bgm_player.pause()
-            # This mp3 is a little loud, so the volume is automatically downscaled.
             if self.menu_player is None:
-                self.menu_player = arcade.play_sound(self.menu_music, scaled_music_volume * 0.5, looping=True)
+                self.menu_player = arcade.play_sound(self.menu_music, scaled_music_volume, looping=True)
             else:
-                self.menu_player.volume = scaled_music_volume * 0.5
+                self.menu_player.volume = scaled_music_volume
                 self.menu_player.play()
 
         elif self.game_state == "game":

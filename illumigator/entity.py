@@ -186,7 +186,7 @@ class Character:
                 numpy.zeros(2),
                 self.rotation_dir
                 * util.OBJECT_ROTATION_AMOUNT
-                * (2**self.rotation_factor),
+                * (2 ** self.rotation_factor),
             )
 
     def reset_pos(self, c_x, c_y):
@@ -210,8 +210,7 @@ class Character:
             self.character_sprite.center_y -= direction[1]
             self.world_object.move_geometry(numpy.array([0, -direction[1]]), 0)
 
-
-def update_sprite(self, direction=None):
+    def update_sprite(self, direction=None):
         if self.right:
             next_sprite = next(self.right_character_loader)
             if next_sprite is None:
@@ -264,21 +263,9 @@ def update_sprite(self, direction=None):
         direction_mag = numpy.linalg.norm(direction)
         if direction_mag > 0:
             direction = (
-                direction * util.PLAYER_MOVEMENT_SPEED / direction_mag
+                    direction * util.PLAYER_MOVEMENT_SPEED / direction_mag
             )
             self.move_and_check(direction, level)
-
-            self.character_sprite.center_x += direction[0]
-            self.world_object.move_geometry(numpy.array([direction[0], 0]), 0)
-            if level.check_collisions(self) or self.character_sprite.collides_with_sprite(enemy.character_sprite):
-                self.character_sprite.center_x -= direction[0]
-                self.world_object.move_geometry(numpy.array([-direction[0], 0]), 0)
-
-            self.character_sprite.center_y += direction[1]
-            self.world_object.move_geometry(numpy.array([0, direction[1]]), 0)
-            if level.check_collisions(self) or self.character_sprite.collides_with_sprite(enemy.character_sprite):
-                self.character_sprite.center_y -= direction[1]
-                self.world_object.move_geometry(numpy.array([0, -direction[1]]), 0)
 
             # Check if sound should be played
             if not arcade.Sound.is_playing(self.walking_sound, self.player):
@@ -333,15 +320,20 @@ class Enemy(Character):
         nearest_obstacle = None
         for obstacle in level.wall_list + level.mirror_list + level.light_receiver_list:
             distance_squared = (obstacle._position[0] - self.character_sprite.center_x) ** 2 + (
-                        obstacle._position[1] - self.character_sprite.center_y) ** 2
+                    obstacle._position[1] - self.character_sprite.center_y) ** 2
             if distance_squared < nearest_distance_squared:
                 nearest_distance_squared = distance_squared
                 nearest_obstacle = obstacle
         return nearest_obstacle
 
     def update(self, level, player):
-        self.walk(level)
-        if self.state == "aggro":
+        if self.update_sprite() is False:
+            return False
+        self.right = self.left = False
+
+        if self.state == "asleep":
+            self.character_sprite.texture = self.left_character_loader.stationary
+        elif self.state == "aggro":
             x_diff = (player.character_sprite.center_x - self.character_sprite.center_x)
             if x_diff < 0:
                 self.right = False
@@ -350,13 +342,6 @@ class Enemy(Character):
                 self.left = False
                 self.right = True
 
-        if self.update_sprite() is False:
-            return False
-        self.right = self.left = False
-
-        if self.state == "asleep":
-            self.character_sprite.texture = self.left_character_loader.stationary
-        elif self.state == "aggro":
             direction_to_player = numpy.array([
                 player.character_sprite.center_x - self.character_sprite.center_x,
                 player.character_sprite.center_y - self.character_sprite.center_y,
@@ -365,12 +350,6 @@ class Enemy(Character):
             direction_to_player /= numpy.linalg.norm(direction_to_player)
 
             nearest_obstacle = self.find_nearest_obstacle(level)
-
-            direction_mag = numpy.linalg.norm(direction)
-            if direction_mag > 0:
-                direction = (
-                    direction * util.ENEMY_MOVEMENT_SPEED / direction_mag
-                )  # Normalize and scale with speed
 
             direction_from_obstacle = numpy.array([
                 self.character_sprite.center_x - nearest_obstacle._position[0],
@@ -381,7 +360,7 @@ class Enemy(Character):
             direction = 0.7 * direction_to_player + 0.3 * direction_from_obstacle
             direction /= numpy.linalg.norm(direction)
 
-            direction *= ENEMY_MOVEMENT_SPEED
+            direction *= util.ENEMY_MOVEMENT_SPEED
             self.move_and_check(direction, level)
 
             if self.character_sprite.collides_with_sprite(player.character_sprite):

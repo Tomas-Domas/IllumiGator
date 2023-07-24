@@ -123,6 +123,7 @@ class WorldObject:
     def move_if_safe(
         self,
         character,
+        enemy,
         move_distance: numpy.ndarray = numpy.zeros(2),
         rotate_angle: float = 0,
     ) -> bool:
@@ -137,7 +138,7 @@ class WorldObject:
             )
             sprite.radians += rotate_angle
             sprite.center_x, sprite.center_y = new_position[0], new_position[1]
-        if self.check_collision(character.character_sprite):
+        if self.check_collision(character.character_sprite) or self.check_collision(enemy.character_sprite):
             for sprite in self._sprite_list:
                 new_position = util.rotate_around_center(
                     self._position,
@@ -159,13 +160,13 @@ class WorldObject:
             angle2=self._rotation_angle + angle_travel,
         )
 
-    def apply_object_animation(self, character):
+    def apply_object_animation(self, character, enemy):
         # Test for sprite collisions
         animation_data = self.obj_animation.get_new_position()
         position_change = animation_data[0] - self._position
         angle_change = animation_data[1] - self._rotation_angle
         if not self.move_if_safe(
-            character, move_distance=position_change, rotate_angle=angle_change
+            character, enemy, move_distance=position_change, rotate_angle=angle_change
         ):  # If move is unsafe
             self.obj_animation.backtrack()
 

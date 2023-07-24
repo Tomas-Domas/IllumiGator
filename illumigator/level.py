@@ -176,10 +176,10 @@ class Level:
         for world_object in self.lens_list:
             self.arcs.extend(world_object._geometry_segments)
 
-    def update(self, character: entity.Character):
+    def update(self, character: entity.Character, enemy: entity.Enemy):
         for wall in self.wall_list:
             if wall.obj_animation is not None:
-                wall.apply_object_animation(character)
+                wall.apply_object_animation(character, enemy)
 
         # receiverT = Timer("Receivers")
         for light_receiver in self.light_receiver_list:
@@ -276,8 +276,6 @@ class Level:
             lens.draw()
         for light_receiver in self.light_receiver_list:
             light_receiver.draw()
-        for entity_world_object in self.entity_world_object_list:
-            entity_world_object.draw()
 
     def check_collisions(self, character: entity.Character):
         for wall in (self.wall_list + self.mirror_list + self.lens_list + self.light_receiver_list):

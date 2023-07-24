@@ -136,7 +136,7 @@ class GameObject(arcade.Window):
                 self.menu_player = arcade.play_sound(self.menu_music, scaled_music_volume * 0.5, looping=True)
             else:
                 self.menu_player.volume = scaled_music_volume * 0.5
-                self.menu_player.play()
+                # self.menu_player.play()
 
         elif self.game_state == "game":
             if self.pause_player is not None:
@@ -147,7 +147,7 @@ class GameObject(arcade.Window):
                 self.bgm_player = arcade.play_sound(self.background_music, scaled_music_volume, looping=True)
             else:
                 self.bgm_player.volume = scaled_music_volume
-                self.bgm_player.play()
+                # self.bgm_player.play()
 
         if self.game_state == "paused" or self.game_state == "audio":
             if self.bgm_player is not None:
@@ -156,7 +156,7 @@ class GameObject(arcade.Window):
                 self.pause_player = arcade.play_sound(self.pause_music, scaled_music_volume, looping=True)
             else:
                 self.pause_player.volume = scaled_music_volume
-                self.pause_player.play()
+                # self.pause_player.play()
 
         if self.game_state == "game_over" or self.game_state == "final_win" or self.game_state == "win"\
                 or self.game_state == "community_win":
@@ -211,6 +211,11 @@ class GameObject(arcade.Window):
 
         elif self.game_state == "community_win":
             self.community_win_menu.draw()
+    
+    def unidle(self):
+        self.character.last_movement_timestamp = time.time()
+        self.character.left_character_loader.idle = False
+        self.character.right_character_loader.idle = False
 
     def on_key_press(self, key, key_modifiers):
         if key == arcade.key.Q:
@@ -232,6 +237,7 @@ class GameObject(arcade.Window):
 
         if self.game_state == "menu":
             if key == arcade.key.ENTER:
+                self.unidle()
                 self.game_state = "game"
             if key == arcade.key.ESCAPE:
                 self.on_close()
@@ -435,6 +441,7 @@ class GameObject(arcade.Window):
 
     def reset_level(self):
         self.enemy.state = "asleep"
+        self.unidle()
 
         # Create New character model
         self.character = entity.Character(walking_volume=self.effects_volume)

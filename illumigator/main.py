@@ -131,9 +131,9 @@ class GameObject(arcade.Window):
             if self.bgm_player is not None:
                 self.bgm_player.pause()
             if self.menu_player is None:
-                self.menu_player = arcade.play_sound(self.menu_music, scaled_music_volume, looping=True)
+                self.menu_player = arcade.play_sound(self.menu_music, scaled_music_volume * 0.5, looping=True)
             else:
-                self.menu_player.volume = scaled_music_volume
+                self.menu_player.volume = scaled_music_volume * 0.5
                 self.menu_player.play()
 
         elif self.game_state == "game":
@@ -151,9 +151,9 @@ class GameObject(arcade.Window):
             if self.bgm_player is not None:
                 self.bgm_player.pause()
             if self.pause_player is None:
-                self.pause_player = arcade.play_sound(self.pause_music, scaled_music_volume, looping=True)
+                self.pause_player = arcade.play_sound(self.pause_music, scaled_music_volume * 0.5, looping=True)
             else:
-                self.pause_player.volume = scaled_music_volume
+                self.pause_player.volume = scaled_music_volume * 0.5
                 self.pause_player.play()
 
         if self.game_state == "game_over" or self.game_state == "final_win" or self.game_state == "win"\

@@ -87,12 +87,10 @@ class PlayerSpriteLoader(SpriteLoader):
             return self._dead_sprites[self._dead_index]
         elif self.idle:
             if self._idle_index > len(self._idle_sprites) - 2:
-                print(self._idle_index)
                 self._idle_index = -1
                 return self._idle_sprites[-1]
             else:
                 self._idle_index = (self._idle_index + 1) % len(self._idle_sprites)
-                print(self._idle_index)
             return self._idle_sprites[self._idle_index]
         else:
             self._idle_index = self._dead_index = -1

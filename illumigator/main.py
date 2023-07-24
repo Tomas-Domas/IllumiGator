@@ -87,7 +87,7 @@ class GameObject(arcade.Window):
     def on_update(self, delta_time):
         # STATE MACHINE FOR UPDATING LEVEL
         if self.game_state == "game":
-            if self.character.update(self.current_level, self.effects_volume*self.master_volume) is False:
+            if self.character.update(self.current_level, self.effects_volume*self.master_volume, self.enemy) is False:
                 time.sleep(0.75)
                 self.game_state = "game_over"
 
@@ -401,13 +401,11 @@ class GameObject(arcade.Window):
             self.character.down = False
         if key == arcade.key.D or key == arcade.key.RIGHT:
             self.character.right = False
+
         if key == arcade.key.Q:
             self.character.rotation_dir -= 1
         if key == arcade.key.E:
             self.character.rotation_dir += 1
-
-        if self.character.update(self.current_level, self.effects_volume*self.master_volume) is False:
-            self.game_state = "game_over"
 
         if key == arcade.key.LEFT:
             self.audio_menu.slider_list[self.audio_menu.selection].left = False

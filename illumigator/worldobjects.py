@@ -28,6 +28,7 @@ class WorldObject:
 
     def initialize_sprites(self, sprite_info: tuple, *, dimensions: numpy.ndarray | None = None):
         sprite_path, sprite_scale, sprite_width, sprite_height = sprite_info
+        self._sprite_list = arcade.SpriteList()
         if dimensions is None:
             self._sprite_list.append(
                 util.load_sprite(

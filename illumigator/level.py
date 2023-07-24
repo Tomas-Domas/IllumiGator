@@ -277,15 +277,11 @@ class Level:
             entity_world_object.draw()
 
     def check_collisions(self, character: entity.Character):
-        for wall in self.wall_list:
+        for wall in (self.wall_list + self.mirror_list + self.lens_list + self.light_receiver_list):
             if wall.check_collision(character.character_sprite):
                 return True
-        for mirror in self.mirror_list:
-            if mirror.check_collision(character.character_sprite):
-                return True
-        for light_receiver in self.light_receiver_list:
-            if light_receiver.check_collision(character.character_sprite):
-                return True
+        else:
+            return False
 
 
 def load_level(level: dict, character: entity.Character, enemy: entity.Enemy) -> Level:

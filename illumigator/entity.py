@@ -77,9 +77,9 @@ class PlayerSpriteLoader(SpriteLoader):
 
     def __next__(self):
         if self.dead:
-            # Show last death sprite for 5 frames
+            # Show last death sprite for 20 frames
             if self._dead_index > len(self._dead_sprites) - 2:
-                if self._dead_frames_shown > 5:
+                if self._dead_frames_shown > 20:
                     # If death animation over return None
                     return None
                 self._dead_frames_shown += 1
@@ -125,7 +125,7 @@ class EnemySpriteLoader(SpriteLoader):
             fname = util.ENEMY_SLEEP_SPRITE.format(i=i)
             self._sleep_sprites_files.append(fname)
             self.stationary.append(util.load_texture(fname))
-    
+
     def iter_sleep_sprite(self):
         for texture in itertools.cycle(self.stationary):
             for _ in range(6):
@@ -175,21 +175,10 @@ class Character:
         if self.mirror_in_reach is not None:
             self.mirror_in_reach.draw_outline()
         self.character_sprite.draw(pixelated=True)
+        self.world_object.draw()
 
     def update(self, level, walking_volume, enemy):
         self.walking_volume = walking_volume
-
-        # Idle state animation
-        if any([self.up, self.down, self.left, self.right]):
-            self.last_movement_timestamp = time.time()
-            self.right_character_loader.idle = False
-            self.left_character_loader.idle = False
-        elif time.time() - self.last_movement_timestamp > util.PLAYER_IDLE_TIME:
-            # IDLE after PLAYER_IDLE_TIME seconds
-            self.right_character_loader.idle = True
-            self.left_character_loader.idle = True
-
-        # Walking. Return False if player died
         if self.walk(level, enemy) is False:
             return False
 
@@ -209,7 +198,7 @@ class Character:
                 numpy.zeros(2),
                 self.rotation_dir
                 * util.OBJECT_ROTATION_AMOUNT
-                * (2 ** self.rotation_factor),
+                * (2**self.rotation_factor),
             )
 
     def reset_pos(self, c_x, c_y):
@@ -220,88 +209,83 @@ class Character:
         self.status = None
         self.character_sprite.texture = next(self.right_character_loader)
 
-    def move_and_check(self, direction, level):
-        self.character_sprite.center_x += direction[0]
-        self.world_object.move_geometry(numpy.array([direction[0], 0]), 0)
-        if level.check_collisions(self):
-            self.character_sprite.center_x -= direction[0]
-            self.world_object.move_geometry(numpy.array([-direction[0], 0]), 0)
-
-        self.character_sprite.center_y += direction[1]
-        self.world_object.move_geometry(numpy.array([0, direction[1]]), 0)
-        if level.check_collisions(self):
-            self.character_sprite.center_y -= direction[1]
-            self.world_object.move_geometry(numpy.array([0, -direction[1]]), 0)
-
-    def update_sprite(self, direction=None):
-        if self.right:
-            next_sprite = next(self.right_character_loader)
-            if next_sprite is None:
-                return False
-            self.character_sprite.texture = next_sprite
-            if direction is not None:
-                direction[0] += 1
-        if self.left:
-            next_sprite = next(self.left_character_loader)
-            if next_sprite is None:
-                return False
-            self.character_sprite.texture = next_sprite
-            if direction is not None:
-                direction[0] -= 1
-
     def walk(self, level, enemy):
+        # Play death animation if dead
+        if getattr(self.right_character_loader, "dead", False):
+            if "_right" in self.character_sprite.texture.name:  # Facing right
+                next_sprite = next(self.right_character_loader)
+            else:
+                next_sprite = next(self.left_character_loader)
+            if next_sprite is not None:
+                self.character_sprite.texture = next_sprite
+                return
+            else:
+                return False  # Return False when animation is finished playing
+
+        # Determine movement direction
         direction = numpy.zeros(2)
-        if getattr(self.right_character_loader, "dead", False):
-            if "_right.png" in self.character_sprite.texture.name:
-                self.right = True
-                self.left = False
+        if self.right and not self.left:
+            direction[0] = 1
+        elif self.left and not self.right:
+            direction[0] = -1
+        if self.up and not self.down:
+            direction[1] = 1
+        elif self.down and not self.up:
+            direction[1] = -1
+
+        if not numpy.array_equal(direction, numpy.zeros(2)):
+            # Update Sprite
+            if direction[0] == 1:  # Moving right
+                next_sprite = next(self.right_character_loader)
+            elif direction[0] == -1:  # Moving left
+                next_sprite = next(self.left_character_loader)
+            elif "_right" in self.character_sprite.texture.name:  # Current animation is right-facing
+                next_sprite = next(self.right_character_loader)
             else:
-                self.right = True
-                self.left = False
-
-        if self.update_sprite(direction) is False:
-            return False
-
-        if getattr(self.right_character_loader, "dead", False):
-            return
-        dir_is_right = "_right" in self.character_sprite.texture.name
-        if self.up or self.down:
-            if dir_is_right:
-                self.character_sprite.texture = next(self.right_character_loader)
-            else:
-                self.character_sprite.texture = next(self.left_character_loader)
-        if self.up:
-            direction[1] += 1
-        if self.down:
-            direction[1] -= 1
-
-        if not self.up and not self.down and not self.left and not self.right:
-            if dir_is_right:
-                self.right_character_loader.reset()
-                self.character_sprite.texture = next(self.right_character_loader)
-            else:
-                self.left_character_loader.reset()
-                self.character_sprite.texture = next(self.left_character_loader)
-
-        direction_mag = numpy.linalg.norm(direction)
-        if direction_mag > 0:
-            direction = (
-                    direction * util.PLAYER_MOVEMENT_SPEED / direction_mag
-            )
-            self.move_and_check(direction, level)
+                next_sprite = next(self.left_character_loader)
+            if next_sprite is None:
+                return False
+            self.character_sprite.texture = next_sprite
 
             # Check if sound should be played
             if not arcade.Sound.is_playing(self.walking_sound, self.player):
                 self.player = arcade.play_sound(self.walking_sound, self.walking_volume)
+
+            # Reset timer for idling
+            self.last_movement_timestamp = time.time()
+            self.right_character_loader.idle = False
+            self.left_character_loader.idle = False
+
+            # Update X and Y positions (while checking for collisions)
+            direction = util.PLAYER_MOVEMENT_SPEED * direction / numpy.linalg.norm(direction)
+            self.character_sprite.center_x += direction[0]
+            self.world_object.move_geometry(numpy.array([direction[0], 0]), 0)
+            if level.check_collisions(self) or self.character_sprite.collides_with_sprite(enemy.character_sprite):
+                self.character_sprite.center_x -= direction[0]
+                self.world_object.move_geometry(numpy.array([-direction[0], 0]), 0)
+            self.character_sprite.center_y += direction[1]
+            self.world_object.move_geometry(numpy.array([0, direction[1]]), 0)
+            if level.check_collisions(self) or self.character_sprite.collides_with_sprite(enemy.character_sprite):
+                self.character_sprite.center_y -= direction[1]
+                self.world_object.move_geometry(numpy.array([0, -direction[1]]), 0)
 
         else:
             # Check if sound should be stopped
             if arcade.Sound.is_playing(self.walking_sound, self.player):
                 arcade.stop_sound(self.player)
 
-    def kill(self):
-        print("YOU DIED")
-        self.status = "dead"
+            # Check timer for idling
+            if time.time() - self.last_movement_timestamp > util.PLAYER_IDLE_TIME:
+                self.right_character_loader.idle = True
+                self.left_character_loader.idle = True
+
+            # Update Animation
+            if "_right" in self.character_sprite.texture.name:  # Current animation is right-facing:
+                self.right_character_loader.reset()
+                self.character_sprite.texture = next(self.right_character_loader)
+            else:
+                self.left_character_loader.reset()
+                self.character_sprite.texture = next(self.left_character_loader)
 
     def get_mirror_in_reach(self, level):
         closest_distance_squared = float('inf')
@@ -343,39 +327,27 @@ class Enemy(Character):
     def find_nearest_obstacle(self, level):
         nearest_distance_squared = float('inf')
         nearest_obstacle = None
-        for obstacle in level.wall_list + level.mirror_list + level.light_receiver_list:
-            distance_squared = (obstacle._position[0] - self.character_sprite.center_x) ** 2 + (
-                    obstacle._position[1] - self.character_sprite.center_y) ** 2
+        for obstacle in level.wall_list + level.mirror_list + level.light_receiver_list + level.lens_list:
+            distance_squared = (obstacle._position[0] - self.character_sprite.center_x) ** 2 + \
+                               (obstacle._position[1] - self.character_sprite.center_y) ** 2
             if distance_squared < nearest_distance_squared:
                 nearest_distance_squared = distance_squared
                 nearest_obstacle = obstacle
         return nearest_obstacle
 
     def update(self, level, player):
-        if self.update_sprite() is False:
-            return False
-        self.right = self.left = False
-
         if self.state == "asleep":
             self.character_sprite.texture = next(self.sleep_texture_iter)
-        elif self.state == "aggro":
-            x_diff = (player.character_sprite.center_x - self.character_sprite.center_x)
-            if x_diff < 0:
-                self.right = False
-                self.left = True
-            elif x_diff > 0:
-                self.left = False
-                self.right = True
 
+        elif self.state == "aggro":
+            # Determine movement direction
             direction_to_player = numpy.array([
-                player.character_sprite.center_x - self.character_sprite.center_x,
-                player.character_sprite.center_y - self.character_sprite.center_y,
+                float(player.character_sprite.center_x - self.character_sprite.center_x),
+                float(player.character_sprite.center_y - self.character_sprite.center_y),
             ])
-            direction_to_player = direction_to_player.astype(float)
             direction_to_player = direction_to_player / numpy.linalg.norm(direction_to_player)
 
             nearest_obstacle = self.find_nearest_obstacle(level)
-
             direction_from_obstacle = numpy.array([
                 self.character_sprite.center_x - nearest_obstacle._position[0],
                 self.character_sprite.center_y - nearest_obstacle._position[1],
@@ -383,10 +355,29 @@ class Enemy(Character):
             direction_from_obstacle = direction_from_obstacle / numpy.linalg.norm(direction_from_obstacle)
 
             direction = 0.7 * direction_to_player + 0.3 * direction_from_obstacle
-            direction = direction / numpy.linalg.norm(direction)
+            direction = util.ENEMY_MOVEMENT_SPEED * direction / numpy.linalg.norm(direction)
 
-            direction *= util.ENEMY_MOVEMENT_SPEED
-            self.move_and_check(direction, level)
+            # Update Sprite
+            if direction[0] > 0:
+                next_sprite = next(self.right_character_loader)
+            else:
+                next_sprite = next(self.left_character_loader)
+            if next_sprite is None:
+                return False
+            self.character_sprite.texture = next_sprite
+
+            # Update X and Y positions (while checking for collisions)
+            self.character_sprite.center_x += direction[0]
+            self.world_object.move_geometry(numpy.array([direction[0], 0]), 0)
+            if level.check_collisions(self):
+                self.character_sprite.center_x -= direction[0]
+                self.world_object.move_geometry(numpy.array([-direction[0], 0]), 0)
+            self.character_sprite.center_y += direction[1]
+            self.world_object.move_geometry(numpy.array([0, direction[1]]), 0)
+            if level.check_collisions(self):
+                self.character_sprite.center_y -= direction[1]
+                self.world_object.move_geometry(numpy.array([0, -direction[1]]), 0)
 
             if self.character_sprite.collides_with_sprite(player.character_sprite):
-                player.kill()
+                print("YOU DIED")
+                player.status = "dead"

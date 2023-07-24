@@ -276,8 +276,6 @@ class Level:
             lens.draw()
         for light_receiver in self.light_receiver_list:
             light_receiver.draw()
-        for entity_world_object in self.entity_world_object_list:
-            entity_world_object.draw()
 
     def check_collisions(self, character: entity.Character):
         for wall in (self.wall_list + self.mirror_list + self.lens_list + self.light_receiver_list):

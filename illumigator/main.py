@@ -1,5 +1,6 @@
 import cProfile
 import arcade
+import time
 
 from illumigator import entity, level, menus, util, level_selector
 from illumigator.util import ENVIRON_ASSETS_PATH, WORLD_WIDTH, WORLD_HEIGHT, WINDOW_TITLE
@@ -87,6 +88,7 @@ class GameObject(arcade.Window):
         # STATE MACHINE FOR UPDATING LEVEL
         if self.game_state == "game":
             if self.character.update(self.current_level, self.effects_volume*self.master_volume) is False:
+                time.sleep(0.75)
                 self.game_state = "game_over"
 
             self.enemy.update(self.current_level, self.character)

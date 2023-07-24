@@ -55,6 +55,7 @@ class PlayerSpriteLoader(SpriteLoader):
 
         self._idle_sprites = []
         self._idle_index = -1
+        self._idle_frames_shown = 0
         self.idle = False
 
         for i in range(6):
@@ -67,8 +68,9 @@ class PlayerSpriteLoader(SpriteLoader):
             fname = dead_sprite_format_string.format(i=i, direction=direction)
             self._dead_sprites.append(util.load_texture(fname))
 
-        for i in range(0, 3):
+        for i in range(0, 4):
             fname = idle_sprite_format.format(i=i, direction=direction)
+            
             self._idle_sprites.append(util.load_texture(fname))
 
         self.stationary = self._sprites[0]
@@ -85,13 +87,19 @@ class PlayerSpriteLoader(SpriteLoader):
                 self._dead_index = (self._dead_index + 1) % len(self._dead_sprites)
             return self._dead_sprites[self._dead_index]
         elif self.idle:
-            if self._idle_index > len(self._idle_sprites) - 2:
-                return self._idle_sprites[-1]
-            else:
-                self._idle_index = (self._idle_index + 1) % len(self._idle_sprites)
+            if self._idle_index in [0] and self._idle_frames_shown < 25:
+                self._idle_frames_shown += 1
+                return self._idle_sprites[self._idle_index] 
+            if self._idle_index in [1] and self._idle_frames_shown < 55:
+                self._idle_frames_shown += 1
+                return self._idle_sprites[self._idle_index] 
+            if self._idle_index in [2] and self._idle_frames_shown < 625:
+                self._idle_frames_shown += 1
+                return self._idle_sprites[self._idle_index]    
+            self._idle_frames_shown = 0
+            self._idle_index = (self._idle_index + 1) % len(self._idle_sprites)
             return self._idle_sprites[self._idle_index]
         else:
-            self._idle_index = self._dead_index = -1
             return super().__next__()
 
 

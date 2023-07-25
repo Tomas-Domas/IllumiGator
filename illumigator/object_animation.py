@@ -1,4 +1,5 @@
 import numpy
+import util
 
 
 class ObjectAnimation:
@@ -13,7 +14,7 @@ class ObjectAnimation:
         self, endpoint1: numpy.ndarray, endpoint2: numpy.ndarray, dt, angle1=0, angle2=0
     ):
         self.t = 0
-        self.dt = dt
+        self.dt = dt * util.UNIVERSAL_SPEED_MULTIPLIER
         self.endpoint1 = endpoint1
         self.endpoint2 = endpoint2
         self.angle1 = angle1

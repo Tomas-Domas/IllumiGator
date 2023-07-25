@@ -22,6 +22,10 @@ class Level:
             planet="moon"
     ):
 
+        if name == "Level 1":
+            background = "level1_background"
+
+
         self.enemy = enemy
         self.background = background + ".png"
         self.background_sprite = util.load_sprite(self.background,

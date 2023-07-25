@@ -22,6 +22,7 @@ class GameObject(arcade.Window):
 
         # ========================= Window =========================
         arcade.set_background_color(arcade.color.BLACK)
+        self.set_update_rate(1 / 45)
         self.mouse_x = util.WORLD_WIDTH // 2
         self.mouse_y = util.WORLD_HEIGHT // 2
 
@@ -464,7 +465,7 @@ def main():
 
 
     # window.game_state = "game"
-    # command = "for _ in range(1000):\n\twindow.on_update(1/60)"
+    # command = "for _ in range(10):\n\twindow.on_update(1/60)"
     # cProfile.runctx(command, {'window': window}, {}, sort='tottime')
 
 

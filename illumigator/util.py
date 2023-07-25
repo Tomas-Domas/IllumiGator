@@ -8,6 +8,7 @@ import heapq
 import subprocess
 from screeninfo import get_monitors
 
+UNIVERSAL_SPEED_MULTIPLIER = 1.3333333
 
 # ========================= Game Constants =========================
 # Window
@@ -65,7 +66,7 @@ MAX_GENERATIONS: int = 20
 INDEX_OF_REFRACTION: float = 1.5
 
 # Light Source Constants
-NUM_LIGHT_RAYS: int = 20
+NUM_LIGHT_RAYS: int = 25
 
 # Light Receiver Constants
 CHARGE_DECAY: float = 0.99
@@ -74,11 +75,11 @@ RECEIVER_THRESHOLD: float = 0.55
 
 # Player Constants
 PLAYER_REACH_DISTANCE_SQUARED: int = 120 ** 2
-PLAYER_MOVEMENT_SPEED = 8
-OBJECT_ROTATION_AMOUNT: float = 0.004
+PLAYER_MOVEMENT_SPEED = 8 * UNIVERSAL_SPEED_MULTIPLIER
+OBJECT_ROTATION_AMOUNT: float = 0.005 * UNIVERSAL_SPEED_MULTIPLIER
 
 # Enemy Constants
-ENEMY_MOVEMENT_SPEED = 4
+ENEMY_MOVEMENT_SPEED = 4 * UNIVERSAL_SPEED_MULTIPLIER
 
 
 

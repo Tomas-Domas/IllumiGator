@@ -1,6 +1,3 @@
-import math
-import time
-
 import arcade
 import numpy
 
@@ -33,11 +30,10 @@ class LightRay:
         if self._child_ray is not None:
             self._child_ray.draw(alpha)
 
-
 def get_line_raycast_results(ray_p1, ray_p2, line_p1, line_p2) -> tuple[numpy.ndarray, numpy.ndarray]:  # distances, line indices
     # Don't @ me...    https://en.wikipedia.org/wiki/Line-line_intersection#Given_two_points_on_each_line_segment
     ray_dx_dy = -ray_p2.T
-    line_dx_dy = numpy.array(((line_p1[:, 0] - line_p2[:, 0]), (line_p1[:, 1] - line_p2[:, 1])))
+    line_dx_dy = numpy.array((line_p1[:, 0] - line_p2[:, 0], line_p1[:, 1] - line_p2[:, 1]))
     x_dif = numpy.subtract.outer(line_p1[:, 0], ray_p1[:, 0])
     y_dif = numpy.subtract.outer(line_p1[:, 1], ray_p1[:, 1])
 
@@ -54,18 +50,22 @@ def get_line_raycast_results(ray_p1, ray_p2, line_p1, line_p2) -> tuple[numpy.nd
     )
 
     u[(u < 0) | (t < 0) | (t > 1)] = float('inf')  # u
-    min_indices = numpy.argmin(u, axis=0)
 
-    return u.T[:, min_indices].diagonal(), min_indices
+    return numpy.min(u, axis=0), numpy.argmin(u, axis=0)
 
 def get_arc_raycast_results(ray_ori_x, ray_ori_y, ray_dir_x, ray_dir_y, arc_x, arc_y, arc_r, arc_angle1, arc_angle2) -> numpy.ndarray:  # distances, line indices
     # Don't @ me...    https://en.wikipedia.org/wiki/Line-sphere_intersection#Calculation_using_vectors_in_3D
-    temp_calc = ((ray_ori_x * (ray_ori_y + ray_dir_y) - (ray_ori_x + ray_dir_x) * ray_ori_y) - numpy.multiply.outer(arc_x, ray_dir_y) + numpy.multiply.outer(arc_y, ray_dir_x))
-    nabla = (arc_r*arc_r - numpy.square(temp_calc.T)).T
+    temp_calc = (
+        (ray_ori_x * (ray_ori_y + ray_dir_y)
+         - (ray_ori_x + ray_dir_x) * ray_ori_y)
+         - numpy.multiply.outer(arc_x, ray_dir_y)
+         + numpy.multiply.outer(arc_y, ray_dir_x)
+    )
+    nabla = (arc_r * arc_r - temp_calc.T * temp_calc.T).T
     numpy.sqrt(nabla, where=nabla > 0, out=nabla)
 
-    point1_rel_x = (ray_dir_y*temp_calc - ray_dir_x*nabla).T
-    point1_rel_y = -(ray_dir_x*temp_calc + ray_dir_y*nabla).T
+    point1_rel_x = (ray_dir_y * temp_calc - ray_dir_x * nabla).T
+    point1_rel_y = -(ray_dir_x * temp_calc + ray_dir_y * nabla).T
     point1_dst_x = (point1_rel_x + arc_x).T - ray_ori_x
     point1_dst_y = (point1_rel_y + arc_y).T - ray_ori_y
     point1_rel_angle = numpy.arctan2(point1_rel_y, point1_rel_x)
@@ -81,7 +81,9 @@ def get_arc_raycast_results(ray_ori_x, ray_ori_y, ray_dir_x, ray_dir_y, arc_x, a
         ),
         numpy.sqrt(point1_dst_x*point1_dst_x + point1_dst_y*point1_dst_y).T,
         float('inf')
-    ).T
+    )
+    intersection_arc_index1 = numpy.argmin(intersection_distance1, axis=1)
+    intersection_distance1 = numpy.min(intersection_distance1, axis=1)
 
     point2_rel_x = (ray_dir_y*temp_calc + ray_dir_x*nabla).T
     point2_rel_y = (ray_dir_y*nabla - ray_dir_x*temp_calc).T
@@ -100,10 +102,12 @@ def get_arc_raycast_results(ray_ori_x, ray_ori_y, ray_dir_x, ray_dir_y, arc_x, a
         ),
         numpy.sqrt(point2_dst_x*point2_dst_x + point2_dst_y*point2_dst_y).T,
         float('inf')
-    ).T
+    )
+    intersection_arc_index2 = numpy.argmin(intersection_distance2, axis=1)
+    intersection_distance2 = numpy.min(intersection_distance2, axis=1)
 
     return numpy.where(
-        numpy.min(intersection_distance1, axis=0) < numpy.min(intersection_distance2, axis=0),
-        [numpy.min(intersection_distance1, axis=0), numpy.argmin(intersection_distance1, axis=0)],
-        [numpy.min(intersection_distance2, axis=0), numpy.argmin(intersection_distance2, axis=0)]
+        intersection_distance1 < intersection_distance2,
+        [intersection_distance1, intersection_arc_index1],
+        [intersection_distance2, intersection_arc_index2]
     )

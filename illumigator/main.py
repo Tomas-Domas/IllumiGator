@@ -454,15 +454,17 @@ def main():
     window = GameObject()
     window.setup()
 
-    window.game_state = "game"
-    window.on_update(1 / 60)
-    window.game_state = "menu"
+    # window.game_state = "game"
+    # for frame in range(10):
+    #     print(f'{" FRAME "+str(frame+1) + " ":=^42}')
+    #     window.on_update(1 / 60)
+    # window.game_state = "menu"
 
     arcade.run()
 
 
     # window.game_state = "game"
-    # command = "for _ in range(100):\n\twindow.on_update(1/60)"
+    # command = "for _ in range(1000):\n\twindow.on_update(1/60)"
     # cProfile.runctx(command, {'window': window}, {}, sort='tottime')
 
 

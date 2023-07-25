@@ -1,13 +1,12 @@
 import os
 import time
-from typing import Union
-from screeninfo import get_monitors
 import arcade
 import numpy
 import math
 import json
 import heapq
 import subprocess
+from screeninfo import get_monitors
 
 
 # ========================= Game Constants =========================
@@ -88,7 +87,6 @@ def distance_squared(point1: numpy.ndarray, point2: numpy.ndarray) -> float:
     dx, dy = point1[0] - point2[0], point1[1] - point2[1]
     return dx * dx + dy * dy
 
-
 def rotate_around_center(center: numpy.ndarray, point: numpy.ndarray, angle: float) -> numpy.ndarray:
     relative_point = point - center
     rotated_point = numpy.array(
@@ -107,15 +105,15 @@ def two_d_cross_product(vector1: numpy.ndarray, vector2: numpy.ndarray) -> float
 
 # ========================= File Handling Functions =========================
 def load_sprite(
-        filename: Union[str, None] = None,
+        filename: str | None = None,
         scale: float = 1,
         image_x: float = 0, image_y: float = 0,
         image_width: float = 0, image_height: float = 0,
         center_x: float = 0, center_y: float = 0,
         repeat_count_x: int = 1, repeat_count_y: int = 1,
         flipped_horizontally: bool = False, flipped_vertically: bool = False, flipped_diagonally: bool = False,
-        hit_box_algorithm: Union[str, None] = "Simple", hit_box_detail: float = 4.5,
-        texture: Union[arcade.Texture, None] = None,
+        hit_box_algorithm: str | None = "Simple", hit_box_detail: float = 4.5,
+        texture: arcade.Texture | None = None,
         angle: float = 0,
 ) -> arcade.Sprite:
     try:
@@ -303,14 +301,10 @@ mouseX = 0
 mouseY = 0
 
 class Timer:
-    def __init__(self, name="Timer"):
-        self.name = name
+    def __init__(self):
         self.start = time.perf_counter_ns()
-
-    def stop(self):
-        print(str(self.name + "                    ")[:20] + ":", ("               " + "{:,}".format(time.perf_counter_ns() - self.start) + "ns")[-16:])
 
     def lap(self, message):
         end = time.perf_counter_ns()
-        print(str(message + "                    ")[:20] + ":", ("               " + "{:,}".format(end - self.start) + "ns")[-16:])
+        print(f'{message: <20}||{"{:,}".format(end - self.start) + "ns": >15}')
         self.start = end

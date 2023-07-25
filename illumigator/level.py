@@ -1,4 +1,3 @@
-import arcade
 import numpy
 
 from illumigator import worldobjects, entity, util, light
@@ -158,7 +157,6 @@ class Level:
                 animated_wall_coordinates[7], animated_wall_coordinates[8])
 
         for lens_coordinates in lens_coordinate_list:
-            print(lens_coordinates)
             self.lens_list.append(
                 worldobjects.Lens(
                     numpy.array([
@@ -176,22 +174,27 @@ class Level:
         for world_object in self.lens_list:
             self.arcs.extend(world_object._geometry_segments)
 
+
     def update(self, character: entity.Character, enemy: entity.Enemy):
+        # timer = Timer()
         for wall in self.wall_list:
             if wall.obj_animation is not None:
                 wall.apply_object_animation(character, enemy)
 
-        # receiverT = Timer("Receivers")
+        # timer.lap("Wall animations")
+
         for light_receiver in self.light_receiver_list:
             light_receiver.charge *= util.CHARGE_DECAY
-        # receiverT.stop()
+
+        # timer.lap("Receiver Charge")
 
         if util.DEBUG_LIGHTS:
             for source in self.light_sources_list:
                 source.move(numpy.array([util.mouseX - source._position[0], util.mouseY - source._position[1]]))
 
+        # timer.lap("Light Source debug")
+
         #  ==================== Raycasting and update rays ====================
-        # raysT = Timer("RAYCAST")
 
         line_p1 = numpy.ndarray((len(self.line_segments), 2))
         line_p2 = numpy.ndarray((len(self.line_segments), 2))
@@ -203,31 +206,31 @@ class Level:
         for arc_i in range(len(self.arcs)):
             arc_center[arc_i], arc_radius[arc_i], arc_angles[arc_i][0], arc_angles[arc_i][1] = self.arcs[arc_i].center, self.arcs[arc_i].radius, self.arcs[arc_i]._start_angle, self.arcs[arc_i]._end_angle
 
-        # raysT.lap("Lines Prep")
+        # timer.lap("Line/Arc Prep")
 
         for light_source in self.light_sources_list:
             ray_queue = light_source.light_rays[:]
             queue_length = len(ray_queue)
-
             while queue_length > 0:
                 ray_p1 = numpy.ndarray((queue_length, 2))
                 ray_dir = numpy.ndarray((queue_length, 2))
                 for ray_i in range(queue_length):
                     ray_p1[ray_i], ray_dir[ray_i] = ray_queue[ray_i]._origin, ray_queue[ray_i]._direction
 
-                # raysT.lap("  Rays Prep")
+                # timer.lap("  Rays Prep")
 
                 nearest_line_distances, nearest_line_indices = light.get_line_raycast_results(ray_p1, ray_dir, line_p1, line_p2)
 
-                # raysT.lap("  Line Raycast")
+                # timer.lap("  Line Raycast")
 
                 if len(self.arcs) > 0:
                     nearest_arc_distance, nearest_arc_indices = light.get_arc_raycast_results(
                         ray_p1[:, 0], ray_p1[:, 1], ray_dir[:, 0], ray_dir[:, 1], arc_center[:, 0], arc_center[:, 1],
                         arc_radius, arc_angles[:, 0], arc_angles[:, 1])
-                    # raysT.lap("  Arc Raycast")
                 else:
                     nearest_arc_distance, nearest_arc_indices = numpy.full_like(nearest_line_distances, float('inf')), numpy.full_like(nearest_line_distances, -1)
+
+                # timer.lap("  Arc Raycast")
 
                 for i in range(queue_length):
                     ray = ray_queue[i]
@@ -242,6 +245,7 @@ class Level:
                             nearest_line.parent_object.charge += util.LIGHT_INCREMENT
                         elif nearest_line.is_enemy:
                             self.enemy.state = "aggro"
+                            ray._child_ray = None
                         else:
                             ray._child_ray = None
                     else:
@@ -256,13 +260,12 @@ class Level:
                         else:
                             ray._child_ray = None
 
-                # raysT.lap("  Rays Update")
+                # timer.lap("  Rays Update")
 
                 ray_queue = ray_queue[queue_length:]
                 queue_length = len(ray_queue)
 
-                # raysT.lap("  Queue Update")
-        del ray
+                # timer.lap("  Queue Update")
 
     def draw(self):
         self.background_sprite.draw(pixelated=True)

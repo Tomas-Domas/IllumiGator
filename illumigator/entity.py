@@ -378,5 +378,4 @@ class Enemy(Character):
                 self.world_object.move_geometry(numpy.array([0, -direction[1]]), 0)
 
             if self.character_sprite.collides_with_sprite(player.character_sprite):
-                print("YOU DIED")
                 player.status = "dead"

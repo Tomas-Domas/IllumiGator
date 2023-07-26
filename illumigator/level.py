@@ -261,7 +261,7 @@ class Level:
             light_receiver.draw()
 
     def check_collisions(self, character: entity.Character):
-        for wall in (self.wall_list + self.mirror_list + self.lens_list + self.light_receiver_list):
+        for wall in (self.wall_list + self.mirror_list + self.lens_list + self.light_receiver_list + self.light_sources_list):
             if wall.check_collision(character.character_sprite):
                 return True
         else:

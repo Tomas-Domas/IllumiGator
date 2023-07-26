@@ -8,7 +8,7 @@ from illumigator import entity, level, menus, util, level_selector
 class GameObject(arcade.Window):
     def __init__(self):
         super().__init__(util.WORLD_WIDTH, util.WORLD_HEIGHT, util.WINDOW_TITLE, resizable=True, antialiasing=True)
-        self.set_mouse_visible(not self.fullscreen)
+        self.set_mouse_visible(False)
         self.enemy = None
         self.character = None
         self.current_level = None
@@ -65,7 +65,6 @@ class GameObject(arcade.Window):
 
         # ========================= Fonts =========================
         arcade.text_pyglet.load_font(util.ENVIRON_ASSETS_PATH + "PressStart2P-Regular.ttf")
-        arcade.text_pyglet.load_font(util.ENVIRON_ASSETS_PATH + "AtlantisInternational.ttf")
 
         # ========================= Menus =========================
         self.main_menu = menus.MainMenu()
@@ -236,7 +235,6 @@ class GameObject(arcade.Window):
 
         if key == arcade.key.F11:
             self.set_fullscreen(not self.fullscreen)
-            self.set_mouse_visible(not self.fullscreen)
 
         if self.game_state == "menu":
             if key == arcade.key.ENTER:
@@ -347,7 +345,6 @@ class GameObject(arcade.Window):
                     self.game_state = "audio"
                 elif self.options_menu.selection == 3:
                     self.set_fullscreen(not self.fullscreen)
-                    self.set_mouse_visible(not self.fullscreen)
 
         elif self.game_state == "controls":
             if key == arcade.key.ESCAPE:

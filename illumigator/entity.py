@@ -196,7 +196,7 @@ class Character:
         if self.mirror_in_reach is None:
             self.rotation_factor = 0
         elif self.rotation_factor < 3.00:
-            self.rotation_factor += 1 / 15
+            self.rotation_factor += 0.075
 
         self.mirror_in_reach = self.get_mirror_in_reach(level)
         if self.mirror_in_reach is not None:
@@ -204,7 +204,7 @@ class Character:
                 self,
                 enemy,
                 numpy.zeros(2),
-                self.rotation_dir * util.OBJECT_ROTATION_AMOUNT * (2**self.rotation_factor),
+                self.rotation_dir * util.OBJECT_ROTATION_AMOUNT * (2**(self.rotation_factor) - 1),
             )
 
     def reset_pos(self, c_x, c_y):

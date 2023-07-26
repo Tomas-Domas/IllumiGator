@@ -6,7 +6,7 @@
       [140, 580, -0.785398163397],
       [340, 180, 1.57079632679],
       [740, 580, 0],
-      [900, 180, 0]
+      [900, 180, 1.0471975511965976]
     ],
     "wall_coordinate_list": [
       [340, 540, 1, 7, 0],
@@ -19,11 +19,9 @@
     "light_source_coordinate_list": [
       [140, 60, 1.57079632679]
     ],
-    "animated_wall_coordinate_list": [
-      [1100, 460, 1, 1, 0, 40, 0, 0.025, 3.141519]
-    ],
+    "animated_wall_coordinate_list": [],
     "lens_coordinate_list": [],
     "character_coordinates": [640, 360, 0],
-    "enemy_coordinates": [1080, 520, 0]
+    "enemy_coordinates": [1120, 320, 0]
   }
 }

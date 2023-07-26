@@ -160,11 +160,11 @@ def load_sprite(
         )
 
 
-def load_sound(filename: str) -> arcade.Sound:
+def load_sound(filename: str, streaming=False) -> arcade.Sound:
     try:
-        return arcade.load_sound(ENVIRON_ASSETS_PATH + filename)
+        return arcade.load_sound(ENVIRON_ASSETS_PATH + filename, streaming)
     except FileNotFoundError:
-        return arcade.load_sound(VENV_ASSETS_PATH + filename)
+        return arcade.load_sound(VENV_ASSETS_PATH + filename, streaming)
 
 
 def load_texture(filename: str) -> arcade.Texture:

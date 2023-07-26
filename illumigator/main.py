@@ -59,9 +59,9 @@ class GameObject(arcade.Window):
 
         # ========================= Sounds =========================
         self.menu_sound = util.load_sound("retro_blip.wav")
-        self.background_music = util.load_sound("ocean-of-ice.wav")
-        self.menu_music = util.load_sound("Hina_Fallen_leaves.wav")
-        self.pause_music = util.load_sound("Hina_Fallen_leaves.wav")
+        self.background_music = util.load_sound("ocean-of-ice.wav", streaming=True)
+        self.menu_music = util.load_sound("Hina_Fallen_leaves.wav", streaming=True)
+        self.pause_music = util.load_sound("Hina_Fallen_leaves.wav", streaming=True)
 
         # ========================= Fonts =========================
         arcade.text_pyglet.load_font(util.ENVIRON_ASSETS_PATH + "PressStart2P-Regular.ttf")

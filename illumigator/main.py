@@ -363,7 +363,7 @@ class GameObject(arcade.Window):
                     self.enemy)
                 if self.game_state == "official_level_select":
                     self.official_level_index = level_selector[self.game_state].selection + 1
-                self.game_state = "menu"
+                self.game_state = "game"
 
     def on_key_release(self, key, key_modifiers):
         if key == arcade.key.W or key == arcade.key.UP:

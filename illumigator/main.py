@@ -77,7 +77,6 @@ class GameObject(arcade.Window):
         self.community_selector_menu = level_selector.LevelSelector(is_community=True)
         self.community_win_menu = menus.GenericMenu("YOU WIN", ("RETRY", "QUIT TO MENU"))
 
-    # def reload(self):
 
     def on_update(self, delta_time):
         # STATE MACHINE FOR UPDATING LEVEL

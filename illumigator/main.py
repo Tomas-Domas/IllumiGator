@@ -130,10 +130,10 @@ class GameObject(arcade.Window):
             if self.bgm_player is not None:
                 self.bgm_player.pause()
             if self.menu_player is None and scaled_music_volume > 0:
-                self.menu_player = arcade.play_sound(self.menu_music, scaled_music_volume * 0.5, looping=True)
+                self.menu_player = arcade.play_sound(self.menu_music, float(scaled_music_volume * 0.5), looping=True)
             else:
                 if scaled_music_volume > 0:
-                    self.menu_player.volume = scaled_music_volume * 0.5
+                    self.menu_player.volume = float(scaled_music_volume) * 0.5
                     self.menu_player.play()
 
         elif self.game_state == "game":
@@ -142,20 +142,20 @@ class GameObject(arcade.Window):
             if self.menu_player is not None:
                 self.menu_player.pause()
             if self.bgm_player is None and scaled_music_volume > 0:
-                self.bgm_player = arcade.play_sound(self.background_music, scaled_music_volume, looping=True)
+                self.bgm_player = arcade.play_sound(self.background_music, float(scaled_music_volume), looping=True)
             else:
                 if scaled_music_volume > 0:
-                    self.bgm_player.volume = scaled_music_volume
+                    self.bgm_player.volume = float(scaled_music_volume)
                     self.bgm_player.play()
 
         if self.game_state == "paused" or self.game_state == "audio":
             if self.bgm_player is not None:
                 self.bgm_player.pause()
             if self.pause_player is None and scaled_music_volume > 0:
-                self.pause_player = arcade.play_sound(self.pause_music, scaled_music_volume * 0.5, looping=True)
+                self.pause_player = arcade.play_sound(self.pause_music, float(scaled_music_volume) * 0.5, looping=True)
             else:
                 if scaled_music_volume > 0:
-                    self.pause_player.volume = scaled_music_volume * 0.5
+                    self.pause_player.volume = float(scaled_music_volume) * 0.5
                     self.pause_player.play()
 
         if self.game_state == "game_over" or self.game_state == "final_win" or self.game_state == "win"\
@@ -231,8 +231,8 @@ class GameObject(arcade.Window):
                       or self.game_state == "audio" or self.game_state == "final_win" \
                       or self.game_state == "official_level_select" or self.game_state == "community_level_select"
         if game_paused and valid_menu_press:
-            if self.effects_volume * self.master_volume != 0:
-                arcade.play_sound(self.menu_sound, self.effects_volume * self.master_volume)
+            if self.effects_volume * self.master_volume > 0.0:
+                arcade.play_sound(self.menu_sound, float(self.effects_volume * self.master_volume))
 
         if key == arcade.key.F11:
             self.set_fullscreen(not self.fullscreen)

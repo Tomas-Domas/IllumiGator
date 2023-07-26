@@ -1,13 +1,11 @@
-from abc import abstractmethod
-import arcade
-import numpy
 import math
 import time
+from abc import abstractmethod
 
-from illumigator import light
-from illumigator import util
-from illumigator import geometry
-from illumigator import object_animation
+import arcade
+import numpy
+
+from illumigator import geometry, light, object_animation, util
 
 
 class WorldObject:
@@ -91,7 +89,7 @@ class WorldObject:
                 self._geometry_segments.append(
                     geometry.Line(self, self._position + axis1, self._position - axis1, is_reflective, is_refractive, is_receiver, is_enemy)
                 )
-                axis1 = util.rotate_around_center(numpy.zeros(2), axis1, numpy.pi / spokes)
+                axis1 = util.rotate(axis1, numpy.pi / spokes)
         else:  # Only do the diagonals
             self._geometry_segments = [
                 geometry.Line(self, self._position - axis1 - axis2, self._position + axis1 + axis2, is_reflective, is_refractive, is_receiver, is_enemy),
@@ -101,12 +99,6 @@ class WorldObject:
 
     def draw(self):
         self._sprite_list.draw(pixelated=True)
-        if util.DEBUG_GEOMETRY:
-            for segment in self._geometry_segments:
-                if segment.is_reflective:
-                    segment.draw(color=arcade.color.MAGENTA)
-                else:
-                    segment.draw()
 
     def distance_squared_to_center(self, point_x, point_y):
         return util.distance_squared(self._position, numpy.array([point_x, point_y]))
@@ -129,7 +121,7 @@ class WorldObject:
     ) -> bool:
         for sprite in self._sprite_list:
             new_position = (
-                util.rotate_around_center(
+                util.rotate_around_point(
                     self._position,
                     numpy.array([sprite.center_x, sprite.center_y]),
                     rotate_angle,
@@ -140,7 +132,7 @@ class WorldObject:
             sprite.center_x, sprite.center_y = new_position[0], new_position[1]
         if self.check_collision(character.character_sprite) or self.check_collision(enemy.character_sprite):
             for sprite in self._sprite_list:
-                new_position = util.rotate_around_center(
+                new_position = util.rotate_around_point(
                     self._position,
                     numpy.array([sprite.center_x, sprite.center_y]) - move_distance,
                     -rotate_angle,

@@ -1,5 +1,6 @@
 import numpy
-import util
+
+from illumigator import util
 
 
 class ObjectAnimation:

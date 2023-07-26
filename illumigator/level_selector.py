@@ -1,10 +1,6 @@
 import arcade
-from illumigator import util
-from illumigator.level import Level, load_level
 
-x_midpoint = util.WORLD_WIDTH // 2
-y_midpoint = util.WORLD_HEIGHT // 2
-planet_size = 64
+from illumigator import util
 
 
 class LevelSelector:
@@ -50,11 +46,11 @@ class LevelSelector:
         for index in range(0, len(self.levels)):
             column = index % 5
             row = index // 5
-            y_start_point = util.WORLD_HEIGHT - util.WORLD_HEIGHT // 4 - (3/2 * planet_size)
+            y_start_point = util.WORLD_HEIGHT - util.WORLD_HEIGHT // 4 - 96
             self.planets.append(util.load_sprite(
                 self.planet_filenames[index],
                 scale=2,
-                center_x=column * util.WORLD_WIDTH // 5 + (3/2 * planet_size),
+                center_x=column * util.WORLD_WIDTH // 5 + 96,
                 center_y=y_start_point - row * util.WORLD_HEIGHT // 4))
 
     def update(self):
@@ -80,11 +76,11 @@ class LevelSelector:
         for index in range(0, len(self.levels)):
             column = index % 5
             row = index // 5
-            y_start_point = util.WORLD_HEIGHT - util.WORLD_HEIGHT // 4 - (3 / 2 * planet_size)
+            y_start_point = util.WORLD_HEIGHT - util.WORLD_HEIGHT // 4 - 96
             self.planets.append(util.load_sprite(
                 self.planet_filenames[index],
                 scale=2,
-                center_x=column * util.WORLD_WIDTH // 5 + (3 / 2 * planet_size),
+                center_x=column * util.WORLD_WIDTH // 5 + 96,
                 center_y=y_start_point - row * util.WORLD_HEIGHT // 4))
 
     def draw(self):

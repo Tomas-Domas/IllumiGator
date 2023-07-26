@@ -2,9 +2,6 @@ import arcade
 
 from illumigator import util
 
-x_midpoint = util.WORLD_WIDTH // 2
-y_midpoint = util.WORLD_HEIGHT // 2
-
 
 class Slider:
     def __init__(self, center_x=0, center_y=0, scale=1, pos=1):
@@ -65,8 +62,8 @@ class MainMenu:
 
         arcade.draw_text(
             "Illumi",
-            x_midpoint + 25,
-            y_midpoint,
+            util.X_MIDPOINT + 25,
+            util.Y_MIDPOINT,
             arcade.color.YELLOW,
             util.H2_FONT_SIZE,
             anchor_x="right",
@@ -74,8 +71,8 @@ class MainMenu:
         )
         arcade.draw_text(
             "Gator",
-            x_midpoint + 25,
-            y_midpoint,
+            util.X_MIDPOINT + 25,
+            util.Y_MIDPOINT,
             arcade.color.GREEN,
             util.H2_FONT_SIZE,
             anchor_x="left",
@@ -86,8 +83,8 @@ class MainMenu:
         for i in range(len(options)):
             arcade.draw_text(
                 options[i],
-                x_midpoint,
-                y_midpoint - 50 * (i+1),
+                util.X_MIDPOINT,
+                util.Y_MIDPOINT - 50 * (i+1),
                 arcade.color.WHITE,
                 util.BODY_FONT_SIZE,
                 anchor_x="center",
@@ -104,8 +101,8 @@ class GenericMenu:
         self.overlay_sprite = util.load_sprite(
                 "overlay_background.png",
                 scale=4,
-                center_x=x_midpoint,
-                center_y=y_midpoint,
+                center_x=util.X_MIDPOINT,
+                center_y=util.Y_MIDPOINT,
             )
 
     def draw(self):
@@ -116,8 +113,8 @@ class GenericMenu:
             arcade.set_background_color(arcade.color.BLACK)
         arcade.draw_text(
             self.title,
-            x_midpoint,
-            y_midpoint + util.WORLD_HEIGHT // 4,
+            util.X_MIDPOINT,
+            util.Y_MIDPOINT + util.WORLD_HEIGHT // 4,
             arcade.color.WHITE,
             util.H2_FONT_SIZE,
             anchor_x="center",
@@ -130,8 +127,8 @@ class GenericMenu:
                 color = arcade.color.YELLOW if self.overlay else arcade.color.RED
             arcade.draw_text(
                 option,
-                x_midpoint,
-                y_midpoint - dy,
+                util.X_MIDPOINT,
+                util.Y_MIDPOINT - dy,
                 color,
                 util.H3_FONT_SIZE,
                 anchor_x="center",

@@ -1,7 +1,8 @@
+import math
 from abc import ABC, abstractmethod
+
 import arcade
 import numpy
-import math
 
 from illumigator import util
 
@@ -41,22 +42,20 @@ class Line(Geometry):
 
     def move(self, world_object_center, move_distance, rotate_angle=0):
         self._point1 = (
-            util.rotate_around_center(world_object_center, self._point1, rotate_angle)
+            util.rotate_around_point(world_object_center, self._point1, rotate_angle)
             + move_distance
         )
         self._point2 = (
-            util.rotate_around_center(world_object_center, self._point2, rotate_angle)
+            util.rotate_around_point(world_object_center, self._point2, rotate_angle)
             + move_distance
         )
-        self.calculate_normal()
+        if self.is_reflective:
+            self.calculate_normal()
 
     def calculate_normal(self):
         x = self._point1[1] - self._point2[1]
         y = self._point2[0] - self._point1[0]
         self._normal = numpy.array([x, y]) / math.sqrt(x*x + y*y)
-
-    def get_reflected_direction(self, ray):
-        return ray._direction - (2 * self._normal * (self._normal @ ray._direction))
 
     def draw(self, *, color=arcade.color.BLUE, thickness=1):
         arcade.draw_line(
@@ -84,7 +83,7 @@ class Circle(Geometry):
 
     def move(self, world_object_center, move_distance, rotate_angle=0):
         self.center = (
-            util.rotate_around_center(world_object_center, self.center, rotate_angle)
+            util.rotate_around_point(world_object_center, self.center, rotate_angle)
             + move_distance
         )
 
@@ -132,7 +131,7 @@ class Arc(Geometry):
 
     def move(self, world_object_center, move_distance, rotate_angle=0):
         self.center = (
-            util.rotate_around_center(world_object_center, self.center, rotate_angle)
+            util.rotate_around_point(world_object_center, self.center, rotate_angle)
             + move_distance
         )
         self._start_angle += rotate_angle
@@ -175,10 +174,10 @@ class Arc(Geometry):
             if util.two_d_cross_product(ray._direction, normal) < 0:
                 angle = -angle
             # Create vector with new angle from normal
-            return -util.rotate_around_center(numpy.zeros(2), normal, angle)
+            return -util.rotate(normal, angle)
 
         else:  # Ray is going out of shape
             angle = (numpy.pi - math.acos(-dot_product)) * util.INDEX_OF_REFRACTION
             if util.two_d_cross_product(ray._direction, normal) > 0:
                 angle = -angle
-            return util.rotate_around_center(numpy.zeros(2), normal, angle)
+            return util.rotate(normal, angle)

@@ -1,7 +1,6 @@
 import numpy
 
 from illumigator import worldobjects, entity, util, light
-from illumigator.util import WALL_SIZE, PLAYER_SPRITE_INFO, Timer
 
 
 class Level:
@@ -45,23 +44,23 @@ class Level:
         self.entity_world_object_list = []
         self.wall_list: list[worldobjects.WorldObject] = [
             worldobjects.Wall(
-                numpy.array([WALL_SIZE / 2, 720 / 2]),
-                numpy.array([1, 720 / WALL_SIZE]),
+                numpy.array([util.WALL_SIZE / 2, 720 / 2]),
+                numpy.array([1, 720 / util.WALL_SIZE]),
                 0,
             ),
             worldobjects.Wall(
-                numpy.array([1280 - WALL_SIZE / 2, 720 / 2]),
-                numpy.array([1, 720 / WALL_SIZE]),
+                numpy.array([1280 - util.WALL_SIZE / 2, 720 / 2]),
+                numpy.array([1, 720 / util.WALL_SIZE]),
                 0,
             ),
             worldobjects.Wall(
-                numpy.array([1280 / 2, WALL_SIZE / 2]),
-                numpy.array([1280 / WALL_SIZE - 2, 1]),
+                numpy.array([1280 / 2, util.WALL_SIZE / 2]),
+                numpy.array([1280 / util.WALL_SIZE - 2, 1]),
                 0,
             ),
             worldobjects.Wall(
-                numpy.array([1280 / 2, 720 - WALL_SIZE / 2]),
-                numpy.array([1280 / WALL_SIZE - 2, 1]),
+                numpy.array([1280 / 2, 720 - util.WALL_SIZE / 2]),
+                numpy.array([1280 / util.WALL_SIZE - 2, 1]),
                 0,
             )
         ]
@@ -71,7 +70,7 @@ class Level:
             numpy.array([character_coordinates[0], character_coordinates[1]]),
             0
         )
-        character.world_object.initialize_geometry(PLAYER_SPRITE_INFO)
+        character.world_object.initialize_geometry(util.PLAYER_SPRITE_INFO)
         character.status = "alive"
 
         enemy.character_sprite.position = numpy.array([enemy_coordinates[0], enemy_coordinates[1]])
@@ -79,7 +78,7 @@ class Level:
             numpy.array([enemy_coordinates[0], enemy_coordinates[1]]),
             0
         )
-        enemy.world_object.initialize_geometry(PLAYER_SPRITE_INFO, is_enemy=True)
+        enemy.world_object.initialize_geometry(util.PLAYER_SPRITE_INFO, is_enemy=True)
         enemy.state = "asleep"
 
         self.entity_world_object_list.append(character.world_object)
@@ -180,26 +179,14 @@ class Level:
 
 
     def update(self, character: entity.Character, enemy: entity.Enemy):
-        # timer = Timer()
         for wall in self.wall_list:
             if wall.obj_animation is not None:
                 wall.apply_object_animation(character, enemy)
 
-        # timer.lap("Wall animations")
-
         for light_receiver in self.light_receiver_list:
             light_receiver.charge *= util.CHARGE_DECAY
 
-        # timer.lap("Receiver Charge")
-
-        if util.DEBUG_LIGHTS:
-            for source in self.light_sources_list:
-                source.move(numpy.array([util.mouseX - source._position[0], util.mouseY - source._position[1]]))
-
-        # timer.lap("Light Source debug")
-
         #  ==================== Raycasting and update rays ====================
-
         line_p1 = numpy.ndarray((len(self.line_segments), 2))
         line_p2 = numpy.ndarray((len(self.line_segments), 2))
         for line_i in range(len(self.line_segments)):
@@ -210,8 +197,6 @@ class Level:
         for arc_i in range(len(self.arcs)):
             arc_center[arc_i], arc_radius[arc_i], arc_angles[arc_i][0], arc_angles[arc_i][1] = self.arcs[arc_i].center, self.arcs[arc_i].radius, self.arcs[arc_i]._start_angle, self.arcs[arc_i]._end_angle
 
-        # timer.lap("Line/Arc Prep")
-
         for light_source in self.light_sources_list:
             ray_queue = light_source.light_rays[:]
             queue_length = len(ray_queue)
@@ -221,11 +206,7 @@ class Level:
                 for ray_i in range(queue_length):
                     ray_p1[ray_i], ray_dir[ray_i] = ray_queue[ray_i]._origin, ray_queue[ray_i]._direction
 
-                # timer.lap("  Rays Prep")
-
                 nearest_line_distances, nearest_line_indices = light.get_line_raycast_results(ray_p1, ray_dir, line_p1, line_p2)
-
-                # timer.lap("  Line Raycast")
 
                 if len(self.arcs) > 0:
                     nearest_arc_distance, nearest_arc_indices = light.get_arc_raycast_results(
@@ -234,16 +215,15 @@ class Level:
                 else:
                     nearest_arc_distance, nearest_arc_indices = numpy.full_like(nearest_line_distances, float('inf')), numpy.full_like(nearest_line_distances, -1)
 
-                # timer.lap("  Arc Raycast")
-
                 for i in range(queue_length):
                     ray = ray_queue[i]
                     if nearest_line_distances[i] <= nearest_arc_distance[i]:
                         ray._end = ray._origin + ray._direction * nearest_line_distances[i]
                         nearest_line = self.line_segments[int(nearest_line_indices[i])]
                         if nearest_line.is_reflective and ray._generation < util.MAX_GENERATIONS:  # if the ray hit a mirror, create child and cast it
-                            ray._generate_child_ray(nearest_line.get_reflected_direction(ray))
-                            # ray._generate_child_ray(numpy.array([-0.8, -0.6]))
+                            ray._generate_child_ray(
+                                ray._direction - (2 * nearest_line._normal * (nearest_line._normal @ ray._direction))
+                            )
                             ray_queue.append(ray._child_ray)
                         elif nearest_line.is_receiver:  # Charge receiver when a light ray hits it
                             nearest_line.parent_object.charge += util.LIGHT_INCREMENT
@@ -264,12 +244,8 @@ class Level:
                         else:
                             ray._child_ray = None
 
-                # timer.lap("  Rays Update")
-
                 ray_queue = ray_queue[queue_length:]
                 queue_length = len(ray_queue)
-
-                # timer.lap("  Queue Update")
 
     def draw(self):
         self.background_sprite.draw(pixelated=True)

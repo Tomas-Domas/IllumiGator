@@ -1,20 +1,23 @@
+import heapq
+import json
+import math
 import os
-import time
+import subprocess
+
 import arcade
 import numpy
-import math
-import json
-import heapq
-import subprocess
 from screeninfo import get_monitors
 
-UNIVERSAL_SPEED_MULTIPLIER = 1.3333333
+FRAME_RATE = 50
+UNIVERSAL_SPEED_MULTIPLIER = 60/FRAME_RATE
 
 # ========================= Game Constants =========================
 # Window
 WORLD_WIDTH: int = 1280  # Width of the game for calculating coordinates and positions
 WORLD_HEIGHT: int = 720  # Height of the game
 WINDOW_TITLE: str = "IllumiGator"
+X_MIDPOINT = WORLD_WIDTH // 2
+Y_MIDPOINT = WORLD_HEIGHT // 2
 
 # Monitor
 for m in get_monitors():
@@ -88,15 +91,27 @@ def distance_squared(point1: numpy.ndarray, point2: numpy.ndarray) -> float:
     dx, dy = point1[0] - point2[0], point1[1] - point2[1]
     return dx * dx + dy * dy
 
-def rotate_around_center(center: numpy.ndarray, point: numpy.ndarray, angle: float) -> numpy.ndarray:
+def rotate_around_point(center: numpy.ndarray, point: numpy.ndarray, angle: float) -> numpy.ndarray:
+    cosine = math.cos(angle)
+    sine = math.sin(angle)
     relative_point = point - center
     rotated_point = numpy.array(
         [
-            relative_point[0] * math.cos(angle) - relative_point[1] * math.sin(angle),
-            relative_point[0] * math.sin(angle) + relative_point[1] * math.cos(angle),
+            relative_point[0] * cosine - relative_point[1] * sine,
+            relative_point[0] * sine + relative_point[1] * cosine,
         ]
     )
     return rotated_point + center
+
+def rotate(point: numpy.ndarray, angle: float) -> numpy.ndarray:
+    cosine = math.cos(angle)
+    sine = math.sin(angle)
+    return numpy.array(
+        [
+            point[0] * cosine - point[1] * sine,
+            point[0] * sine + point[1] * cosine,
+        ]
+    )
 
 
 def two_d_cross_product(vector1: numpy.ndarray, vector2: numpy.ndarray) -> float:
@@ -288,21 +303,3 @@ def opendir(filename):
         raise FileNotFoundError
     except:
         subprocess.Popen(['xdg-open', filename])
-
-
-
-# ========================= Development Help =========================
-# Debug
-DEBUG_GEOMETRY: bool = False  # Toggle with G
-DEBUG_LIGHTS: bool = False  # Toggle with L
-mouseX = 0
-mouseY = 0
-
-class Timer:
-    def __init__(self):
-        self.start = time.perf_counter_ns()
-
-    def lap(self, message):
-        end = time.perf_counter_ns()
-        print(f'{message: <20}||{"{:,}".format(end - self.start) + "ns": >15}')
-        self.start = end

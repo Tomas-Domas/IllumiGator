@@ -1,14 +1,13 @@
-import cProfile
-import arcade
 import time
 
+import arcade
+
 from illumigator import entity, level, menus, util, level_selector
-from illumigator.util import ENVIRON_ASSETS_PATH, WORLD_WIDTH, WORLD_HEIGHT, WINDOW_TITLE
 
 
 class GameObject(arcade.Window):
     def __init__(self):
-        super().__init__(WORLD_WIDTH, WORLD_HEIGHT, WINDOW_TITLE, resizable=True, antialiasing=True)
+        super().__init__(util.WORLD_WIDTH, util.WORLD_HEIGHT, util.WINDOW_TITLE, resizable=True, antialiasing=True)
         self.set_mouse_visible(not self.fullscreen)
         self.enemy = None
         self.character = None
@@ -23,9 +22,7 @@ class GameObject(arcade.Window):
 
         # ========================= Window =========================
         arcade.set_background_color(arcade.color.BLACK)
-        self.set_update_rate(1 / 45)
-        self.mouse_x = util.WORLD_WIDTH // 2
-        self.mouse_y = util.WORLD_HEIGHT // 2
+        self.set_update_rate(1 / util.FRAME_RATE)
 
         # ========================= Menus =========================
         self.main_menu = None
@@ -67,8 +64,8 @@ class GameObject(arcade.Window):
         self.pause_music = util.load_sound("Hina_Fallen_leaves.mp3")
 
         # ========================= Fonts =========================
-        arcade.text_pyglet.load_font(ENVIRON_ASSETS_PATH + "PressStart2P-Regular.ttf")
-        arcade.text_pyglet.load_font(ENVIRON_ASSETS_PATH + "AtlantisInternational.ttf")
+        arcade.text_pyglet.load_font(util.ENVIRON_ASSETS_PATH + "PressStart2P-Regular.ttf")
+        arcade.text_pyglet.load_font(util.ENVIRON_ASSETS_PATH + "AtlantisInternational.ttf")
 
         # ========================= Menus =========================
         self.main_menu = menus.MainMenu()
@@ -418,16 +415,13 @@ class GameObject(arcade.Window):
             self.audio_menu.slider_list[self.audio_menu.selection].right = False
 
     def on_resize(self, width: float, height: float):
-        min_ratio = min(width / WORLD_WIDTH, height / WORLD_HEIGHT)
+        min_ratio = min(width / util.WORLD_WIDTH, height / util.WORLD_HEIGHT)
         window_width = width / min_ratio
         window_height = height / min_ratio
-        width_difference = (window_width - WORLD_WIDTH) / 2
-        height_difference = (window_height - WORLD_HEIGHT) / 2
-        arcade.set_viewport(-width_difference, WORLD_WIDTH + width_difference, -height_difference, WORLD_HEIGHT +
+        width_difference = (window_width - util.WORLD_WIDTH) / 2
+        height_difference = (window_height - util.WORLD_HEIGHT) / 2
+        arcade.set_viewport(-width_difference, util.WORLD_WIDTH + width_difference, -height_difference, util.WORLD_HEIGHT +
                             height_difference)
-
-    def on_mouse_motion(self, x: int, y: int, dx: int, dy: int):
-        util.mouseX, util.mouseY = x, y
 
     def on_close(self):
         self.settings["volume"]["master"] = self.master_volume
@@ -452,19 +446,7 @@ class GameObject(arcade.Window):
 def main():
     window = GameObject()
     window.setup()
-
-    # window.game_state = "game"
-    # for frame in range(10):
-    #     print(f'{" FRAME "+str(frame+1) + " ":=^42}')
-    #     window.on_update(1 / 60)
-    # window.game_state = "menu"
-
     arcade.run()
-
-
-    # window.game_state = "game"
-    # command = "for _ in range(10):\n\twindow.on_update(1/60)"
-    # cProfile.runctx(command, {'window': window}, {}, sort='tottime')
 
 
 if __name__ == "__main__":

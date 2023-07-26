@@ -1,8 +1,9 @@
 import itertools
 import time
+
 import arcade
-import pyglet.media
 import numpy
+import pyglet.media
 
 from illumigator import util
 

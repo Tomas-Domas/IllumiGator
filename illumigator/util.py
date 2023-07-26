@@ -169,7 +169,6 @@ def load_data(filename: str, is_level=False, is_system_level=True) -> dict:
 
     try:
         file = open(ENVIRON_DATA_PATH + addon_path + filename)
-        print(ENVIRON_DATA_PATH + addon_path + filename)
     except FileNotFoundError:
         file = open(VENV_DATA_PATH + addon_path + filename)
 
@@ -206,7 +205,6 @@ def update_community_metadata() -> None:
     # Get levels.json metadata file from community directory
     try:
         metadata_file = open(ENVIRON_DATA_PATH + addon_path + "levels.json")
-        print(ENVIRON_DATA_PATH + addon_path + "levels.json")
     except FileNotFoundError:
         metadata_file = open(VENV_DATA_PATH + addon_path + "levels.json")
 
@@ -256,7 +254,6 @@ def get_level_metadata(page_size: int = 15, page: int = 1, is_community=False) -
 
     try:
         metadata_file = open(ENVIRON_DATA_PATH + addon_path + "levels.json")
-        print(ENVIRON_DATA_PATH + addon_path + "levels.json")
     except FileNotFoundError:
         metadata_file = open(VENV_DATA_PATH + addon_path + "levels.json")
 
@@ -296,7 +293,7 @@ def opendir(filename):
 
 # ========================= Development Help =========================
 # Debug
-DEBUG_GEOMETRY: bool = True  # Toggle with G
+DEBUG_GEOMETRY: bool = False  # Toggle with G
 DEBUG_LIGHTS: bool = False  # Toggle with L
 mouseX = 0
 mouseY = 0

@@ -294,7 +294,6 @@ class Level:
 
 def load_level(level: dict, character: entity.Character, enemy: entity.Enemy) -> Level:
     level_data = level["level_data"]
-    print(level["level_name"])
     return Level(character,
                  enemy,
                  level_data["wall_coordinate_list"],

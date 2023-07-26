@@ -9,6 +9,7 @@ from illumigator.util import ENVIRON_ASSETS_PATH, WORLD_WIDTH, WORLD_HEIGHT, WIN
 class GameObject(arcade.Window):
     def __init__(self):
         super().__init__(WORLD_WIDTH, WORLD_HEIGHT, WINDOW_TITLE, resizable=True, antialiasing=True)
+        self.set_mouse_visible(not self.fullscreen)
         self.enemy = None
         self.character = None
         self.current_level = None
@@ -234,6 +235,7 @@ class GameObject(arcade.Window):
 
         if key == arcade.key.F11:
             self.set_fullscreen(not self.fullscreen)
+            self.set_mouse_visible(not self.fullscreen)
 
         if self.game_state == "menu":
             if key == arcade.key.ENTER:
@@ -247,11 +249,6 @@ class GameObject(arcade.Window):
                 self.game_state = "community_level_select"
 
         elif self.game_state == "game":
-            if key == arcade.key.G:
-                util.DEBUG_GEOMETRY = not util.DEBUG_GEOMETRY
-            if key == arcade.key.L:
-                util.DEBUG_LIGHTS = not util.DEBUG_LIGHTS
-
             if key == arcade.key.ESCAPE:
                 self.game_state = "paused"
             if key == arcade.key.W or key == arcade.key.UP:
@@ -345,6 +342,7 @@ class GameObject(arcade.Window):
                     self.game_state = "audio"
                 elif self.options_menu.selection == 3:
                     self.set_fullscreen(not self.fullscreen)
+                    self.set_mouse_visible(not self.fullscreen)
 
         elif self.game_state == "controls":
             if key == arcade.key.ESCAPE:

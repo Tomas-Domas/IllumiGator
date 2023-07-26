@@ -181,7 +181,7 @@ class Mirror(WorldObject):
         self._geometry_segments[2].calculate_normal()
 
     def draw_outline(self):
-        thickness = int(2.5 + math.sin(15 * time.time()))
+        thickness = int(4 + 2 * math.sin(15 * time.time()))
         for segment in self._geometry_segments:
             segment.draw(thickness=thickness, color=arcade.color.RED)
 
@@ -230,7 +230,7 @@ class LightSource(WorldObject):
         self.calculate_light_ray_positions()
 
     def draw(self):
-        alpha = int(32 + 32 * math.sin(2.5 * time.time()))
+        alpha = int(25 + 15 * math.sin(4 * time.time()))
         for ray in self.light_rays:
             ray.draw(alpha)
         super().draw()

@@ -71,8 +71,10 @@ class PlayerSpriteLoader(SpriteLoader):
 
         for i in range(0, 4):
             fname = idle_sprite_format.format(i=i, direction=direction)
-            
+
             self._idle_sprites.append(util.load_texture(fname))
+        fname = idle_sprite_format.format(i=1, direction=direction)
+        self._idle_sprites.append(util.load_texture(fname))
 
         self.stationary = self._sprites[0]
 
@@ -88,15 +90,18 @@ class PlayerSpriteLoader(SpriteLoader):
                 self._dead_index = (self._dead_index + 1) % len(self._dead_sprites)
             return self._dead_sprites[self._dead_index]
         elif self.idle:
-            if self._idle_index in [0] and self._idle_frames_shown < 25:
+            if self._idle_index in [0] and self._idle_frames_shown < 15:
                 self._idle_frames_shown += 1
                 return self._idle_sprites[self._idle_index] 
-            if self._idle_index in [1] and self._idle_frames_shown < 55:
+            elif self._idle_index in [1] and self._idle_frames_shown < 2:
                 self._idle_frames_shown += 1
                 return self._idle_sprites[self._idle_index] 
-            if self._idle_index in [2] and self._idle_frames_shown < 625:
+            elif self._idle_index in [2] and self._idle_frames_shown < 15:
                 self._idle_frames_shown += 1
-                return self._idle_sprites[self._idle_index]    
+                return self._idle_sprites[self._idle_index]
+            elif self._idle_index in [3] and self._idle_frames_shown < 2:
+                self._idle_frames_shown += 1
+                return self._idle_sprites[self._idle_index]
             self._idle_frames_shown = 0
             self._idle_index = (self._idle_index + 1) % len(self._idle_sprites)
             return self._idle_sprites[self._idle_index]
@@ -175,6 +180,7 @@ class Character:
     def draw(self):
         if self.mirror_in_reach is not None:
             self.mirror_in_reach.draw_outline()
+            self.mirror_in_reach.draw()
         self.character_sprite.draw(pixelated=True)
         self.world_object.draw()
 

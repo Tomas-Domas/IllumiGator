@@ -9,7 +9,6 @@ class LightRay:
         self._end = numpy.zeros(2)
         self._child_ray: LightRay | None = None
         self._generation = generation
-        self._flicker = 20
 
     def _generate_child_ray(self, direction):
         if self._child_ray is None:
@@ -23,7 +22,7 @@ class LightRay:
             self._child_ray._direction = direction
 
     def draw(self, alpha):
-        color = (255, 255, 255, alpha + self._flicker)
+        color = (255, 255, 255, alpha)
         arcade.draw_line(*self._origin, *self._end, color=color, line_width=6)
         arcade.draw_line(*self._origin, *self._end, color=color, line_width=4)
         arcade.draw_line(*self._origin, *self._end, color=color, line_width=3)

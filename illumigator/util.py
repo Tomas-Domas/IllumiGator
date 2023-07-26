@@ -8,11 +8,11 @@ import arcade
 import numpy
 from screeninfo import get_monitors
 
-FRAME_RATE = 50
-UNIVERSAL_SPEED_MULTIPLIER = 60/FRAME_RATE
 
 # ========================= Game Constants =========================
 # Window
+FRAME_RATE = 40
+UNIVERSAL_SPEED_MULTIPLIER = 60/FRAME_RATE
 WORLD_WIDTH: int = 1280  # Width of the game for calculating coordinates and positions
 WORLD_HEIGHT: int = 720  # Height of the game
 WINDOW_TITLE: str = "IllumiGator"
@@ -69,7 +69,7 @@ MAX_GENERATIONS: int = 20
 INDEX_OF_REFRACTION: float = 1.5
 
 # Light Source Constants
-NUM_LIGHT_RAYS: int = 25
+NUM_LIGHT_RAYS: int = 30
 
 # Light Receiver Constants
 CHARGE_DECAY: float = 0.99

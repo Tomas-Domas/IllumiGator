@@ -254,8 +254,8 @@ class Character:
             self.character_sprite.texture = next_sprite
 
             # Check if sound should be played
-            if not arcade.Sound.is_playing(self.walking_sound, self.player):
-                self.player = arcade.play_sound(self.walking_sound, self.walking_volume)
+            if not arcade.Sound.is_playing(self.walking_sound, self.player) and self.walking_volume > 0:
+                self.player = arcade.play_sound(self.walking_sound, float(self.walking_volume))
 
             # Reset timer for idling
             self.last_movement_timestamp = time.time()

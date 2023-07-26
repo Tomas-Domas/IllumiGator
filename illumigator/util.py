@@ -29,7 +29,7 @@ for m in get_monitors():
 
 # ========================= Asset Constants =========================
 # World Objects
-WALL_SPRITE_INFO: tuple = ("wall2.png", 2.5, 16, 16)  # path, scale, width, height
+WALL_SPRITE_INFO: tuple = ("wall.png", 2.5, 16, 16)  # path, scale, width, height
 MIRROR_SPRITE_INFO: tuple = ("mirror.png", 1.3, 9, 48)
 LENS_SPRITE_INFO: tuple = ("lens.png", 1.3, 9, 48)
 SOURCE_SPRITE_INFO: tuple = ("sun.png", 1, 32, 32)

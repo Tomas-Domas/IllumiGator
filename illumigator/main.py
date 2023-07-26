@@ -129,35 +129,39 @@ class GameObject(arcade.Window):
                 self.pause_player.pause()
             if self.bgm_player is not None:
                 self.bgm_player.pause()
-            if self.menu_player is None:
+            if self.menu_player is None and scaled_music_volume > 0:
                 self.menu_player = arcade.play_sound(self.menu_music, scaled_music_volume * 0.5, looping=True)
             else:
-                self.menu_player.volume = scaled_music_volume * 0.5
-                self.menu_player.play()
+                if scaled_music_volume > 0:
+                    self.menu_player.volume = scaled_music_volume * 0.5
+                    self.menu_player.play()
 
         elif self.game_state == "game":
             if self.pause_player is not None:
                 self.pause_player.pause()
             if self.menu_player is not None:
                 self.menu_player.pause()
-            if self.bgm_player is None:
+            if self.bgm_player is None and scaled_music_volume > 0:
                 self.bgm_player = arcade.play_sound(self.background_music, scaled_music_volume, looping=True)
             else:
-                self.bgm_player.volume = scaled_music_volume
-                self.bgm_player.play()
+                if scaled_music_volume > 0:
+                    self.bgm_player.volume = scaled_music_volume
+                    self.bgm_player.play()
 
         if self.game_state == "paused" or self.game_state == "audio":
             if self.bgm_player is not None:
                 self.bgm_player.pause()
-            if self.pause_player is None:
+            if self.pause_player is None and scaled_music_volume > 0:
                 self.pause_player = arcade.play_sound(self.pause_music, scaled_music_volume * 0.5, looping=True)
             else:
-                self.pause_player.volume = scaled_music_volume * 0.5
-                self.pause_player.play()
+                if scaled_music_volume > 0:
+                    self.pause_player.volume = scaled_music_volume * 0.5
+                    self.pause_player.play()
 
         if self.game_state == "game_over" or self.game_state == "final_win" or self.game_state == "win"\
                 or self.game_state == "community_win":
-            self.bgm_player.pause()
+            if self.bgm_player is not None:
+                self.bgm_player.pause()
 
     def on_draw(self):
         self.clear()
@@ -273,7 +277,8 @@ class GameObject(arcade.Window):
                 elif self.game_menu.selection == 2:
                     self.game_state = "options"
                 elif self.game_menu.selection == 3:
-                    self.bgm_player.seek(0.0)
+                    if self.bgm_player is not None:
+                        self.bgm_player.seek(0.0)
                     if self.pause_player is not None:
                         self.pause_player.seek(0.0)
                     self.reset_level()
@@ -297,14 +302,16 @@ class GameObject(arcade.Window):
                         self.reset_level()
                         self.game_state = "game"
                     elif selection == 2:
-                        self.bgm_player.seek(0.0)
+                        if self.bgm_player is not None:
+                            self.bgm_player.seek(0.0)
                         self.game_state = "menu"
                 elif self.game_state == "final_win":
                     if selection == 0:
                         self.reset_level()
                         self.game_state = "game"
                     elif selection == 1:
-                        self.bgm_player.seek(0.0)
+                        if self.bgm_player is not None:
+                            self.bgm_player.seek(0.0)
                         self.game_state = "menu"
 
         elif self.game_state == "game_over" or self.game_state == "community_win":
@@ -319,7 +326,8 @@ class GameObject(arcade.Window):
                     self.reset_level()
                     self.game_state = "game"
                 elif menu[self.game_state].selection == 1:
-                    self.bgm_player.seek(0.0)
+                    if self.bgm_player is not None:
+                        self.bgm_player.seek(0.0)
                     self.reset_level()
                     self.game_state = "menu"
 

@@ -387,8 +387,8 @@ class GameObject(arcade.Window):
 
     def on_resize(self, width: float, height: float):
         min_ratio = min(width / util.WORLD_WIDTH, height / util.WORLD_HEIGHT)
-        window_width = width / min_ratio
-        window_height = height / min_ratio
+        window_width = width / min_ratio if min_ratio != 0 else 1
+        window_height = height / min_ratio if min_ratio != 0 else 1
         width_difference = (window_width - util.WORLD_WIDTH) / 2
         height_difference = (window_height - util.WORLD_HEIGHT) / 2
         arcade.set_viewport(-width_difference, util.WORLD_WIDTH + width_difference, -height_difference, util.WORLD_HEIGHT +

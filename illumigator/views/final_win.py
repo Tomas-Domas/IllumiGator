@@ -3,7 +3,7 @@ import arcade
 from illumigator import menus, util
 
 
-class WinView(arcade.View):
+class FinalWinView(arcade.View):
     def __init__(self):
         super().__init__()
 

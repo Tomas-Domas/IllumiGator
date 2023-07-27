@@ -3,7 +3,10 @@ import time
 
 from illumigator.views.paused import PausedView
 from illumigator.views.lose import LoseView
-from illumigator import entity, level, menus, util, level_selector
+from illumigator.views.win import WinView
+from illumigator.views.community_win import CommunityWinView
+from illumigator.views.final_win import FinalWinView
+from illumigator import entity, level, util
 
 
 class GameView(arcade.View):
@@ -41,17 +44,20 @@ class GameView(arcade.View):
                self.current_level.light_receiver_list):
             time.sleep(0.5)
             if not self.official_level_status:
-                self.game_state = "community_win"  # TODO: change to community_win view
                 self.official_level_status = False
+                community_win_view = CommunityWinView()
+                self.window.show_view(community_win_view)
             elif self.official_level_index == self.official_level_count:
                 self.official_level_status = True
                 self.current_level_path = "level_" + str(self.official_level_index) + ".json"
-                self.game_state = "final_win"  # TODO: change to final_win view
+                final_win_view = FinalWinView()
+                self.window.show_view(final_win_view)
             else:
                 self.official_level_index += 1
                 self.official_level_status = True
                 self.current_level_path = "level_" + str(self.official_level_index) + ".json"
-                self.game_state = "win"  # TODO: change to win view
+                win_view = WinView()
+                self.window.show_view(win_view)
 
             self.current_level = level.load_level(
                 util.load_data(self.current_level_path, True, self.official_level_status),
@@ -59,7 +65,7 @@ class GameView(arcade.View):
                 self.enemy)
 
         if self.character.status == "dead":
-            # Show dead animations
+            # Show death animations
             self.character.left_character_loader.dead = True
             self.character.right_character_loader.dead = True
             self.enemy.state = "player_dead"
@@ -105,5 +111,3 @@ class GameView(arcade.View):
 
         if self.bgm_player is None and scaled_music_volume > 0:
             self.bgm_player = arcade.play_sound(self.bgm_music, scaled_music_volume, looping=True)
-
-

@@ -83,6 +83,10 @@ OBJECT_ROTATION_AMOUNT: float = 0.01 * UNIVERSAL_SPEED_MULTIPLIER
 # Enemy Constants
 ENEMY_MOVEMENT_SPEED = 4 * UNIVERSAL_SPEED_MULTIPLIER
 
+MASTER_VOLUME = 1
+MUSIC_VOLUME = 1
+EFFECTS_VOLUME = 1
+
 
 
 # ========================= Physics Functions =========================

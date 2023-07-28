@@ -19,6 +19,7 @@ class GameView(arcade.View):
         self.bgm_player = None
 
         self.bgm_music = util.load_sound("ocean-of-ice.wav", streaming=True)
+        arcade.text_pyglet.load_font(util.ENVIRON_ASSETS_PATH + "PressStart2P-Regular.ttf")
 
         # ========================= Level Data =========================
         self.settings = util.load_data("config.json")
@@ -71,6 +72,7 @@ class GameView(arcade.View):
             self.enemy.state = "player_dead"
 
     def on_draw(self):
+        self.window.clear()
         self.current_level.draw()
         self.character.draw()
         self.enemy.draw()
@@ -81,7 +83,7 @@ class GameView(arcade.View):
         if symbol == arcade.key.E:
             self.character.rotation_dir -= 1
         if symbol == arcade.key.ESCAPE:
-            paused_view = PausedView()
+            paused_view = PausedView(self)
             self.window.show_view(paused_view)
         if symbol == arcade.key.W or symbol == arcade.key.UP:
             self.character.up = True
@@ -111,3 +113,18 @@ class GameView(arcade.View):
 
         if self.bgm_player is None and scaled_music_volume > 0:
             self.bgm_player = arcade.play_sound(self.bgm_music, scaled_music_volume, looping=True)
+
+    def unidle(self):
+        self.character.last_movement_timestamp = time.time()
+        self.character.left_character_loader.idle = False
+        self.character.right_character_loader.idle = False
+
+    def reset_level(self):
+        self.enemy.state = "asleep"
+        self.unidle()
+
+        # Create New character model
+        self.character = entity.Character(walking_volume=util.EFFECTS_VOLUME)
+
+        self.current_level = level.load_level(util.load_data(
+            self.current_level_path, True, self.official_level_status), self.character, self.enemy)

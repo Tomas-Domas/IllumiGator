@@ -47,7 +47,6 @@ class GameObject(arcade.Window):
 
         # ========================= Menus =========================
         self.main_menu = menus.MainMenu()
-        self.game_menu = menus.GenericMenu("PAUSED", ("RESUME", "RESTART", "OPTIONS", "QUIT TO MENU"), overlay=True)
         self.win_menu = menus.GenericMenu("LEVEL COMPLETED", ("CONTINUE", "RETRY", "QUIT TO MENU"))
         self.final_win_menu = menus.GenericMenu("YOU WIN", ("RETRY", "QUIT TO MENU"))
         self.lose_menu = menus.GenericMenu("YOU DIED", ("RETRY", "QUIT TO MENU"))
@@ -122,11 +121,6 @@ class GameObject(arcade.Window):
 
         elif self.game_state == "community_win":
             self.community_win_menu.draw()
-    
-    def unidle(self):
-        self.character.last_movement_timestamp = time.time()
-        self.character.left_character_loader.idle = False
-        self.character.right_character_loader.idle = False
 
     def on_key_press(self, key, key_modifiers):
         valid_menu_press = key == arcade.key.UP or key == arcade.key.DOWN or key == arcade.key.LEFT \
@@ -153,25 +147,6 @@ class GameObject(arcade.Window):
                 self.game_state = "official_level_select"
             if key == arcade.key.C:
                 self.game_state = "community_level_select"
-
-        elif self.game_state == "paused":
-            if key == arcade.key.ESCAPE:
-                self.game_state = "game"
-            if key == arcade.key.S or key == arcade.key.DOWN:
-                self.game_menu.increment_selection()
-            if key == arcade.key.W or key == arcade.key.UP:
-                self.game_menu.decrement_selection()
-            if key == arcade.key.ENTER:
-                if self.game_menu.selection == 0:
-                    self.game_state = "game"
-                elif self.game_menu.selection == 1:
-                    self.reset_level()
-                    self.game_state = "game"
-                elif self.game_menu.selection == 2:
-                    self.game_state = "options"
-                elif self.game_menu.selection == 3:
-                    self.reset_level()
-                    self.game_state = "menu"
 
         elif self.game_state == "win" or self.game_state == "final_win":
             win_screen = {"win": self.win_menu,
@@ -306,30 +281,3 @@ class GameObject(arcade.Window):
         self.settings["current_level"] = self.official_level_index
         util.write_data("config.json", self.settings)
         arcade.close_window()
-
-    def reset_level(self):
-        self.enemy.state = "asleep"
-        self.unidle()
-
-        # Create New character model
-        self.character = entity.Character(walking_volume=self.effects_volume)
-        
-        self.current_level = level.load_level(util.load_data(
-            self.current_level_path, True, self.official_level_status), self.character, self.enemy)
-        self.game_state = "game"
-
-
-def main():
-    # window = GameObject()
-    # window.setup()
-    # arcade.run()
-
-    window = arcade.Window(util.WORLD_WIDTH, util.WORLD_HEIGHT, util.WINDOW_TITLE)
-    game_view = GameView()
-    window.show_view(game_view)
-    game_view.setup()
-    arcade.run()
-
-
-if __name__ == "__main__":
-    main()

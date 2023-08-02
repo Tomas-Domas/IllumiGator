@@ -44,7 +44,6 @@ class PausedView(arcade.View):
                 self.game_view.reset_level()
                 self.window.show_view(self.game_view)
             elif self.menu.selection == 2:
-                self.menu_player = arcade.stop_sound(self.menu_player)
                 options_view = OptionsView(self)
                 self.window.show_view(options_view)
             elif self.menu.selection == 3:
@@ -55,5 +54,5 @@ class PausedView(arcade.View):
     def on_show_view(self):
         scaled_music_volume = util.MUSIC_VOLUME * util.MASTER_VOLUME * 0.5
 
-        if self.menu_player is None and scaled_music_volume > 0:
+        if self.menu_player is None:
             self.menu_player = arcade.play_sound(self.menu_music, scaled_music_volume, looping=True)

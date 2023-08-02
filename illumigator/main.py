@@ -198,31 +198,9 @@ class GameObject(arcade.Window):
             if key == arcade.key.ESCAPE:
                 self.game_state = "options"
 
-        elif self.game_state == "audio":
-            if key == arcade.key.ESCAPE:
-                self.game_state = "options"
-            if key == arcade.key.LEFT:
-                self.audio_menu.slider_list[self.audio_menu.selection].left = True
-            if key == arcade.key.RIGHT:
-                self.audio_menu.slider_list[self.audio_menu.selection].right = True
-            if key == arcade.key.UP:
-                self.audio_menu.slider_list[self.audio_menu.selection].left = False
-                self.audio_menu.slider_list[self.audio_menu.selection].right = False
-                self.audio_menu.decrement_selection()
-            if key == arcade.key.DOWN:
-                self.audio_menu.slider_list[self.audio_menu.selection].left = False
-                self.audio_menu.slider_list[self.audio_menu.selection].right = False
-                self.audio_menu.increment_selection()
-
         if self.game_state == "community_level_select" or self.game_state == "official_level_select":
             level_selector = {"community_level_select": self.community_selector_menu,
                               "official_level_select": self.official_selector_menu}
-
-    def on_key_release(self, key, key_modifiers):
-        if key == arcade.key.LEFT:
-            self.audio_menu.slider_list[self.audio_menu.selection].left = False
-        if key == arcade.key.RIGHT:
-            self.audio_menu.slider_list[self.audio_menu.selection].right = False
 
     def on_resize(self, width: float, height: float):
         min_ratio = min(width / util.WORLD_WIDTH, height / util.WORLD_HEIGHT)

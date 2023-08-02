@@ -129,7 +129,7 @@ class GameView(arcade.View):
     def on_show_view(self):
         scaled_music_volume = util.MUSIC_VOLUME * util.MASTER_VOLUME
 
-        if self.bgm_player is None and scaled_music_volume > 0:
+        if self.bgm_player is None:
             self.bgm_player = arcade.play_sound(self.bgm_music, scaled_music_volume, looping=True)
 
     def on_hide_view(self):

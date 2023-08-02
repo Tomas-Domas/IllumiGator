@@ -42,5 +42,5 @@ class MainMenuView(arcade.View):
     def on_show_view(self):
         scaled_music_volume = util.MUSIC_VOLUME * util.MASTER_VOLUME * 0.5
 
-        if self.menu_player is None and scaled_music_volume > 0:
+        if self.menu_player is None:
             self.menu_player = arcade.play_sound(self.menu_music, scaled_music_volume, looping=True)

@@ -38,7 +38,7 @@ class OptionsView(arcade.View):
                 controls_view = ControlsView()
                 self.window.show_view(controls_view)
             elif self.options_menu.selection == 2:
-                audio_view = AudioView()
+                audio_view = AudioView(self)
                 self.window.show_view(audio_view)
             elif self.options_menu.selection == 3:
                 self.window.set_fullscreen(not self.window.fullscreen)

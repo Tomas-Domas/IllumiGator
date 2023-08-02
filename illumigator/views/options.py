@@ -10,8 +10,6 @@ class OptionsView(arcade.View):
         super().__init__()
         self.paused_view = paused_view
         self.menu_effect = util.load_sound("retro_blip.wav")
-        self.menu_music = util.load_sound("Hina_Fallen_leaves.wav", streaming=True)
-        self.menu_player = None
         self.effect_keys = (arcade.key.UP, arcade.key.DOWN,
                             arcade.key.W, arcade.key.S,
                             arcade.key.ESCAPE, arcade.key.ENTER)
@@ -20,9 +18,6 @@ class OptionsView(arcade.View):
     def on_draw(self):
         self.window.clear()
         self.options_menu.draw()
-
-    def on_update(self, delta_time: float):
-        self.update_audio()
 
     def on_key_press(self, symbol: int, modifiers: int):
         scaled_effects_volume = util.EFFECTS_VOLUME * util.MASTER_VOLUME
@@ -47,10 +42,3 @@ class OptionsView(arcade.View):
                 self.window.show_view(audio_view)
             elif self.options_menu.selection == 3:
                 self.window.set_fullscreen(not self.window.fullscreen)
-
-    def update_audio(self):
-        scaled_music_volume = util.MUSIC_VOLUME * util.MASTER_VOLUME * 0.5  # damp loud audio
-        is_playable = self.menu_player is None and self.paused_view.menu_player is None
-
-        if is_playable and scaled_music_volume > 0:
-            self.menu_player = arcade.play_sound(self.menu_music, scaled_music_volume, looping=True)

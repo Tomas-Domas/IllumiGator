@@ -1,14 +1,13 @@
 import arcade
 
-from illumigator.views.game import GameView
+from illumigator.views.main_menu import MainMenuView
 import util
 
 
 def main():
     window = arcade.Window(util.WORLD_WIDTH, util.WORLD_HEIGHT, util.WINDOW_TITLE)
-    game_view = GameView()
-    window.show_view(game_view)
-    game_view.setup()
+    main_menu_view = MainMenuView()
+    window.show_view(main_menu_view)
     arcade.run()
 
 

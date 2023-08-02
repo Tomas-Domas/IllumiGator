@@ -1,13 +1,13 @@
 import arcade
 
 from illumigator.views.options import OptionsView
-from illumigator.views.main_menu import MainMenuView
 from illumigator import menus, util
 
 
 class PausedView(arcade.View):
-    def __init__(self, game_view):
+    def __init__(self, game_view, main_menu_view):
         super().__init__()
+        self.main_menu_view = main_menu_view
         self.game_view = game_view
         self.menu_effect = util.load_sound("retro_blip.wav")
         self.menu_music = util.load_sound("Hina_Fallen_leaves.wav", streaming=True)
@@ -16,12 +16,6 @@ class PausedView(arcade.View):
                             arcade.key.W, arcade.key.S,
                             arcade.key.ESCAPE, arcade.key.ENTER)
         self.menu = menus.GenericMenu("PAUSED", ("RESUME", "RESTART", "OPTIONS", "QUIT TO MENU"), overlay=True)
-
-    def setup(self):
-        pass
-
-    def on_update(self, delta_time: float):
-        self.update_audio()
 
     def on_draw(self):
         self.window.clear()
@@ -46,17 +40,19 @@ class PausedView(arcade.View):
                 self.menu_player = arcade.stop_sound(self.menu_player)
                 self.window.show_view(self.game_view)
             elif self.menu.selection == 1:
+                self.menu_player = arcade.stop_sound(self.menu_player)
                 self.game_view.reset_level()
                 self.window.show_view(self.game_view)
             elif self.menu.selection == 2:
+                self.menu_player = arcade.stop_sound(self.menu_player)
                 options_view = OptionsView(self)
                 self.window.show_view(options_view)
             elif self.menu.selection == 3:
+                self.menu_player = arcade.stop_sound(self.menu_player)
                 self.game_view.reset_level()
-                main_menu_view = MainMenuView()
-                self.window.show_view(main_menu_view)
+                self.window.show_view(self.main_menu_view)
 
-    def update_audio(self):
+    def on_show_view(self):
         scaled_music_volume = util.MUSIC_VOLUME * util.MASTER_VOLUME * 0.5
 
         if self.menu_player is None and scaled_music_volume > 0:

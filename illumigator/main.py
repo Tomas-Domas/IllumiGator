@@ -46,7 +46,6 @@ class GameObject(arcade.Window):
         arcade.text_pyglet.load_font(util.ENVIRON_ASSETS_PATH + "PressStart2P-Regular.ttf")
 
         # ========================= Menus =========================
-        self.main_menu = menus.MainMenu()
         self.win_menu = menus.GenericMenu("LEVEL COMPLETED", ("CONTINUE", "RETRY", "QUIT TO MENU"))
         self.final_win_menu = menus.GenericMenu("YOU WIN", ("RETRY", "QUIT TO MENU"))
         self.lose_menu = menus.GenericMenu("YOU DIED", ("RETRY", "QUIT TO MENU"))
@@ -137,17 +136,6 @@ class GameObject(arcade.Window):
         if key == arcade.key.F11:
             self.set_fullscreen(not self.fullscreen)
 
-        if self.game_state == "menu":
-            if key == arcade.key.ENTER:
-                self.unidle()
-                self.game_state = "game"
-            if key == arcade.key.ESCAPE:
-                self.on_close()
-            if key == arcade.key.O:
-                self.game_state = "official_level_select"
-            if key == arcade.key.C:
-                self.game_state = "community_level_select"
-
         elif self.game_state == "win" or self.game_state == "final_win":
             win_screen = {"win": self.win_menu,
                           "final_win": self.final_win_menu}
@@ -229,35 +217,6 @@ class GameObject(arcade.Window):
         if self.game_state == "community_level_select" or self.game_state == "official_level_select":
             level_selector = {"community_level_select": self.community_selector_menu,
                               "official_level_select": self.official_selector_menu}
-
-            if key == arcade.key.D or key == arcade.key.RIGHT:
-                level_selector[self.game_state].selection += 1
-            if key == arcade.key.A or key == arcade.key.LEFT:
-                level_selector[self.game_state].selection -= 1
-            if key == arcade.key.W or key == arcade.key.UP:
-                level_selector[self.game_state].selection -= 5
-            if key == arcade.key.S or key == arcade.key.DOWN:
-                level_selector[self.game_state].selection += 5
-            if key == arcade.key.R and self.game_state == "community_level_select":
-                util.update_community_metadata()
-                level_selector[self.game_state].update()
-            if key == arcade.key.F and self.game_state == "community_level_select":
-                try:
-                    util.opendir(util.ENVIRON_DATA_PATH + "levels/community")
-                except FileNotFoundError:
-                    util.opendir(util.VENV_DATA_PATH + "levels/community")
-            if key == arcade.key.ESCAPE:
-                self.game_state = "menu"
-            if key == arcade.key.ENTER:
-                self.current_level_path = level_selector[self.game_state].get_selection()
-                self.official_level_status = True if self.game_state == "official_level_select" else False
-                self.current_level = level.load_level(
-                    util.load_data(self.current_level_path, True, self.official_level_status),
-                    self.character,
-                    self.enemy)
-                if self.game_state == "official_level_select":
-                    self.official_level_index = level_selector[self.game_state].selection + 1
-                self.game_state = "game"
 
     def on_key_release(self, key, key_modifiers):
         if key == arcade.key.LEFT:

@@ -86,7 +86,9 @@ ENEMY_MOVEMENT_SPEED = 4 * UNIVERSAL_SPEED_MULTIPLIER
 MASTER_VOLUME = 1
 MUSIC_VOLUME = 1
 EFFECTS_VOLUME = 1
-
+CURRENT_LEVEL = 1
+CURRENT_LEVEL_PATH = "level_" + str(CURRENT_LEVEL) + ".json"
+OFFICIAL_LEVEL_STATUS = True
 
 
 # ========================= Physics Functions =========================

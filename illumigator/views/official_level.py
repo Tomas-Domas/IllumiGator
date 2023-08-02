@@ -1,6 +1,6 @@
 import arcade
 
-from illumigator import util, level_selector
+from illumigator import util, level_selector, level
 
 
 class OfficialView(arcade.View):
@@ -26,7 +26,10 @@ class OfficialView(arcade.View):
         if symbol == arcade.key.ESCAPE:
             self.window.show_view(self.main_menu_view)
         if symbol == arcade.key.ENTER:
+            game_view = self.main_menu_view.game_view
             util.OFFICIAL_LEVEL_STATUS = True
-            util.CURRENT_LEVEL_PATH = self.menu.get_selection()
             util.CURRENT_LEVEL = self.menu.selection + 1
-            self.window.show_view(self.main_menu_view.game_view)
+            util.CURRENT_LEVEL_PATH = "level_" + str(util.CURRENT_LEVEL) + ".json"
+            game_view.current_level = level.load_level(util.load_data(
+                util.CURRENT_LEVEL_PATH, True, True), game_view.character, game_view.enemy)
+            self.window.show_view(game_view)

@@ -34,6 +34,9 @@ class CommunityView(arcade.View):
         if symbol == arcade.key.ESCAPE:
             self.window.show_view(self.main_menu_view)
         if symbol == arcade.key.ENTER:
+            game_view = self.main_menu_view.game_view
             util.OFFICIAL_LEVEL_STATUS = False
             util.CURRENT_LEVEL_PATH = self.menu.get_selection()
-            self.window.show_view(self.main_menu_view.game_view)
+            game_view.current_level = level.load_level(util.load_data(
+                util.CURRENT_LEVEL_PATH, True, False), game_view.character, game_view.enemy)
+            self.window.show_view(game_view)

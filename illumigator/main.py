@@ -82,16 +82,7 @@ class GameObject(arcade.Window):
     def on_draw(self):
         self.clear()
 
-        if self.game_state == "menu":
-            self.main_menu.draw()
-
-        elif self.game_state == "paused":
-            self.current_level.draw()
-            self.character.draw()
-            self.enemy.draw()
-            self.game_menu.draw()
-
-        elif self.game_state == "win":
+        if self.game_state == "win":
             self.win_menu.draw()
 
         elif self.game_state == "game_over":
@@ -103,18 +94,6 @@ class GameObject(arcade.Window):
         elif self.game_state == "controls":
             self.controls_menu.draw()
 
-        elif self.game_state == "audio":
-            self.master_volume = self.audio_menu.slider_list[0].pos
-            self.music_volume = self.audio_menu.slider_list[1].pos
-            self.effects_volume = self.audio_menu.slider_list[2].pos
-            self.audio_menu.draw()
-
-        elif self.game_state == "official_level_select":
-            self.official_selector_menu.draw()
-
-        elif self.game_state == "community_level_select":
-            self.community_selector_menu.draw()
-
         elif self.game_state == "final_win":
             self.final_win_menu.draw()
 
@@ -122,17 +101,6 @@ class GameObject(arcade.Window):
             self.community_win_menu.draw()
 
     def on_key_press(self, key, key_modifiers):
-        valid_menu_press = key == arcade.key.UP or key == arcade.key.DOWN or key == arcade.key.LEFT \
-                           or key == arcade.key.RIGHT or key == arcade.key.W or key == arcade.key.A \
-                           or key == arcade.key.S or key == arcade.key.D or key == arcade.key.ENTER \
-                           or key == arcade.key.ESCAPE
-        game_paused = self.game_state == "paused" or self.game_state == "win" or self.game_state == "options" \
-                      or self.game_state == "audio" or self.game_state == "final_win" \
-                      or self.game_state == "official_level_select" or self.game_state == "community_level_select"
-        if game_paused and valid_menu_press:
-            if self.effects_volume * self.master_volume > 0.0:
-                arcade.play_sound(self.menu_sound, float(self.effects_volume * self.master_volume))
-
         if key == arcade.key.F11:
             self.set_fullscreen(not self.fullscreen)
 
@@ -177,30 +145,9 @@ class GameObject(arcade.Window):
                     self.reset_level()
                     self.game_state = "menu"
 
-        elif self.game_state == "options":
-            if key == arcade.key.ESCAPE:
-                self.game_state = "paused"
-            if key == arcade.key.S or key == arcade.key.DOWN:
-                self.options_menu.increment_selection()
-            if key == arcade.key.W or key == arcade.key.UP:
-                self.options_menu.decrement_selection()
-            if key == arcade.key.ENTER:
-                if self.options_menu.selection == 0:
-                    self.game_state = "paused"
-                elif self.options_menu.selection == 1:
-                    self.game_state = "controls"
-                elif self.options_menu.selection == 2:
-                    self.game_state = "audio"
-                elif self.options_menu.selection == 3:
-                    self.set_fullscreen(not self.fullscreen)
-
         elif self.game_state == "controls":
             if key == arcade.key.ESCAPE:
                 self.game_state = "options"
-
-        if self.game_state == "community_level_select" or self.game_state == "official_level_select":
-            level_selector = {"community_level_select": self.community_selector_menu,
-                              "official_level_select": self.official_selector_menu}
 
     def on_resize(self, width: float, height: float):
         min_ratio = min(width / util.WORLD_WIDTH, height / util.WORLD_HEIGHT)

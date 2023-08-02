@@ -59,7 +59,7 @@ class GameView(arcade.View):
                 util.CURRENT_LEVEL += 1
                 util.OFFICIAL_LEVEL_STATUS = True
                 util.CURRENT_LEVEL_PATH = "level_" + str(util.CURRENT_LEVEL) + ".json"
-                win_view = WinView()
+                win_view = WinView(self, self.main_menu_view)
                 self.window.show_view(win_view)
 
             self.current_level = level.load_level(
@@ -131,6 +131,9 @@ class GameView(arcade.View):
 
         if self.bgm_player is None:
             self.bgm_player = arcade.play_sound(self.bgm_music, scaled_music_volume, looping=True)
+
+        if self.main_menu_view.menu_player is not None:
+            self.main_menu_view.menu_player = arcade.stop_sound(self.main_menu_view.menu_player)
 
     def on_hide_view(self):
         self.bgm_player = None

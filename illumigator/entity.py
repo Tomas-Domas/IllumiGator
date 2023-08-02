@@ -150,8 +150,8 @@ class Gator:
         self.left_character_loader = PlayerSpriteLoader("left")
         self.right_character_loader = PlayerSpriteLoader("right")
         self.sprite = util.load_sprite(
-            self.right_character_loader._sprite_files[0],
-            util.GATOR_SPRITE_INFO[1],
+            filename=self.right_character_loader._sprite_files[0],
+            scale=util.GATOR_SPRITE_INFO[1],
             center_x=position[0],
             center_y=position[1],
             image_width=util.GATOR_SPRITE_INFO[2],
@@ -163,8 +163,12 @@ class Gator:
             numpy.array([position[0], position[1]]),
             0
         )
-        self.world_object.initialize_geometry(util.GATOR_SPRITE_INFO)
-        # TODO: change sprite to use world object's
+        self.world_object.initialize_geometry(
+            (util.GATOR_SPRITE_INFO[0],
+             util.GATOR_SPRITE_INFO[1],
+             util.GATOR_SPRITE_INFO[2] - 10,
+             util.GATOR_SPRITE_INFO[3] - 4)
+        )
 
         # To check if gator is idle
         self.last_movement_timestamp = time.time()
@@ -321,8 +325,8 @@ class Enemy:
         self.right_character_loader = EnemySpriteLoader("right")
         self.sleep_texture_iter = self.left_character_loader.iter_sleep_sprite()
         self.sprite = util.load_sprite(
-            self.left_character_loader._sleep_sprites_files[0],
-            util.ENEMY_SPRITE_INFO[1],
+            filename=self.left_character_loader._sleep_sprites_files[0],
+            scale=util.ENEMY_SPRITE_INFO[1],
             center_x=position[0],
             center_y=position[1],
             image_width=util.ENEMY_SPRITE_INFO[2],
@@ -331,11 +335,16 @@ class Enemy:
         )
 
         self.world_object = worldobjects.WorldObject(
-            numpy.array([position[0], position[1]]),
+            numpy.array([position[0]-2*util.ENEMY_SPRITE_INFO[1], position[1]-6*util.ENEMY_SPRITE_INFO[1]]),
             0
         )
-        self.world_object.initialize_geometry(util.ENEMY_SPRITE_INFO, is_enemy=True)
-        # TODO: change sprite to use world object's
+        self.world_object.initialize_geometry(
+            (util.ENEMY_SPRITE_INFO[0],
+             util.ENEMY_SPRITE_INFO[1],
+             14,
+             8),
+            is_enemy=True
+        )
 
     def find_nearest_obstacle(self, level):
         nearest_distance_squared = float('inf')
@@ -393,6 +402,18 @@ class Enemy:
 
             if self.sprite.collides_with_sprite(player.sprite):
                 player.status = "dead"
+
+    def update_geometry_shape(self):
+        wo = self.world_object
+        sprite_path, sprite_scale, sprite_width, sprite_height = util.ENEMY_SPRITE_INFO
+        wo._position += numpy.array([2 * sprite_scale, 6 * sprite_scale])
+        axis1 = numpy.array([0.5 * (sprite_width-2) * sprite_scale, 0])
+        axis2 = numpy.array([0, 0.5 * (sprite_height-6) * sprite_scale])
+        wo._geometry_segments[0]._point1 = wo._position - axis1 - axis2
+        wo._geometry_segments[0]._point2 = wo._position + axis1 + axis2
+        wo._geometry_segments[1]._point1 = wo._position - axis1 + axis2
+        wo._geometry_segments[1]._point2 = wo._position + axis1 - axis2
+
 
     def draw(self):
         self.sprite.draw(pixelated=True)

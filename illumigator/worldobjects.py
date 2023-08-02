@@ -73,7 +73,7 @@ class WorldObject:
         is_reflective: bool = False, is_refractive: bool = False, is_receiver: bool = False, is_enemy: bool = False
     ):
         sprite_path, sprite_scale, sprite_width, sprite_height = sprite_info
-        axis1_norm = numpy.array([math.cos(self._rotation_angle), math.sin(self._rotation_angle)])
+        axis1_norm = numpy.array([ math.cos(self._rotation_angle), math.sin(self._rotation_angle)])
         axis2_norm = numpy.array([-math.sin(self._rotation_angle), math.cos(self._rotation_angle)])
         axis1 = 0.5 * sprite_width * sprite_scale * dimensions[0] * axis1_norm
         axis2 = 0.5 * sprite_height * sprite_scale * dimensions[1] * axis2_norm
@@ -85,6 +85,7 @@ class WorldObject:
                 geometry.Line(self, self._position + axis1 - axis2, self._position - axis1 - axis2, is_reflective, is_refractive, is_receiver, is_enemy),
             ]
         elif spokes != 0:
+            self._geometry_segments = []
             for _ in range(spokes):
                 self._geometry_segments.append(
                     geometry.Line(self, self._position + axis1, self._position - axis1, is_reflective, is_refractive, is_receiver, is_enemy)
@@ -99,6 +100,9 @@ class WorldObject:
 
     def draw(self):
         self._sprite_list.draw(pixelated=True)
+        if util.DEBUG_GEOMETRY is True:
+            for segment in self._geometry_segments:
+                segment.draw(thickness=2)
 
     def distance_squared_to_center(self, point_x, point_y):
         return util.distance_squared(self._position, numpy.array([point_x, point_y]))

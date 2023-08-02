@@ -57,7 +57,7 @@ class Line(Geometry):
         y = self._point2[0] - self._point1[0]
         self._normal = numpy.array([x, y]) / math.sqrt(x*x + y*y)
 
-    def draw(self, *, color=arcade.color.BLUE, thickness=1):
+    def draw(self, *, color=arcade.color.ORANGE_RED, thickness=1):
         arcade.draw_line(
             self._point1[0], self._point1[1],
             self._point2[0], self._point2[1],
@@ -148,7 +148,7 @@ class Arc(Geometry):
                 color,
                 self._start_angle * 180 / numpy.pi,
                 self._end_angle * 180 / numpy.pi,
-                border_width=thickness,
+                border_width=thickness*2,
                 num_segments=512,
             )
         else:
@@ -158,7 +158,7 @@ class Arc(Geometry):
                 color,
                 self._start_angle * 180 / numpy.pi,
                 self._end_angle * 180 / numpy.pi + 360,
-                border_width=thickness,
+                border_width=thickness*2,
                 num_segments=512,
             )
 

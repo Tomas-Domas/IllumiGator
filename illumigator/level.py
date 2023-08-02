@@ -217,8 +217,9 @@ class Level:
                             ray_queue.append(ray._child_ray)
                         elif nearest_line.is_receiver:  # Charge receiver when a light ray hits it
                             nearest_line.parent_object.charge += util.LIGHT_INCREMENT
-                        elif nearest_line.is_enemy:
+                        elif nearest_line.is_enemy and self.enemy.status != "aggro":
                             self.enemy.status = "aggro"
+                            self.enemy.update_geometry_shape()
                             ray._child_ray = None
                         else:
                             ray._child_ray = None

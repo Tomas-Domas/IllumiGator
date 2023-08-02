@@ -171,6 +171,8 @@ class GameObject(arcade.Window):
             self.community_win_menu.draw()
 
     def on_key_press(self, key, key_modifiers):
+        if key == arcade.key.G:
+            util.DEBUG_GEOMETRY = not util.DEBUG_GEOMETRY
         if key == arcade.key.Q:
             self.current_level.gator.rotation_dir += 1
         if key == arcade.key.E:

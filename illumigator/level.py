@@ -6,8 +6,6 @@ from illumigator import worldobjects, entity, util, light
 class Level:
     def __init__(
             self,
-            character: entity.Character,
-            enemy: entity.Enemy,
             wall_coordinate_list: list[list] = None,
             mirror_coordinate_list: list[list] = None,
             light_receiver_coordinate_list: list[list] = None,
@@ -18,14 +16,18 @@ class Level:
             enemy_coordinates: list = None,
             name="default",
             background="space",
-            planet="moon"
+            planet="moon",
+            walking_volume=1
     ):
 
         if name == "Level 1":
             background = "level1_background"
 
 
-        self.enemy = enemy
+
+        self.enemy = entity.Enemy(enemy_coordinates)
+        self.gator = entity.Gator(character_coordinates, walking_volume)  # TODO: refactor to gator_coordinates
+
         self.background = background + ".png"
         self.background_sprite = util.load_sprite(self.background,
                                                   scale=2 / 3,
@@ -65,24 +67,8 @@ class Level:
             )
         ]
 
-        character.character_sprite.position = numpy.array([character_coordinates[0], character_coordinates[1]])
-        character.world_object = worldobjects.WorldObject(
-            numpy.array([character_coordinates[0], character_coordinates[1]]),
-            0
-        )
-        character.world_object.initialize_geometry(util.PLAYER_SPRITE_INFO)
-        character.status = "alive"
-
-        enemy.character_sprite.position = numpy.array([enemy_coordinates[0], enemy_coordinates[1]])
-        enemy.world_object = worldobjects.WorldObject(
-            numpy.array([enemy_coordinates[0], enemy_coordinates[1]]),
-            0
-        )
-        enemy.world_object.initialize_geometry(util.PLAYER_SPRITE_INFO, is_enemy=True)
-        enemy.state = "asleep"
-
-        self.entity_world_object_list.append(character.world_object)
-        self.entity_world_object_list.append(enemy.world_object)
+        self.entity_world_object_list.append(self.gator.world_object)
+        self.entity_world_object_list.append(self.enemy.world_object)
 
         for wall_coordinates in wall_coordinate_list:
             self.wall_list.append(
@@ -178,10 +164,14 @@ class Level:
             self.arcs.extend(world_object._geometry_segments)
 
 
-    def update(self, character: entity.Character, enemy: entity.Enemy):
+    def update(self, walking_volume):
+        if self.gator.update(self, walking_volume, self.enemy) is False:
+            return False
+        self.enemy.update(self, self.gator)
+
         for wall in self.wall_list:
             if wall.obj_animation is not None:
-                wall.apply_object_animation(character, enemy)
+                wall.apply_object_animation(self.gator, self.enemy)
 
         for light_receiver in self.light_receiver_list:
             light_receiver.charge *= util.CHARGE_DECAY
@@ -228,7 +218,7 @@ class Level:
                         elif nearest_line.is_receiver:  # Charge receiver when a light ray hits it
                             nearest_line.parent_object.charge += util.LIGHT_INCREMENT
                         elif nearest_line.is_enemy:
-                            self.enemy.state = "aggro"
+                            self.enemy.status = "aggro"
                             ray._child_ray = None
                         else:
                             ray._child_ray = None
@@ -247,6 +237,13 @@ class Level:
                 ray_queue = ray_queue[queue_length:]
                 queue_length = len(ray_queue)
 
+        if self.gator.status == "dead":
+            # Show dead animations
+            self.gator.left_character_loader.dead = True
+            self.gator.right_character_loader.dead = True
+            self.enemy.status = "player_dead"
+            # self.game_state = "game_over"
+
     def draw(self):
         self.background_sprite.draw(pixelated=True)
         for light_source in self.light_sources_list:
@@ -259,26 +256,29 @@ class Level:
             lens.draw()
         for light_receiver in self.light_receiver_list:
             light_receiver.draw()
+        self.gator.draw()
+        self.enemy.draw()
 
-    def check_collisions(self, character: entity.Character):
+    def check_collisions(self, character: entity.Gator):
         for wall in (self.wall_list + self.mirror_list + self.lens_list + self.light_receiver_list + self.light_sources_list):
-            if wall.check_collision(character.character_sprite):
+            if wall.check_collision(character.sprite):
                 return True
         else:
             return False
 
 
-def load_level(level: dict, character: entity.Character, enemy: entity.Enemy) -> Level:
+def load_level(level: dict, walking_volume) -> Level:
     level_data = level["level_data"]
-    return Level(character,
-                 enemy,
-                 level_data["wall_coordinate_list"],
-                 level_data["mirror_coordinate_list"],
-                 level_data["light_receiver_coordinate_list"],
-                 level_data["light_source_coordinate_list"],
-                 level_data["animated_wall_coordinate_list"],
-                 level_data["lens_coordinate_list"],
-                 level_data["character_coordinates"],
-                 level_data["enemy_coordinates"],
-                 level["level_name"],
-                 planet=level["planet"])
+    return Level(
+        level_data["wall_coordinate_list"],
+        level_data["mirror_coordinate_list"],
+        level_data["light_receiver_coordinate_list"],
+        level_data["light_source_coordinate_list"],
+        level_data["animated_wall_coordinate_list"],
+        level_data["lens_coordinate_list"],
+        level_data["character_coordinates"],
+        level_data["enemy_coordinates"],
+        level["level_name"],
+        planet=level["planet"],
+        walking_volume=walking_volume
+    )

@@ -179,16 +179,16 @@ class Level:
             ray_queue = light_source.light_rays[:]
             queue_length = len(ray_queue)
             while queue_length > 0:
-                ray_p1 = numpy.ndarray((queue_length, 2))
+                ray_origin = numpy.ndarray((queue_length, 2))
                 ray_dir = numpy.ndarray((queue_length, 2))
                 for ray_i in range(queue_length):
-                    ray_p1[ray_i], ray_dir[ray_i] = ray_queue[ray_i].origin, ray_queue[ray_i].direction
+                    ray_origin[ray_i], ray_dir[ray_i] = ray_queue[ray_i].origin, ray_queue[ray_i].direction
 
-                nearest_line_distances, nearest_line_indices = light.get_line_raycast_results(ray_p1, ray_dir, line_p1, line_p2)
+                nearest_line_distances, nearest_line_indices = light.get_line_raycast_results(ray_origin, ray_dir, line_p1, line_p2)
 
                 if len(self.arcs) > 0:
                     nearest_arc_distance, nearest_arc_indices = light.get_arc_raycast_results(
-                        ray_p1[:, 0], ray_p1[:, 1], ray_dir[:, 0], ray_dir[:, 1], arc_center[:, 0], arc_center[:, 1],
+                        ray_origin[:, 0], ray_origin[:, 1], ray_dir[:, 0], ray_dir[:, 1], arc_center[:, 0], arc_center[:, 1],
                         arc_radius, arc_angles[:, 0], arc_angles[:, 1])
                 else:
                     nearest_arc_distance, nearest_arc_indices = numpy.full_like(nearest_line_distances, float('inf')), numpy.full_like(nearest_line_distances, -1)

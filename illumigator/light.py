@@ -29,12 +29,12 @@ class LightRay:
         if self.child_ray is not None:
             self.child_ray.draw(alpha)
 
-def get_line_raycast_results(ray_p1, ray_p2, line_p1, line_p2) -> tuple[numpy.ndarray, numpy.ndarray]:  # distances, line indices
+def get_line_raycast_results(ray_origin, ray_dir, line_p1, line_p2) -> tuple[numpy.ndarray, numpy.ndarray]:  # distances, line indices
     # Don't @ me...    https://en.wikipedia.org/wiki/Line-line_intersection#Given_two_points_on_each_line_segment
-    ray_dx_dy = -ray_p2.T
+    ray_dx_dy = -ray_dir.T
     line_dx_dy = numpy.array((line_p1[:, 0] - line_p2[:, 0], line_p1[:, 1] - line_p2[:, 1]))
-    x_dif = numpy.subtract.outer(line_p1[:, 0], ray_p1[:, 0])
-    y_dif = numpy.subtract.outer(line_p1[:, 1], ray_p1[:, 1])
+    x_dif = numpy.subtract.outer(line_p1[:, 0], ray_origin[:, 0])
+    y_dif = numpy.subtract.outer(line_p1[:, 1], ray_origin[:, 1])
 
     denominators = numpy.multiply.outer(line_dx_dy[0], ray_dx_dy[1]) - numpy.multiply.outer(line_dx_dy[1], ray_dx_dy[0])
     t = numpy.where(

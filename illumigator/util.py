@@ -9,7 +9,7 @@ import numpy
 from screeninfo import get_monitors
 
 
-DEBUG_GEOMETRY = True
+DEBUG_GEOMETRY = False
 
 
 # ========================= Game Constants =========================

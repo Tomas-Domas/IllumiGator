@@ -9,8 +9,6 @@ class GameObject(arcade.Window):
     def __init__(self):
         super().__init__(util.WORLD_WIDTH, util.WORLD_HEIGHT, util.WINDOW_TITLE, resizable=True, antialiasing=True)
         self.set_mouse_visible(False)
-        self.enemy = None
-        self.character = None
         self.current_level = None
         self.menu_sound = None
         self.background_music = None
@@ -50,10 +48,7 @@ class GameObject(arcade.Window):
 
     def setup(self):
         self.game_state = "menu"
-        self.character = entity.Character(walking_volume=self.effects_volume*self.master_volume)
-        self.enemy = entity.Enemy()
-
-        self.current_level = level.load_level(util.load_data(self.current_level_path, True), self.character, self.enemy)
+        self.current_level = level.load_level(util.load_data(self.current_level_path, True), self.effects_volume * self.master_volume)
 
         # ========================= Sounds =========================
         self.menu_sound = util.load_sound("retro_blip.wav")
@@ -81,11 +76,9 @@ class GameObject(arcade.Window):
     def on_update(self, delta_time):
         # STATE MACHINE FOR UPDATING LEVEL
         if self.game_state == "game":
-            if self.character.update(self.current_level, self.effects_volume*self.master_volume, self.enemy) is False:
+            if self.current_level.update(self.effects_volume*self.master_volume) is False:
                 self.game_state = "game_over"
 
-            self.enemy.update(self.current_level, self.character)
-            self.current_level.update(self.character, self.enemy)
             if any(light_receiver.charge >= util.RECEIVER_THRESHOLD for light_receiver in self.current_level.light_receiver_list):
                 time.sleep(0.5)
                 if not self.official_level_status:
@@ -103,15 +96,8 @@ class GameObject(arcade.Window):
 
                 self.current_level = level.load_level(
                     util.load_data(self.current_level_path, True, self.official_level_status),
-                    self.character,
-                    self.enemy)
-
-            if self.character.status == "dead":
-                # Show dead animations
-                self.character.left_character_loader.dead = True
-                self.character.right_character_loader.dead = True
-                self.enemy.state = "player_dead"
-                # self.game_state = "game_over"
+                    self.effects_volume * self.master_volume
+                )
 
         elif self.game_state == "audio":
             self.audio_menu.update()
@@ -146,13 +132,9 @@ class GameObject(arcade.Window):
 
         elif self.game_state == "game":
             self.current_level.draw()
-            self.character.draw()
-            self.enemy.draw()
 
         elif self.game_state == "paused":
             self.current_level.draw()
-            self.character.draw()
-            self.enemy.draw()
             self.game_menu.draw()
 
         elif self.game_state == "win":
@@ -187,34 +169,30 @@ class GameObject(arcade.Window):
 
         elif self.game_state == "community_win":
             self.community_win_menu.draw()
-    
-    def unidle(self):
-        self.character.last_movement_timestamp = time.time()
-        self.character.left_character_loader.idle = False
-        self.character.right_character_loader.idle = False
 
     def on_key_press(self, key, key_modifiers):
+        if key == arcade.key.G:
+            util.DEBUG_GEOMETRY = not util.DEBUG_GEOMETRY
         if key == arcade.key.Q:
-            self.character.rotation_dir += 1
+            self.current_level.gator.rotation_dir += 1
         if key == arcade.key.E:
-            self.character.rotation_dir -= 1
-        valid_menu_press = key == arcade.key.UP or key == arcade.key.DOWN or key == arcade.key.LEFT \
-                           or key == arcade.key.RIGHT or key == arcade.key.W or key == arcade.key.A \
-                           or key == arcade.key.S or key == arcade.key.D or key == arcade.key.ENTER \
-                           or key == arcade.key.ESCAPE
-        game_paused = self.game_state == "paused" or self.game_state == "win" or self.game_state == "options" \
-                      or self.game_state == "audio" or self.game_state == "final_win" \
-                      or self.game_state == "official_level_select" or self.game_state == "community_level_select"
-        if game_paused and valid_menu_press:
-            if self.effects_volume * self.master_volume > 0.0:
+            self.current_level.gator.rotation_dir -= 1
+
+        if self.effects_volume * self.master_volume > 0.0:
+            valid_key_selections = [arcade.key.UP, arcade.key.DOWN, arcade.key.LEFT, arcade.key.RIGHT, arcade.key.W, arcade.key.A,
+                                    arcade.key.S, arcade.key.D, arcade.key.ENTER, arcade.key.SPACE, arcade.key.ESCAPE]
+            if (
+                (self.game_state in ["paused", "win", "options", "audio", "final_win", "official_level_select", "community_level_select"] and key in valid_key_selections) or
+                (self.game_state in ["controls", "game"] and key == arcade.key.ESCAPE)
+            ):
                 arcade.play_sound(self.menu_sound, float(self.effects_volume * self.master_volume))
 
         if key == arcade.key.F11:
             self.set_fullscreen(not self.fullscreen)
 
         if self.game_state == "menu":
-            if key == arcade.key.ENTER:
-                self.unidle()
+            if key == arcade.key.ENTER or key == arcade.key.SPACE:
+                self.current_level.gator.unidle()
                 self.game_state = "game"
             if key == arcade.key.ESCAPE:
                 self.on_close()
@@ -227,13 +205,13 @@ class GameObject(arcade.Window):
             if key == arcade.key.ESCAPE:
                 self.game_state = "paused"
             if key == arcade.key.W or key == arcade.key.UP:
-                self.character.up = True
+                self.current_level.gator.up = True
             if key == arcade.key.A or key == arcade.key.LEFT:
-                self.character.left = True
+                self.current_level.gator.left = True
             if key == arcade.key.S or key == arcade.key.DOWN:
-                self.character.down = True
+                self.current_level.gator.down = True
             if key == arcade.key.D or key == arcade.key.RIGHT:
-                self.character.right = True
+                self.current_level.gator.right = True
 
         elif self.game_state == "paused":
             if key == arcade.key.ESCAPE:
@@ -242,7 +220,7 @@ class GameObject(arcade.Window):
                 self.game_menu.increment_selection()
             if key == arcade.key.W or key == arcade.key.UP:
                 self.game_menu.decrement_selection()
-            if key == arcade.key.ENTER:
+            if key == arcade.key.ENTER or key == arcade.key.SPACE:
                 if self.game_menu.selection == 0:
                     self.game_state = "game"
                 elif self.game_menu.selection == 1:
@@ -255,13 +233,15 @@ class GameObject(arcade.Window):
                     self.game_state = "menu"
 
         elif self.game_state == "win" or self.game_state == "final_win":
-            win_screen = {"win": self.win_menu,
-                          "final_win": self.final_win_menu}
+            win_screen = {
+                "win":       self.win_menu,
+                "final_win": self.final_win_menu
+            }
             if key == arcade.key.S or key == arcade.key.DOWN:
                 win_screen[self.game_state].increment_selection()
             if key == arcade.key.W or key == arcade.key.UP:
                 win_screen[self.game_state].decrement_selection()
-            if key == arcade.key.ENTER and (self.game_state == "win" or self.game_state == "final_win"):
+            if (key == arcade.key.ENTER or key == arcade.key.SPACE) and (self.game_state == "win" or self.game_state == "final_win"):
                 selection = win_screen[self.game_state].selection
                 if self.game_state == "win":
                     if selection == 0:
@@ -281,13 +261,15 @@ class GameObject(arcade.Window):
                         self.game_state = "menu"
 
         elif self.game_state == "game_over" or self.game_state == "community_win":
-            menu = {"game_over": self.lose_menu,
-                    "community_win": self.community_win_menu}
+            menu = {
+                "game_over":     self.lose_menu,
+                "community_win": self.community_win_menu
+            }
             if key == arcade.key.S or key == arcade.key.DOWN:
                 menu[self.game_state].increment_selection()
             if key == arcade.key.W or key == arcade.key.UP:
                 menu[self.game_state].decrement_selection()
-            if key == arcade.key.ENTER:
+            if key == arcade.key.ENTER or key == arcade.key.SPACE:
                 if menu[self.game_state].selection == 0:
                     self.reset_level()
                     self.game_state = "game"
@@ -302,7 +284,7 @@ class GameObject(arcade.Window):
                 self.options_menu.increment_selection()
             if key == arcade.key.W or key == arcade.key.UP:
                 self.options_menu.decrement_selection()
-            if key == arcade.key.ENTER:
+            if key == arcade.key.ENTER or key == arcade.key.SPACE:
                 if self.options_menu.selection == 0:
                     self.game_state = "paused"
                 elif self.options_menu.selection == 1:
@@ -333,20 +315,20 @@ class GameObject(arcade.Window):
                 self.audio_menu.increment_selection()
 
         if self.game_state == "community_level_select" or self.game_state == "official_level_select":
-            level_selector = {"community_level_select": self.community_selector_menu,
-                              "official_level_select": self.official_selector_menu}
+            level_selector_menu = {"community_level_select": self.community_selector_menu,
+                                   "official_level_select": self.official_selector_menu}
 
             if key == arcade.key.D or key == arcade.key.RIGHT:
-                level_selector[self.game_state].selection += 1
+                level_selector_menu[self.game_state].selection += 1
             if key == arcade.key.A or key == arcade.key.LEFT:
-                level_selector[self.game_state].selection -= 1
+                level_selector_menu[self.game_state].selection -= 1
             if key == arcade.key.W or key == arcade.key.UP:
-                level_selector[self.game_state].selection -= 5
+                level_selector_menu[self.game_state].selection -= 5
             if key == arcade.key.S or key == arcade.key.DOWN:
-                level_selector[self.game_state].selection += 5
+                level_selector_menu[self.game_state].selection += 5
             if key == arcade.key.R and self.game_state == "community_level_select":
                 util.update_community_metadata()
-                level_selector[self.game_state].update()
+                level_selector_menu[self.game_state].update()
             if key == arcade.key.F and self.game_state == "community_level_select":
                 try:
                     util.opendir(util.ENVIRON_DATA_PATH + "levels/community")
@@ -354,31 +336,31 @@ class GameObject(arcade.Window):
                     util.opendir(util.VENV_DATA_PATH + "levels/community")
             if key == arcade.key.ESCAPE:
                 self.game_state = "menu"
-            if key == arcade.key.ENTER:
-                self.current_level_path = level_selector[self.game_state].get_selection()
+            if key == arcade.key.ENTER or key == arcade.key.SPACE:
+                self.current_level_path = level_selector_menu[self.game_state].get_selection()
                 self.official_level_status = True if self.game_state == "official_level_select" else False
                 self.current_level = level.load_level(
                     util.load_data(self.current_level_path, True, self.official_level_status),
-                    self.character,
-                    self.enemy)
+                    walking_volume=self.effects_volume*self.master_volume
+                )
                 if self.game_state == "official_level_select":
-                    self.official_level_index = level_selector[self.game_state].selection + 1
+                    self.official_level_index = level_selector_menu[self.game_state].selection + 1
                 self.game_state = "game"
 
     def on_key_release(self, key, key_modifiers):
         if key == arcade.key.W or key == arcade.key.UP:
-            self.character.up = False
+            self.current_level.gator.up = False
         if key == arcade.key.A or key == arcade.key.LEFT:
-            self.character.left = False
+            self.current_level.gator.left = False
         if key == arcade.key.S or key == arcade.key.DOWN:
-            self.character.down = False
+            self.current_level.gator.down = False
         if key == arcade.key.D or key == arcade.key.RIGHT:
-            self.character.right = False
+            self.current_level.gator.right = False
 
         if key == arcade.key.Q:
-            self.character.rotation_dir -= 1
+            self.current_level.gator.rotation_dir -= 1
         if key == arcade.key.E:
-            self.character.rotation_dir += 1
+            self.current_level.gator.rotation_dir += 1
 
         if key == arcade.key.LEFT:
             self.audio_menu.slider_list[self.audio_menu.selection].left = False
@@ -403,14 +385,10 @@ class GameObject(arcade.Window):
         arcade.close_window()
 
     def reset_level(self):
-        self.enemy.state = "asleep"
-        self.unidle()
-
-        # Create New character model
-        self.character = entity.Character(walking_volume=self.effects_volume)
-        
-        self.current_level = level.load_level(util.load_data(
-            self.current_level_path, True, self.official_level_status), self.character, self.enemy)
+        self.current_level = level.load_level(
+            util.load_data(self.current_level_path, True, self.official_level_status),
+            self.effects_volume * self.master_volume
+        )
         self.game_state = "game"
 
 

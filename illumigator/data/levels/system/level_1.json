@@ -21,7 +21,7 @@
     ],
     "animated_wall_coordinate_list": [],
     "lens_coordinate_list": [],
-    "character_coordinates": [640, 360, 0],
-    "enemy_coordinates": [1120, 320, 0]
+    "gator_coordinates": [640, 360],
+    "enemy_coordinates": [1120, 320]
   }
 }

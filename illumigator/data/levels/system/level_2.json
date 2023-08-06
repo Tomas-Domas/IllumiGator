@@ -22,7 +22,7 @@
       [160, 355, 0],
       [680, 360, 0]
     ],
-    "character_coordinates": [300, 150, 0],
-    "enemy_coordinates": [-10, -10, 0]
+    "gator_coordinates": [300, 150],
+    "enemy_coordinates": []
   }
 }

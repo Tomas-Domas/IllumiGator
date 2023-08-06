@@ -9,6 +9,9 @@ import numpy
 from screeninfo import get_monitors
 
 
+DEBUG_GEOMETRY = True
+
+
 # ========================= Game Constants =========================
 # Window
 FRAME_RATE = 40
@@ -34,8 +37,8 @@ MIRROR_SPRITE_INFO: tuple = ("mirror.png", 1.3, 9, 48)
 LENS_SPRITE_INFO: tuple = ("lens.png", 1.3, 9, 48)
 SOURCE_SPRITE_INFO: tuple = ("sun.png", 1, 32, 32)
 RECEIVER_SPRITE_INFO: tuple = ("<PLANET NAME>", 2, 32, 32)
-PLAYER_SPRITE_INFO: tuple = ("00_gator_left.png", 1, 24, 24)
-PLACEHOLDER_SPRITE_INFO: tuple = ("sprite.png", 0.25, 128, 128)
+GATOR_SPRITE_INFO: tuple = ("<SPRITE NAME>", 2, 20, 18)
+ENEMY_SPRITE_INFO: tuple = ("<SPRITE NAME>", 2.5, 12, 20)
 WALL_SIZE = WALL_SPRITE_INFO[1] * WALL_SPRITE_INFO[2]
 
 # Player
@@ -111,7 +114,6 @@ def rotate(point: numpy.ndarray, angle: float) -> numpy.ndarray:
             point[0] * sine + point[1] * cosine,
         ]
     )
-
 
 def two_d_cross_product(vector1: numpy.ndarray, vector2: numpy.ndarray) -> float:
     return vector1[0] * vector2[1] - vector1[1] * vector2[0]

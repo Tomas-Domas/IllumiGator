@@ -115,7 +115,6 @@ def rotate(point: numpy.ndarray, angle: float) -> numpy.ndarray:
         ]
     )
 
-
 def two_d_cross_product(vector1: numpy.ndarray, vector2: numpy.ndarray) -> float:
     return vector1[0] * vector2[1] - vector1[1] * vector2[0]
 

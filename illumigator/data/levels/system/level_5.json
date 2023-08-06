@@ -37,7 +37,7 @@
     "lens_coordinate_list": [
       [300, 600, 0]
     ],
-    "character_coordinates": [590, 300, 0],
-    "enemy_coordinates": [640, 160, 0]
+    "gator_coordinates": [590, 300],
+    "enemy_coordinates": [640, 160]
   }
 }

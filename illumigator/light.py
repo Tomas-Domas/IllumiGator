@@ -4,30 +4,30 @@ import numpy
 
 class LightRay:
     def __init__(self, origin, direction, generation=0):
-        self._origin = origin
-        self._direction = direction
+        self.origin = origin
+        self.direction = direction
         self._end = numpy.zeros(2)
-        self._child_ray: LightRay | None = None
-        self._generation = generation
+        self.child_ray: LightRay | None = None
+        self.generation = generation
 
     def _generate_child_ray(self, direction):
-        if self._child_ray is None:
-            self._child_ray = LightRay(
+        if self.child_ray is None:
+            self.child_ray = LightRay(
                 self._end + direction * 0.001,
                 direction,
-                generation=self._generation + 1,
+                generation=self.generation + 1,
             )
         else:
-            self._child_ray._origin = self._end + direction * 0.001
-            self._child_ray._direction = direction
+            self.child_ray.origin = self._end + direction * 0.001
+            self.child_ray.direction = direction
 
     def draw(self, alpha):
         color = (255, 255, 255, alpha)
-        arcade.draw_line(*self._origin, *self._end, color=color, line_width=6)
-        arcade.draw_line(*self._origin, *self._end, color=color, line_width=4)
-        arcade.draw_line(*self._origin, *self._end, color=color, line_width=3)
-        if self._child_ray is not None:
-            self._child_ray.draw(alpha)
+        arcade.draw_line(*self.origin, *self._end, color=color, line_width=6)
+        arcade.draw_line(*self.origin, *self._end, color=color, line_width=4)
+        arcade.draw_line(*self.origin, *self._end, color=color, line_width=3)
+        if self.child_ray is not None:
+            self.child_ray.draw(alpha)
 
 def get_line_raycast_results(ray_p1, ray_p2, line_p1, line_p2) -> tuple[numpy.ndarray, numpy.ndarray]:  # distances, line indices
     # Don't @ me...    https://en.wikipedia.org/wiki/Line-line_intersection#Given_two_points_on_each_line_segment
@@ -55,10 +55,10 @@ def get_line_raycast_results(ray_p1, ray_p2, line_p1, line_p2) -> tuple[numpy.nd
 def get_arc_raycast_results(ray_ori_x, ray_ori_y, ray_dir_x, ray_dir_y, arc_x, arc_y, arc_r, arc_angle1, arc_angle2) -> numpy.ndarray:  # distances, line indices
     # Don't @ me...    https://en.wikipedia.org/wiki/Line-sphere_intersection#Calculation_using_vectors_in_3D
     temp_calc = (
-        (ray_ori_x * (ray_ori_y + ray_dir_y)
-         - (ray_ori_x + ray_dir_x) * ray_ori_y)
-         - numpy.multiply.outer(arc_x, ray_dir_y)
-         + numpy.multiply.outer(arc_y, ray_dir_x)
+        ray_ori_x * (ray_ori_y + ray_dir_y)
+        - ray_ori_y * (ray_ori_x + ray_dir_x)
+        - numpy.multiply.outer(arc_x, ray_dir_y)
+        + numpy.multiply.outer(arc_y, ray_dir_x)
     )
     nabla = (arc_r * arc_r - temp_calc.T * temp_calc.T).T
     numpy.sqrt(nabla, where=nabla > 0, out=nabla)
@@ -84,8 +84,8 @@ def get_arc_raycast_results(ray_ori_x, ray_ori_y, ray_dir_x, ray_dir_y, arc_x, a
     intersection_arc_index1 = numpy.argmin(intersection_distance1, axis=1)
     intersection_distance1 = numpy.min(intersection_distance1, axis=1)
 
-    point2_rel_x = (ray_dir_y*temp_calc + ray_dir_x*nabla).T
-    point2_rel_y = (ray_dir_y*nabla - ray_dir_x*temp_calc).T
+    point2_rel_x = (ray_dir_y * temp_calc + ray_dir_x * nabla).T
+    point2_rel_y = (ray_dir_y * nabla - ray_dir_x * temp_calc).T
     point2_dst_x = (point2_rel_x + arc_x).T - ray_ori_x
     point2_dst_y = (point2_rel_y + arc_y).T - ray_ori_y
     point2_rel_angle = numpy.arctan2(point2_rel_y, point2_rel_x)

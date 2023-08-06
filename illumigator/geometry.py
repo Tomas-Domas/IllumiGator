@@ -36,6 +36,8 @@ class Line(Geometry):
         is_enemy: bool = False
     ):
         super().__init__(parent_object, is_reflective, is_refractive, is_receiver, is_enemy)
+        if is_reflective:
+            self._normal = None
         self._point1 = point1
         self._point2 = point2
         self._length = numpy.linalg.norm(point2 - point1)
@@ -66,33 +68,33 @@ class Line(Geometry):
         )
 
 
-class Circle(Geometry):
-    def __init__(
-        self,
-        parent_object,
-        center: numpy.ndarray,
-        radius: float,
-        is_reflective: bool = False,
-        is_refractive: bool = False,
-        is_receiver: bool = False,
-        is_enemy: bool = False
-    ):
-        super().__init__(parent_object, is_reflective, is_refractive, is_receiver, is_enemy)
-        self.center = center
-        self.radius = radius
-
-    def move(self, world_object_center, move_distance, rotate_angle=0):
-        self.center = (
-            util.rotate_around_point(world_object_center, self.center, rotate_angle)
-            + move_distance
-        )
-
-    def draw(self, *, color=arcade.color.MAGENTA, thickness=1):
-        arcade.draw_circle_outline(
-            self.center[0], self.center[1],
-            self.radius, color,
-            border_width=thickness
-        )
+# class Circle(Geometry):
+#     def __init__(
+#         self,
+#         parent_object,
+#         center: numpy.ndarray,
+#         radius: float,
+#         is_reflective: bool = False,
+#         is_refractive: bool = False,
+#         is_receiver: bool = False,
+#         is_enemy: bool = False
+#     ):
+#         super().__init__(parent_object, is_reflective, is_refractive, is_receiver, is_enemy)
+#         self.center = center
+#         self.radius = radius
+#
+#     def move(self, world_object_center, move_distance, rotate_angle=0):
+#         self.center = (
+#             util.rotate_around_point(world_object_center, self.center, rotate_angle)
+#             + move_distance
+#         )
+#
+#     def draw(self, *, color=arcade.color.MAGENTA, thickness=1):
+#         arcade.draw_circle_outline(
+#             self.center[0], self.center[1],
+#             self.radius, color,
+#             border_width=thickness
+#         )
 
 
 class Arc(Geometry):
@@ -166,18 +168,18 @@ class Arc(Geometry):
         # Determine normal
         normal = (ray._end - self.center) / self.radius
         # Determine whether coming into or out of shape
-        dot_product = normal @ ray._direction
+        dot_product = normal @ ray.direction
 
         if dot_product < 0:  # Ray is coming into the shape
             # Determine refraction angle with respect to normal
             angle = (numpy.pi - math.acos(dot_product)) / util.INDEX_OF_REFRACTION
-            if util.two_d_cross_product(ray._direction, normal) < 0:
+            if util.two_d_cross_product(ray.direction, normal) < 0:
                 angle = -angle
             # Create vector with new angle from normal
             return -util.rotate(normal, angle)
 
         else:  # Ray is going out of shape
             angle = (numpy.pi - math.acos(-dot_product)) * util.INDEX_OF_REFRACTION
-            if util.two_d_cross_product(ray._direction, normal) > 0:
+            if util.two_d_cross_product(ray.direction, normal) > 0:
                 angle = -angle
             return util.rotate(normal, angle)

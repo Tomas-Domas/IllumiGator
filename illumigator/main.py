@@ -1,8 +1,9 @@
 import time
 
 import arcade
+import numpy
 
-from illumigator import entity, level, menus, util, level_selector
+from illumigator import level, menus, util, level_selector
 
 
 class GameObject(arcade.Window):
@@ -10,6 +11,7 @@ class GameObject(arcade.Window):
         super().__init__(util.WORLD_WIDTH, util.WORLD_HEIGHT, util.WINDOW_TITLE, resizable=True, antialiasing=True)
         self.set_mouse_visible(False)
         self.current_level = None
+        self.current_level_creator = None
         self.menu_sound = None
         self.background_music = None
         self.menu_music = None
@@ -72,7 +74,6 @@ class GameObject(arcade.Window):
         self.community_selector_menu = level_selector.LevelSelector(is_community=True)
         self.community_win_menu = menus.GenericMenu("YOU WIN", ("RETRY", "QUIT TO MENU"))
 
-
     def on_update(self, delta_time):
         # STATE MACHINE FOR UPDATING LEVEL
         if self.game_state == "game":
@@ -130,7 +131,7 @@ class GameObject(arcade.Window):
         if self.game_state == "menu":
             self.main_menu.draw()
 
-        elif self.game_state == "game":
+        elif self.game_state == "game" or self.game_state == "level_creator":
             self.current_level.draw()
 
         elif self.game_state == "paused":
@@ -200,6 +201,16 @@ class GameObject(arcade.Window):
                 self.game_state = "official_level_select"
             if key == arcade.key.C:
                 self.game_state = "community_level_select"
+            if key == arcade.key.L:
+                self.current_level_path = "test.json"
+                self.official_level_status = False
+                self.current_level = level.load_level(
+                    util.load_data(self.current_level_path, True, False),
+                    walking_volume=self.effects_volume * self.master_volume
+                )
+                self.current_level_creator = level.LevelCreator(self.current_level)
+                self.game_state = "level_creator"
+                self.set_mouse_visible(True)
 
         elif self.game_state == "game":
             if key == arcade.key.ESCAPE:
@@ -212,6 +223,19 @@ class GameObject(arcade.Window):
                 self.current_level.gator.down = True
             if key == arcade.key.D or key == arcade.key.RIGHT:
                 self.current_level.gator.right = True
+
+        elif self.game_state == "level_creator":
+            if key == arcade.key.ESCAPE:
+                self.set_mouse_visible(False)
+                self.game_state = "menu"
+
+            if key in [arcade.key.KEY_1, arcade.key.KEY_2, arcade.key.KEY_3, arcade.key.KEY_4, arcade.key.KEY_5]:
+                print(key)
+                self.current_level_creator.generate_object(key-48, numpy.array([100, 200]))  # pass value from 1-5
+
+
+
+
 
         elif self.game_state == "paused":
             if key == arcade.key.ESCAPE:

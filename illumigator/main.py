@@ -3,20 +3,21 @@ import time
 import arcade
 import numpy
 
-from illumigator import level, menus, util, level_selector
+from illumigator import level, menus, util, level_selector, worldobjects
 
 
 class GameObject(arcade.Window):
     def __init__(self):
         super().__init__(util.WORLD_WIDTH, util.WORLD_HEIGHT, util.WINDOW_TITLE, resizable=True, antialiasing=True)
         self.set_mouse_visible(False)
-        self.current_level = None
-        self.current_level_creator = None
+        self.current_level: level.Level = None
+        self.current_level_creator: level.LevelCreator = None
         self.menu_sound = None
         self.background_music = None
         self.menu_music = None
         self.menu_player = None
         self.bgm_player = None
+        self.mouse_position = numpy.zeros(2)
 
         # ========================= Window =========================
         arcade.set_background_color(arcade.color.BLACK)
@@ -225,13 +226,27 @@ class GameObject(arcade.Window):
                 self.current_level.gator.right = True
 
         elif self.game_state == "level_creator":
+            level_creator = self.current_level_creator
+
             if key == arcade.key.ESCAPE:
                 self.set_mouse_visible(False)
                 self.game_state = "menu"
 
             if key in [arcade.key.KEY_1, arcade.key.KEY_2, arcade.key.KEY_3, arcade.key.KEY_4, arcade.key.KEY_5]:
-                print(key)
-                self.current_level_creator.generate_object(key-48, numpy.array([100, 200]))  # pass value from 1-5
+                if level_creator.snap_to_grid:
+                    level_creator.generate_object(key-48, level_creator.get_grid_position(self.mouse_position))
+                else:
+                    level_creator.generate_object(key - 48, self.mouse_position)
+
+            if type(level_creator.selected_world_object) == worldobjects.Wall:
+                if key == arcade.key.W or key == arcade.key.UP:
+                    level_creator.resize_wall(0, 1)
+                if key == arcade.key.A or key == arcade.key.LEFT:
+                    level_creator.resize_wall(-1, 0)
+                if key == arcade.key.S or key == arcade.key.DOWN:
+                    level_creator.resize_wall(0, -1)
+                if key == arcade.key.D or key == arcade.key.RIGHT:
+                    level_creator.resize_wall(1, 0)
 
 
 
@@ -390,6 +405,24 @@ class GameObject(arcade.Window):
             self.audio_menu.slider_list[self.audio_menu.selection].left = False
         if key == arcade.key.RIGHT:
             self.audio_menu.slider_list[self.audio_menu.selection].right = False
+
+    def on_mouse_motion(self, x: int, y: int, dx: int, dy: int):
+        self.mouse_position[0] = x
+        self.mouse_position[1] = y
+        if self.game_state == "level_creator" and self.current_level_creator.selected_world_object is not None:
+            if self.current_level_creator.snap_to_grid is True:
+                self.current_level_creator.selected_world_object.move_if_safe(
+                    None, None,
+                    self.current_level_creator.get_grid_position(self.mouse_position) - self.current_level_creator.selected_world_object.position,
+                    ignore_collisions=True
+                )
+            else:
+                self.current_level_creator.selected_world_object.move_if_safe(
+                    None, None,
+                    self.mouse_position - self.current_level_creator.selected_world_object.position,
+                    ignore_collisions=True
+                )
+
 
     def on_resize(self, width: float, height: float):
         min_ratio = min(width / util.WORLD_WIDTH, height / util.WORLD_HEIGHT)

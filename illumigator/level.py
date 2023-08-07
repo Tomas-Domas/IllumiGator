@@ -1,3 +1,4 @@
+import math
 import numpy
 
 from illumigator import worldobjects, entity, util, light
@@ -273,40 +274,55 @@ def load_level(level: dict, walking_volume) -> Level:
         walking_volume=walking_volume
     )
 
+
+
 class LevelCreator:
     def __init__(self, level):
-        self.level = level
-        self.selected_world_object = None
-        self.selected_world_object_list = None
-        self.snap_to_grid = True
+        self.level: Level = level
+        self.selected_world_object: worldobjects.WorldObject | None = None
+        self.selected_world_object_list: list | None = None
+        self.wall_dimensions = None
 
-    def generate_object(self, type_selection: int, mouse_position):
+        self.snap_to_grid: bool = True
+        self.nearest_grid_position = None
+
+    def generate_object(self, type_selection: int, mouse_position: numpy.ndarray):
         new_world_object = None
         new_world_object_list = None
         match type_selection:
             case 1:  # Wall
                 new_world_object = worldobjects.Wall(mouse_position, numpy.ones(2), 0)
                 new_world_object_list = self.level.wall_list
-                print("Wall")
             case 2:  # Mirror
                 new_world_object = worldobjects.Mirror(mouse_position, 0)
                 new_world_object_list = self.level.mirror_list
-                print("Mirror")
             case 3:  # Lens
                 new_world_object = worldobjects.Lens(mouse_position, 0)
                 new_world_object_list = self.level.lens_list
-                print("Lens")
             case 4:  # Source
                 new_world_object = worldobjects.ParallelLightSource(mouse_position, 0)
                 new_world_object_list = self.level.light_source_list
-                print("Source")
             case 5:  # Receiver
                 new_world_object = worldobjects.LightReceiver(mouse_position, 0)
                 new_world_object_list = self.level.light_source_list
-                print("Receiver")
 
         if self.selected_world_object is not None:
             self.selected_world_object_list.remove(self.selected_world_object)
+        elif type(new_world_object) == worldobjects.Wall:
+            self.wall_dimensions = numpy.ones(2)
         self.selected_world_object = new_world_object
         self.selected_world_object_list = new_world_object_list
         new_world_object_list.append(new_world_object)
+
+    def get_grid_position(self, mouse_position: numpy.ndarray):
+        return util.WALL_SIZE * numpy.array([
+            mouse_position[0] // util.WALL_SIZE + 0.5,
+            mouse_position[1] // util.WALL_SIZE + 0.5
+        ])
+
+    def resize_wall(self, dx, dy):
+        self.wall_dimensions[0] += dx
+        self.wall_dimensions[1] += dy
+        self.level.wall_list.remove(self.selected_world_object)
+        self.selected_world_object = worldobjects.Wall(self.selected_world_object.position, self.wall_dimensions, 0)
+        self.level.wall_list.append(self.selected_world_object)

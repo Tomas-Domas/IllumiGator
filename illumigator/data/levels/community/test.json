@@ -1,6 +1,6 @@
 {
-  "level_name": "Custom Test Level",
-  "planet": "earth",
+  "level_name": "Test",
+  "planet": "moon",
   "level_data": {
     "mirror_coordinate_list": [],
     "wall_coordinate_list": [],

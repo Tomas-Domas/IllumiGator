@@ -107,7 +107,14 @@ class WorldObject:
     def distance_squared_to_center(self, point_x, point_y):
         return util.distance_squared(self.position, numpy.array([point_x, point_y]))
 
-    def check_collision(self, sprite: arcade.Sprite):
+    def check_collision_with_point(self, point: numpy.ndarray):
+        for sprite in self._sprite_list:
+            if sprite.collides_with_point(point):
+                return True
+        else:
+            return False
+
+    def check_collision_with_sprite(self, sprite: arcade.Sprite):
         return sprite.collides_with_list(self._sprite_list)
 
     def move_geometry(self, move_distance: numpy.ndarray = numpy.zeros(2), rotate_angle: float = 0):
@@ -136,7 +143,7 @@ class WorldObject:
             sprite.radians += rotate_angle
             sprite.center_x, sprite.center_y = new_position[0], new_position[1]
         if not ignore_collisions and (
-                self.check_collision(character.sprite) or (enemy is not None and self.check_collision(enemy.sprite))
+                self.check_collision_with_sprite(character.sprite) or (enemy is not None and self.check_collision_with_sprite(enemy.sprite))
         ):
             for sprite in self._sprite_list:
                 new_position = util.rotate_around_point(
@@ -173,6 +180,7 @@ class WorldObject:
 class Wall(WorldObject):
     def __init__(self, position: numpy.ndarray, dimensions: numpy.ndarray, rotation_angle: float):
         super().__init__(position, rotation_angle, is_interactable=False)
+        self.dimensions = dimensions
         self.initialize_geometry(util.WALL_SPRITE_INFO, dimensions=dimensions)
         self.initialize_sprites(util.WALL_SPRITE_INFO, dimensions=dimensions)
 

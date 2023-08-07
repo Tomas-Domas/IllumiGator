@@ -233,20 +233,17 @@ class GameObject(arcade.Window):
                 self.game_state = "menu"
 
             if key in [arcade.key.KEY_1, arcade.key.KEY_2, arcade.key.KEY_3, arcade.key.KEY_4, arcade.key.KEY_5]:
-                if level_creator.snap_to_grid:
-                    level_creator.generate_object(key-48, level_creator.get_grid_position(self.mouse_position))
-                else:
-                    level_creator.generate_object(key - 48, self.mouse_position)
+                level_creator.generate_object(key-48, self.mouse_position)
 
             if type(level_creator.selected_world_object) == worldobjects.Wall:
                 if key == arcade.key.W or key == arcade.key.UP:
-                    level_creator.resize_wall(0, 1)
+                    level_creator.resize_wall(self.mouse_position, 0, 1)
                 if key == arcade.key.A or key == arcade.key.LEFT:
-                    level_creator.resize_wall(-1, 0)
+                    level_creator.resize_wall(self.mouse_position, -1, 0)
                 if key == arcade.key.S or key == arcade.key.DOWN:
-                    level_creator.resize_wall(0, -1)
+                    level_creator.resize_wall(self.mouse_position, 0, -1)
                 if key == arcade.key.D or key == arcade.key.RIGHT:
-                    level_creator.resize_wall(1, 0)
+                    level_creator.resize_wall(self.mouse_position, 1, 0)
 
 
 
@@ -410,19 +407,16 @@ class GameObject(arcade.Window):
         self.mouse_position[0] = x
         self.mouse_position[1] = y
         if self.game_state == "level_creator" and self.current_level_creator.selected_world_object is not None:
-            if self.current_level_creator.snap_to_grid is True:
-                self.current_level_creator.selected_world_object.move_if_safe(
-                    None, None,
-                    self.current_level_creator.get_grid_position(self.mouse_position) - self.current_level_creator.selected_world_object.position,
-                    ignore_collisions=True
-                )
-            else:
-                self.current_level_creator.selected_world_object.move_if_safe(
-                    None, None,
-                    self.mouse_position - self.current_level_creator.selected_world_object.position,
-                    ignore_collisions=True
-                )
+            self.current_level_creator.selected_world_object.move_if_safe(
+                None, None,
+                self.current_level_creator.get_position(self.mouse_position) - self.current_level_creator.selected_world_object.position,
+                ignore_collisions=True
+            )
 
+    def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
+        if self.game_state != "level_creator" or button != 1:
+            return
+        self.current_level_creator.click(self.mouse_position)
 
     def on_resize(self, width: float, height: float):
         min_ratio = min(width / util.WORLD_WIDTH, height / util.WORLD_HEIGHT)

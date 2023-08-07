@@ -251,8 +251,8 @@ class Level:
             self.enemy.draw()
 
     def check_collisions(self, character: entity.Gator):
-        for wo in (self.wall_list + self.mirror_list + self.lens_list + self.light_receiver_list + self.light_source_list):
-            if wo.check_collision(character.sprite):
+        for wo in self.wall_list + self.mirror_list + self.lens_list + self.light_receiver_list + self.light_source_list:
+            if wo.check_collision_with_sprite(character.sprite):
                 return True
         else:
             return False
@@ -281,7 +281,7 @@ class LevelCreator:
         self.level: Level = level
         self.selected_world_object: worldobjects.WorldObject | None = None
         self.selected_world_object_list: list | None = None
-        self.wall_dimensions = None
+        self.wall_dimensions = numpy.ones(2)
 
         self.snap_to_grid: bool = True
         self.nearest_grid_position = None
@@ -291,20 +291,21 @@ class LevelCreator:
         new_world_object_list = None
         match type_selection:
             case 1:  # Wall
-                new_world_object = worldobjects.Wall(mouse_position, numpy.ones(2), 0)
+                self.wall_dimensions = numpy.ones(2)
+                new_world_object = worldobjects.Wall(self.get_position(mouse_position), self.wall_dimensions, 0)
                 new_world_object_list = self.level.wall_list
             case 2:  # Mirror
-                new_world_object = worldobjects.Mirror(mouse_position, 0)
+                new_world_object = worldobjects.Mirror(self.get_position(mouse_position), 0)
                 new_world_object_list = self.level.mirror_list
             case 3:  # Lens
-                new_world_object = worldobjects.Lens(mouse_position, 0)
+                new_world_object = worldobjects.Lens(self.get_position(mouse_position), 0)
                 new_world_object_list = self.level.lens_list
             case 4:  # Source
-                new_world_object = worldobjects.ParallelLightSource(mouse_position, 0)
+                new_world_object = worldobjects.ParallelLightSource(self.get_position(mouse_position), 0)
                 new_world_object_list = self.level.light_source_list
             case 5:  # Receiver
-                new_world_object = worldobjects.LightReceiver(mouse_position, 0)
-                new_world_object_list = self.level.light_source_list
+                new_world_object = worldobjects.LightReceiver(self.get_position(mouse_position), 0)
+                new_world_object_list = self.level.light_receiver_list
 
         if self.selected_world_object is not None:
             self.selected_world_object_list.remove(self.selected_world_object)
@@ -314,15 +315,40 @@ class LevelCreator:
         self.selected_world_object_list = new_world_object_list
         new_world_object_list.append(new_world_object)
 
-    def get_grid_position(self, mouse_position: numpy.ndarray):
-        return util.WALL_SIZE * numpy.array([
-            mouse_position[0] // util.WALL_SIZE + 0.5,
-            mouse_position[1] // util.WALL_SIZE + 0.5
-        ])
+    def get_position(self, mouse_position: numpy.ndarray):
+        if self.snap_to_grid:
+            grid_pos = numpy.array([
+                mouse_position[0] // util.WALL_SIZE + 1,
+                mouse_position[1] // util.WALL_SIZE + 1
+            ])
+            if self.wall_dimensions[0] % 2 == 1:
+                grid_pos[0] -= 0.5
+            if self.wall_dimensions[1] % 2 == 1:
+                grid_pos[1] -= 0.5
+            return util.WALL_SIZE * grid_pos
 
-    def resize_wall(self, dx, dy):
-        self.wall_dimensions[0] += dx
-        self.wall_dimensions[1] += dy
+        else:
+            return mouse_position
+
+    def resize_wall(self, mouse_position, dx, dy):
+        if 1 <= self.wall_dimensions[0]+dx <= 34:
+            self.wall_dimensions[0] += dx
+        else:
+            return
+        if 1 <= self.wall_dimensions[1]+dy <= 20:
+            self.wall_dimensions[1] += dy
+        else:
+            return
         self.level.wall_list.remove(self.selected_world_object)
-        self.selected_world_object = worldobjects.Wall(self.selected_world_object.position, self.wall_dimensions, 0)
+        self.selected_world_object = worldobjects.Wall(self.get_position(mouse_position), self.wall_dimensions, 0)
         self.level.wall_list.append(self.selected_world_object)
+
+    def click(self, mouse_position: numpy.ndarray):
+        if self.selected_world_object is None:
+            for wo in self.level.wall_list + self.level.mirror_list + self.level.lens_list + self.level.light_receiver_list + self.level.light_source_list:
+                if wo.check_collision_with_point(mouse_position):
+                    self.selected_world_object = wo
+                    self.wall_dimensions = wo.dimensions if type(wo) == worldobjects.Wall else numpy.ones(2)
+                    return
+        else:
+            self.selected_world_object = None

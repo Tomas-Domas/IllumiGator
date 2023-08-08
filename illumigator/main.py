@@ -10,8 +10,8 @@ class GameObject(arcade.Window):
     def __init__(self):
         super().__init__(util.WORLD_WIDTH, util.WORLD_HEIGHT, util.WINDOW_TITLE, resizable=True, antialiasing=True)
         self.set_mouse_visible(False)
-        self.current_level: level.Level = None
-        self.current_level_creator: level.LevelCreator = None
+        self.current_level: level.Level | None = None
+        self.current_level_creator: level.LevelCreator | None = None
         self.menu_sound = None
         self.background_music = None
         self.menu_music = None
@@ -103,7 +103,7 @@ class GameObject(arcade.Window):
 
         elif self.game_state == "level_creator":
             self.current_level_creator.update(self.mouse_position)
-            self.current_level.update(self.effects_volume * self.master_volume, ignore_all_checks=True)
+            self.current_level_creator.level.update(self.effects_volume * self.master_volume, ignore_all_checks=True)
 
         elif self.game_state == "audio":
             self.audio_menu.update()
@@ -136,8 +136,11 @@ class GameObject(arcade.Window):
         if self.game_state == "menu":
             self.main_menu.draw()
 
-        elif self.game_state == "game" or self.game_state == "level_creator":
+        elif self.game_state == "game":
             self.current_level.draw()
+
+        elif self.game_state == "level_creator":
+            self.current_level_creator.level.draw()
 
         elif self.game_state == "paused":
             self.current_level.draw()
@@ -207,13 +210,9 @@ class GameObject(arcade.Window):
             if key == arcade.key.C:
                 self.game_state = "community_level_select"
             if key == arcade.key.L:
-                self.current_level_path = "test.json"
-                self.official_level_status = False
-                self.current_level = level.load_level(
-                    util.load_data(self.current_level_path, True, False),
-                    walking_volume=self.effects_volume * self.master_volume
-                )
-                self.current_level_creator = level.LevelCreator(self.current_level)
+                if self.current_level_creator is None:
+                    print("GENERATE LEVEL CREATOR")
+                    self.current_level_creator = level.LevelCreator(level.Level())
                 self.game_state = "level_creator"
                 self.set_mouse_visible(True)
 
@@ -255,9 +254,15 @@ class GameObject(arcade.Window):
                 level_creator.queued_rotation = -1
 
             if key == arcade.key.ENTER or key == arcade.key.SPACE:
-                level_creator.export_level_as_file()
-                print("SAVED LEVEL")
+                self.current_level_path = "my_level.json"
+                self.official_level_status = False
+                level_creator.export_level_as_file(level_name="My Level", file_name=self.current_level_path)
+
                 self.set_mouse_visible(False)
+                self.current_level = level.load_level(
+                    util.load_data(self.current_level_path, True, self.official_level_status),
+                    walking_volume=self.effects_volume * self.master_volume
+                )
                 self.game_state = "menu"
 
 

@@ -3,36 +3,17 @@ import numpy
 
 from illumigator import worldobjects, entity, util, light
 
-BORDER_WALLS = [
-    worldobjects.Wall(
-        numpy.array([util.WALL_SIZE / 2, 720 / 2]),
-        numpy.array([1, 720 / util.WALL_SIZE]),
-        0),
-    worldobjects.Wall(
-        numpy.array([1280 - util.WALL_SIZE / 2, 720 / 2]),
-        numpy.array([1, 720 / util.WALL_SIZE]),
-        0),
-    worldobjects.Wall(
-        numpy.array([1280 / 2, util.WALL_SIZE / 2]),
-        numpy.array([1280 / util.WALL_SIZE - 2, 1]),
-        0),
-    worldobjects.Wall(
-        numpy.array([1280 / 2, 720 - util.WALL_SIZE / 2]),
-        numpy.array([1280 / util.WALL_SIZE - 2, 1]),
-        0)
-]
-
 class Level:
     def __init__(
             self,
-            wall_coordinate_list: list[list] = None,
-            mirror_coordinate_list: list[list] = None,
-            light_receiver_coordinate_list: list[list] = None,
-            light_source_coordinate_list: list[list] = None,
-            animated_wall_coordinate_list: list[list] = None,
-            lens_coordinate_list: list[list] = None,
-            gator_coordinates: list = None,
-            enemy_coordinates: list = None,
+            wall_coordinate_list = (),
+            mirror_coordinate_list = (),
+            light_receiver_coordinate_list = (),
+            light_source_coordinate_list = (),
+            animated_wall_coordinate_list = (),
+            lens_coordinate_list = (),
+            gator_coordinates = (640, 360),
+            enemy_coordinates = (),
             name="default",
             background="space",
             planet="moon",
@@ -61,7 +42,7 @@ class Level:
                 wall_coordinates[4],
             ) for wall_coordinates in wall_coordinate_list
         ]
-        self.wall_list.extend(BORDER_WALLS)
+        self.create_border_walls()
 
         self.mirror_list = [
             worldobjects.Mirror(
@@ -149,6 +130,7 @@ class Level:
             self.create_enemy(enemy_coordinates)
         self.gator = entity.Gator(gator_coordinates, walking_volume)
         self.entity_world_object_list.append(self.gator.world_object)
+        self.line_segments.extend(self.gator.world_object.geometry_segments)
 
     def update(self, walking_volume, ignore_all_checks=False):
         if not ignore_all_checks and self.gator.update(self, walking_volume, self.enemy) is False:
@@ -301,6 +283,28 @@ class Level:
             self.line_segments.remove(geometry_segment)
         self.enemy = None
 
+    def create_border_walls(self):
+        self.wall_list.append(worldobjects.Wall(
+            numpy.array([util.WALL_SIZE / 2, 720 / 2]),
+            numpy.array([1, 720 / util.WALL_SIZE]),
+            0
+        ))
+        self.wall_list.append(worldobjects.Wall(
+            numpy.array([1280 - util.WALL_SIZE / 2, 720 / 2]),
+            numpy.array([1, 720 / util.WALL_SIZE]),
+            0
+        ))
+        self.wall_list.append(worldobjects.Wall(
+            numpy.array([1280 / 2, util.WALL_SIZE / 2]),
+            numpy.array([1280 / util.WALL_SIZE - 2, 1]),
+            0
+        ))
+        self.wall_list.append(worldobjects.Wall(
+            numpy.array([1280 / 2, 720 - util.WALL_SIZE / 2]),
+            numpy.array([1280 / util.WALL_SIZE - 2, 1]),
+            0
+        ))
+
 
 def load_level(level: dict, walking_volume) -> Level:
     level_data = level["level_data"]
@@ -430,12 +434,12 @@ class LevelCreator:
                     self.queued_rotation * numpy.pi / 12,
                     ignore_collisions=True
                 )
-            self.queued_rotation = 0
 
         # MOVE ENTITY TO MOUSE
         elif self.selected_entity is not None:
             self.selected_entity.move_to(cursor_position)
 
+        self.queued_rotation = 0
         # GENERATE OBJECT
         match self.queued_type_selection:
             case 6:  # Enemy
@@ -486,9 +490,9 @@ class LevelCreator:
         self.selected_entity = None
         self.queued_type_selection = -1
 
-    def export_level_as_file(self):
+    def export_level_as_file(self, level_name: str = "My Level", file_name: str = "my_level.json"):
         level_obj = {
-            "level_name": "My Level",
+            "level_name": level_name,
             "planet": "moon",
             "level_data": {
                 "mirror_coordinate_list": [[*wo.position, wo.rotation_angle] for wo in self.level.mirror_list],
@@ -502,4 +506,4 @@ class LevelCreator:
                     [self.level.enemy.sprite.center_x, self.level.enemy.sprite.center_y] if self.level.enemy is not None else []
             }
         }
-        util.write_data("levels/community/my_level.json", level_obj)
+        util.write_data(f'levels/community/{file_name}', level_obj)

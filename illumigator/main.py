@@ -101,6 +101,10 @@ class GameObject(arcade.Window):
                     self.effects_volume * self.master_volume
                 )
 
+        elif self.game_state == "level_creator":
+            self.current_level_creator.update(self.mouse_position)
+            self.current_level.update(self.effects_volume * self.master_volume, ignore_all_checks=True)
+
         elif self.game_state == "audio":
             self.audio_menu.update()
 
@@ -233,7 +237,7 @@ class GameObject(arcade.Window):
                 self.game_state = "menu"
 
             if key in [arcade.key.KEY_1, arcade.key.KEY_2, arcade.key.KEY_3, arcade.key.KEY_4, arcade.key.KEY_5]:
-                level_creator.generate_object(key-48, self.mouse_position)
+                level_creator.queued_type_selection = key-48  # To be generated in on_update
 
             if type(level_creator.selected_world_object) == worldobjects.Wall:
                 if key == arcade.key.W or key == arcade.key.UP:
@@ -406,17 +410,11 @@ class GameObject(arcade.Window):
     def on_mouse_motion(self, x: int, y: int, dx: int, dy: int):
         self.mouse_position[0] = x
         self.mouse_position[1] = y
-        if self.game_state == "level_creator" and self.current_level_creator.selected_world_object is not None:
-            self.current_level_creator.selected_world_object.move_if_safe(
-                None, None,
-                self.current_level_creator.get_position(self.mouse_position) - self.current_level_creator.selected_world_object.position,
-                ignore_collisions=True
-            )
 
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
         if self.game_state != "level_creator" or button != 1:
             return
-        self.current_level_creator.click(self.mouse_position)
+        self.current_level_creator.on_click(self.mouse_position)
 
     def on_resize(self, width: float, height: float):
         min_ratio = min(width / util.WORLD_WIDTH, height / util.WORLD_HEIGHT)

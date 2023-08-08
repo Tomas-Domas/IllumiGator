@@ -152,18 +152,19 @@ class Level:
             self.arcs.extend(world_object.geometry_segments)
 
 
-    def update(self, walking_volume):
-        if self.gator.update(self, walking_volume, self.enemy) is False:
+    def update(self, walking_volume, ignore_all_checks=False):
+        if not ignore_all_checks and self.gator.update(self, walking_volume, self.enemy) is False:
             return False
-        if self.enemy is not None:
+        if not ignore_all_checks and self.enemy is not None:
             self.enemy.update(self, self.gator)
 
         for wall in self.wall_list:
             if wall.obj_animation is not None:
                 wall.apply_object_animation(self.gator, self.enemy)
 
-        for light_receiver in self.light_receiver_list:
-            light_receiver.charge *= util.CHARGE_DECAY
+        if not ignore_all_checks:
+            for light_receiver in self.light_receiver_list:
+                light_receiver.charge *= util.CHARGE_DECAY
 
         #  ==================== Raycasting and update rays ====================
         line_p1 = numpy.ndarray((len(self.line_segments), 2))
@@ -204,9 +205,10 @@ class Level:
                                 ray.direction - (2 * nearest_line._normal * (nearest_line._normal @ ray.direction))
                             )
                             ray_queue.append(ray.child_ray)
-                        elif nearest_line.is_receiver:  # Charge receiver when a light ray hits it
+                        elif not ignore_all_checks and nearest_line.is_receiver:  # Charge receiver when a light ray hits it
                             nearest_line.parent_object.charge += util.LIGHT_INCREMENT
-                        elif nearest_line.is_enemy and self.enemy.status != "aggro":
+                            ray.child_ray = None
+                        elif not ignore_all_checks and nearest_line.is_enemy and self.enemy.status != "aggro":
                             self.enemy.status = "aggro"
                             self.enemy.update_geometry_shape()
                             ray.child_ray = None
@@ -281,39 +283,13 @@ class LevelCreator:
         self.level: Level = level
         self.selected_world_object: worldobjects.WorldObject | None = None
         self.selected_world_object_list: list | None = None
+        self.selected_geometry_list: list | None = None
         self.wall_dimensions = numpy.ones(2)
 
         self.snap_to_grid: bool = True
         self.nearest_grid_position = None
 
-    def generate_object(self, type_selection: int, mouse_position: numpy.ndarray):
-        new_world_object = None
-        new_world_object_list = None
-        match type_selection:
-            case 1:  # Wall
-                self.wall_dimensions = numpy.ones(2)
-                new_world_object = worldobjects.Wall(self.get_position(mouse_position), self.wall_dimensions, 0)
-                new_world_object_list = self.level.wall_list
-            case 2:  # Mirror
-                new_world_object = worldobjects.Mirror(self.get_position(mouse_position), 0)
-                new_world_object_list = self.level.mirror_list
-            case 3:  # Lens
-                new_world_object = worldobjects.Lens(self.get_position(mouse_position), 0)
-                new_world_object_list = self.level.lens_list
-            case 4:  # Source
-                new_world_object = worldobjects.ParallelLightSource(self.get_position(mouse_position), 0)
-                new_world_object_list = self.level.light_source_list
-            case 5:  # Receiver
-                new_world_object = worldobjects.LightReceiver(self.get_position(mouse_position), 0)
-                new_world_object_list = self.level.light_receiver_list
-
-        if self.selected_world_object is not None:
-            self.selected_world_object_list.remove(self.selected_world_object)
-        elif type(new_world_object) == worldobjects.Wall:
-            self.wall_dimensions = numpy.ones(2)
-        self.selected_world_object = new_world_object
-        self.selected_world_object_list = new_world_object_list
-        new_world_object_list.append(new_world_object)
+        self.queued_type_selection = None
 
     def get_position(self, mouse_position: numpy.ndarray):
         if self.snap_to_grid:
@@ -340,10 +316,14 @@ class LevelCreator:
         else:
             return
         self.level.wall_list.remove(self.selected_world_object)
+        for geometry_segment in self.selected_world_object.geometry_segments:
+            self.level.line_segments.remove(geometry_segment)
         self.selected_world_object = worldobjects.Wall(self.get_position(mouse_position), self.wall_dimensions, 0)
         self.level.wall_list.append(self.selected_world_object)
+        for geometry_segment in self.selected_world_object.geometry_segments:
+            self.level.line_segments.append(geometry_segment)
 
-    def click(self, mouse_position: numpy.ndarray):
+    def on_click(self, mouse_position: numpy.ndarray):
         if self.selected_world_object is None:
             for wo in self.level.wall_list + self.level.mirror_list + self.level.lens_list + self.level.light_receiver_list + self.level.light_source_list:
                 if wo.check_collision_with_point(mouse_position):
@@ -352,3 +332,62 @@ class LevelCreator:
                     return
         else:
             self.selected_world_object = None
+
+    def update(self, mouse_position):
+        # MOVE OBJECT TO MOUSE
+        if self.selected_world_object is not None:
+            if type(self.selected_world_object) == worldobjects.ParallelLightSource or type(self.selected_world_object) == worldobjects.RadialLightSource:
+                self.selected_world_object.move(
+                    self.get_position(mouse_position) - self.selected_world_object.position,
+                    0
+                )
+            else:
+                self.selected_world_object.move_if_safe(
+                    None, None,
+                    self.get_position(mouse_position) - self.selected_world_object.position,
+                    ignore_collisions=True
+                )
+
+        # GENERATE OBJECT
+        new_world_object = None
+        new_world_object_list = None
+        new_geometry_list = None
+        match self.queued_type_selection:
+            case None:
+                return
+            case 1:  # Wall
+                self.wall_dimensions = numpy.ones(2)
+                new_world_object = worldobjects.Wall(self.get_position(mouse_position), self.wall_dimensions, 0)
+                new_world_object_list = self.level.wall_list
+                new_geometry_list = self.level.line_segments
+            case 2:  # Mirror
+                new_world_object = worldobjects.Mirror(self.get_position(mouse_position), 0)
+                new_world_object_list = self.level.mirror_list
+                new_geometry_list = self.level.line_segments
+            case 3:  # Lens
+                new_world_object = worldobjects.Lens(self.get_position(mouse_position), 0)
+                new_world_object_list = self.level.lens_list
+                new_geometry_list = self.level.arcs
+            case 4:  # Source
+                new_world_object = worldobjects.ParallelLightSource(self.get_position(mouse_position), 0)
+                new_world_object_list = self.level.light_source_list
+                new_geometry_list = self.level.line_segments
+            case 5:  # Receiver
+                new_world_object = worldobjects.LightReceiver(self.get_position(mouse_position), 0)
+                new_world_object_list = self.level.light_receiver_list
+                new_geometry_list = self.level.line_segments
+        self.queued_type_selection = None
+
+        if self.selected_world_object is not None:
+            self.selected_world_object_list.remove(self.selected_world_object)
+            for geometry_segment in self.selected_world_object.geometry_segments:
+                self.selected_geometry_list.remove(geometry_segment)
+        elif type(new_world_object) == worldobjects.Wall:
+            self.wall_dimensions = numpy.ones(2)
+
+        self.selected_world_object = new_world_object
+        self.selected_world_object_list = new_world_object_list
+        self.selected_geometry_list = new_geometry_list
+        new_world_object_list.append(new_world_object)
+        for geometry_segment in self.selected_world_object.geometry_segments:
+            new_geometry_list.append(geometry_segment)

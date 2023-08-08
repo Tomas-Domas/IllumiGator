@@ -149,7 +149,7 @@ class Arc(Geometry):
                 self._start_angle * 180 / numpy.pi,
                 self._end_angle * 180 / numpy.pi,
                 border_width=thickness*2,
-                num_segments=512,
+                num_segments=256,
             )
         else:
             arcade.draw_arc_outline(
@@ -159,7 +159,7 @@ class Arc(Geometry):
                 self._start_angle * 180 / numpy.pi,
                 self._end_angle * 180 / numpy.pi + 360,
                 border_width=thickness*2,
-                num_segments=512,
+                num_segments=256,
             )
 
     def get_refracted_direction(self, ray):

@@ -236,7 +236,7 @@ class GameObject(arcade.Window):
                 self.set_mouse_visible(False)
                 self.game_state = "menu"
 
-            if key in [arcade.key.KEY_1, arcade.key.KEY_2, arcade.key.KEY_3, arcade.key.KEY_4, arcade.key.KEY_5]:
+            if key in [arcade.key.KEY_1, arcade.key.KEY_2, arcade.key.KEY_3, arcade.key.KEY_4, arcade.key.KEY_5, arcade.key.KEY_6]:
                 level_creator.queued_type_selection = key-48  # To be generated in on_update
 
             if type(level_creator.selected_world_object) == worldobjects.Wall:
@@ -416,9 +416,8 @@ class GameObject(arcade.Window):
         self.mouse_position[1] = y
 
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
-        if self.game_state != "level_creator" or button != 1:
-            return
-        self.current_level_creator.on_click(self.mouse_position)
+        if self.game_state == "level_creator":
+            self.current_level_creator.on_click(self.mouse_position, button)
 
     def on_resize(self, width: float, height: float):
         min_ratio = min(width / util.WORLD_WIDTH, height / util.WORLD_HEIGHT)

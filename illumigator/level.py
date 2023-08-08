@@ -133,24 +133,22 @@ class Level:
                 numpy.array([animated_wall_coordinates[5], animated_wall_coordinates[6]]),
                 animated_wall_coordinates[7], animated_wall_coordinates[8])
 
-        self.entity_world_object_list: list[worldobjects.WorldObject] = []
-        if len(enemy_coordinates) == 0:
-            self.enemy = None
-        else:
-            self.enemy = entity.Enemy(enemy_coordinates)
-            self.entity_world_object_list.append(self.enemy.world_object)
-        self.gator = entity.Gator(gator_coordinates, walking_volume)
-        self.entity_world_object_list.append(self.gator.world_object)
-
-
-        #  Append line segments and arcs to geometry lists
+        # Append line segments and arcs to geometry lists
         self.line_segments = []
         self.arcs = []
-        for world_object in (self.entity_world_object_list + self.wall_list + self.mirror_list + self.light_receiver_list):
+        for world_object in self.wall_list + self.mirror_list + self.light_receiver_list:
             self.line_segments.extend(world_object.geometry_segments)
         for world_object in self.lens_list:
             self.arcs.extend(world_object.geometry_segments)
 
+        # Create entities
+        self.entity_world_object_list: list[worldobjects.WorldObject] = []
+        if len(enemy_coordinates) == 0:
+            self.enemy = None
+        else:
+            self.create_enemy(enemy_coordinates)
+        self.gator = entity.Gator(gator_coordinates, walking_volume)
+        self.entity_world_object_list.append(self.gator.world_object)
 
     def update(self, walking_volume, ignore_all_checks=False):
         if not ignore_all_checks and self.gator.update(self, walking_volume, self.enemy) is False:
@@ -259,6 +257,50 @@ class Level:
         else:
             return False
 
+    def add_world_object(self, world_object):
+        match world_object:
+            case worldobjects.Lens():  # Lens
+                self.lens_list.append(world_object)
+                self.arcs.extend(world_object.geometry_segments)
+                return
+            case worldobjects.Wall():  # Wall
+                self.wall_list.append(world_object)
+            case worldobjects.Mirror():  # Mirror
+                self.mirror_list.append(world_object)
+            case worldobjects.ParallelLightSource():  # Source
+                self.light_source_list.append(world_object)
+            case worldobjects.LightReceiver():  # Receiver
+                self.light_receiver_list.append(world_object)
+        self.line_segments.extend(world_object.geometry_segments)
+
+    def remove_world_object(self, world_object):
+        match world_object:
+            case worldobjects.Lens():  # Lens
+                self.lens_list.remove(world_object)
+                for geometry_segment in world_object.geometry_segments:
+                    self.arcs.remove(geometry_segment)
+                return
+            case worldobjects.Wall():  # Wall
+                self.wall_list.remove(world_object)
+            case worldobjects.Mirror():  # Mirror
+                self.mirror_list.remove(world_object)
+            case worldobjects.ParallelLightSource():  # Source
+                self.light_source_list.remove(world_object)
+            case worldobjects.LightReceiver():  # Receiver
+                self.light_receiver_list.remove(world_object)
+        for geometry_segment in world_object.geometry_segments:
+            self.line_segments.remove(geometry_segment)
+
+    def create_enemy(self, position):
+        self.enemy = entity.Enemy(position)
+        self.entity_world_object_list.append(self.enemy.world_object)
+        self.line_segments.extend(self.enemy.world_object.geometry_segments)
+
+    def delete_enemy(self):
+        for geometry_segment in self.enemy.world_object.geometry_segments:
+            self.line_segments.remove(geometry_segment)
+        self.enemy = None
+
 
 def load_level(level: dict, walking_volume) -> Level:
     level_data = level["level_data"]
@@ -282,14 +324,15 @@ class LevelCreator:
     def __init__(self, level):
         self.level: Level = level
         self.selected_world_object: worldobjects.WorldObject | None = None
-        self.selected_world_object_list: list | None = None
-        self.selected_geometry_list: list | None = None
+
         self.wall_dimensions = numpy.ones(2)
+        self.enemy_exists = False
+        self.selected_entity: entity.Gator | entity.Enemy | None = None
 
         self.snap_to_grid: bool = True
         self.nearest_grid_position = None
 
-        self.queued_type_selection = 0
+        self.queued_type_selection = -1
         self.queued_rotation = 0
 
     def get_position(self, mouse_position: numpy.ndarray):
@@ -321,76 +364,125 @@ class LevelCreator:
             self.level.line_segments.remove(geometry_segment)
         self.selected_world_object = worldobjects.Wall(self.get_position(mouse_position), self.wall_dimensions, self.selected_world_object.rotation_angle)
         self.level.wall_list.append(self.selected_world_object)
-        for geometry_segment in self.selected_world_object.geometry_segments:
-            self.level.line_segments.append(geometry_segment)
+        self.level.line_segments.extend(self.selected_world_object.geometry_segments)
 
-    def on_click(self, mouse_position: numpy.ndarray):
-        if self.selected_world_object is None:
-            for wo in self.level.wall_list + self.level.mirror_list + self.level.lens_list + self.level.light_receiver_list + self.level.light_source_list:
-                if wo.check_collision_with_point(mouse_position):
-                    self.selected_world_object = wo
-                    self.wall_dimensions = wo.dimensions if type(wo) == worldobjects.Wall else numpy.ones(2)
+    def on_click(self, mouse_position: numpy.ndarray, button):
+        if button == 1:
+            if self.selected_entity is None and self.selected_world_object is None:
+                # Check for click on entities
+                if self.level.gator.sprite.collides_with_point(mouse_position):
+                    self.selected_entity = self.level.gator
                     return
-        else:
-            self.selected_world_object = None
+                if self.level.enemy is not None and self.level.enemy.sprite.collides_with_point(mouse_position):
+                    self.selected_entity = self.level.enemy
+                    return
+
+                # Check for click on world objects
+                for wo in self.level.wall_list + self.level.mirror_list + self.level.lens_list + self.level.light_receiver_list + self.level.light_source_list:
+                    if wo.check_collision_with_point(mouse_position):
+                        self.selected_world_object = wo
+                        match self.selected_world_object:
+                            case worldobjects.Wall():  # Wall
+                                self.selected_world_object_list = self.level.wall_list
+                                self.selected_geometry_list = self.level.line_segments
+                            case worldobjects.Mirror():  # Mirror
+                                self.selected_world_object_list = self.level.mirror_list
+                                self.selected_geometry_list = self.level.line_segments
+                            case worldobjects.Lens():  # Lens
+                                self.selected_world_object_list = self.level.lens_list
+                                self.selected_geometry_list = self.level.line_segments
+                            case worldobjects.ParallelLightSource():  # Source
+                                self.selected_world_object_list = self.level.light_source_list
+                                self.selected_geometry_list = self.level.line_segments
+                            case worldobjects.LightReceiver():  # Receiver
+                                self.selected_world_object_list = self.level.light_receiver_list
+                                self.selected_geometry_list = self.level.line_segments
+                        self.wall_dimensions = wo.dimensions if type(wo) == worldobjects.Wall else numpy.ones(2)
+                        return
+            else:
+                self.selected_world_object = None
+                self.selected_entity = None
+
+        if button == 4:
+            if self.selected_world_object is not None:
+                self.level.remove_world_object(self.selected_world_object)
+                self.selected_world_object = None
+            elif self.selected_entity is not None:
+                if self.selected_entity is self.level.enemy:
+                    self.level.delete_enemy()
+                self.selected_entity = None
+
 
     def update(self, mouse_position):
+        print(self.selected_world_object, self.selected_entity)
+        cursor_position = self.get_position(mouse_position)
+
         # MOVE OBJECT TO MOUSE
         if self.selected_world_object is not None:
             if type(self.selected_world_object) == worldobjects.ParallelLightSource or type(self.selected_world_object) == worldobjects.RadialLightSource:
                 self.selected_world_object.move(
-                    self.get_position(mouse_position) - self.selected_world_object.position,
+                    cursor_position - self.selected_world_object.position,
                     self.queued_rotation * numpy.pi/12
                 )
             else:
                 self.selected_world_object.move_if_safe(
                     None, None,
-                    self.get_position(mouse_position) - self.selected_world_object.position,
+                    cursor_position - self.selected_world_object.position,
                     self.queued_rotation * numpy.pi / 12,
                     ignore_collisions=True
                 )
             self.queued_rotation = 0
 
+        # MOVE ENTITY TO MOUSE
+        elif self.selected_entity is not None:
+            self.selected_entity.move_to(cursor_position)
+
         # GENERATE OBJECT
-        new_world_object = None
-        new_world_object_list = None
-        new_geometry_list = None
         match self.queued_type_selection:
-            case 0:
+            case 6:  # Enemy
+                if self.selected_world_object is not None:
+                    self.level.remove_world_object(self.selected_world_object)
+                    self.selected_world_object = None
+                if not self.enemy_exists:
+                    self.enemy_exists = True
+                    self.level.create_enemy(cursor_position)
+                self.selected_entity = self.level.enemy
+                self.selected_world_object = None
+                self.queued_type_selection = -1
                 return
             case 1:  # Wall
+                if self.selected_world_object is not None:
+                    self.level.remove_world_object(self.selected_world_object)
+                elif self.selected_entity is not None and self.selected_entity is self.level.enemy:
+                    self.level.delete_enemy()
                 self.wall_dimensions = numpy.ones(2)
-                new_world_object = worldobjects.Wall(self.get_position(mouse_position), self.wall_dimensions, 0)
-                new_world_object_list = self.level.wall_list
-                new_geometry_list = self.level.line_segments
+                self.selected_world_object = worldobjects.Wall(cursor_position, self.wall_dimensions, 0)
             case 2:  # Mirror
-                new_world_object = worldobjects.Mirror(self.get_position(mouse_position), 0)
-                new_world_object_list = self.level.mirror_list
-                new_geometry_list = self.level.line_segments
+                if self.selected_world_object is not None:
+                    self.level.remove_world_object(self.selected_world_object)
+                elif self.selected_entity is not None and self.selected_entity is self.level.enemy:
+                    self.level.delete_enemy()
+                self.selected_world_object = worldobjects.Mirror(cursor_position, 0)
             case 3:  # Lens
-                new_world_object = worldobjects.Lens(self.get_position(mouse_position), 0)
-                new_world_object_list = self.level.lens_list
-                new_geometry_list = self.level.arcs
+                if self.selected_world_object is not None:
+                    self.level.remove_world_object(self.selected_world_object)
+                elif self.selected_entity is not None and self.selected_entity is self.level.enemy:
+                    self.level.delete_enemy()
+                self.selected_world_object = worldobjects.Lens(cursor_position, 0)
             case 4:  # Source
-                new_world_object = worldobjects.ParallelLightSource(self.get_position(mouse_position), 0)
-                new_world_object_list = self.level.light_source_list
-                new_geometry_list = self.level.line_segments
+                if self.selected_world_object is not None:
+                    self.level.remove_world_object(self.selected_world_object)
+                elif self.selected_entity is not None and self.selected_entity is self.level.enemy:
+                    self.level.delete_enemy()
+                self.selected_world_object = worldobjects.ParallelLightSource(cursor_position, 0)
             case 5:  # Receiver
-                new_world_object = worldobjects.LightReceiver(self.get_position(mouse_position), 0)
-                new_world_object_list = self.level.light_receiver_list
-                new_geometry_list = self.level.line_segments
-        self.queued_type_selection = 0
-
-        if self.selected_world_object is not None:
-            self.selected_world_object_list.remove(self.selected_world_object)
-            for geometry_segment in self.selected_world_object.geometry_segments:
-                self.selected_geometry_list.remove(geometry_segment)
-        elif type(new_world_object) == worldobjects.Wall:
-            self.wall_dimensions = numpy.ones(2)
-
-        self.selected_world_object = new_world_object
-        self.selected_world_object_list = new_world_object_list
-        self.selected_geometry_list = new_geometry_list
-        new_world_object_list.append(new_world_object)
-        for geometry_segment in self.selected_world_object.geometry_segments:
-            new_geometry_list.append(geometry_segment)
+                if self.selected_world_object is not None:
+                    self.level.remove_world_object(self.selected_world_object)
+                elif self.selected_entity is not None and self.selected_entity is self.level.enemy:
+                    self.level.delete_enemy()
+                self.selected_world_object = worldobjects.LightReceiver(cursor_position, 0)
+            case _:  # No Selection
+                return
+        self.level.add_world_object(self.selected_world_object)
+        self.selected_entity = None
+        self.queued_type_selection = -1

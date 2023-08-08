@@ -249,6 +249,10 @@ class GameObject(arcade.Window):
                 if key == arcade.key.D or key == arcade.key.RIGHT:
                     level_creator.resize_wall(self.mouse_position, 1, 0)
 
+            if key == arcade.key.Q:
+                level_creator.queued_rotation = 1
+            if key == arcade.key.E:
+                level_creator.queued_rotation = -1
 
 
 

@@ -289,7 +289,8 @@ class LevelCreator:
         self.snap_to_grid: bool = True
         self.nearest_grid_position = None
 
-        self.queued_type_selection = None
+        self.queued_type_selection = 0
+        self.queued_rotation = 0
 
     def get_position(self, mouse_position: numpy.ndarray):
         if self.snap_to_grid:
@@ -318,7 +319,7 @@ class LevelCreator:
         self.level.wall_list.remove(self.selected_world_object)
         for geometry_segment in self.selected_world_object.geometry_segments:
             self.level.line_segments.remove(geometry_segment)
-        self.selected_world_object = worldobjects.Wall(self.get_position(mouse_position), self.wall_dimensions, 0)
+        self.selected_world_object = worldobjects.Wall(self.get_position(mouse_position), self.wall_dimensions, self.selected_world_object.rotation_angle)
         self.level.wall_list.append(self.selected_world_object)
         for geometry_segment in self.selected_world_object.geometry_segments:
             self.level.line_segments.append(geometry_segment)
@@ -339,21 +340,23 @@ class LevelCreator:
             if type(self.selected_world_object) == worldobjects.ParallelLightSource or type(self.selected_world_object) == worldobjects.RadialLightSource:
                 self.selected_world_object.move(
                     self.get_position(mouse_position) - self.selected_world_object.position,
-                    0
+                    self.queued_rotation * numpy.pi/12
                 )
             else:
                 self.selected_world_object.move_if_safe(
                     None, None,
                     self.get_position(mouse_position) - self.selected_world_object.position,
+                    self.queued_rotation * numpy.pi / 12,
                     ignore_collisions=True
                 )
+            self.queued_rotation = 0
 
         # GENERATE OBJECT
         new_world_object = None
         new_world_object_list = None
         new_geometry_list = None
         match self.queued_type_selection:
-            case None:
+            case 0:
                 return
             case 1:  # Wall
                 self.wall_dimensions = numpy.ones(2)
@@ -376,7 +379,7 @@ class LevelCreator:
                 new_world_object = worldobjects.LightReceiver(self.get_position(mouse_position), 0)
                 new_world_object_list = self.level.light_receiver_list
                 new_geometry_list = self.level.line_segments
-        self.queued_type_selection = None
+        self.queued_type_selection = 0
 
         if self.selected_world_object is not None:
             self.selected_world_object_list.remove(self.selected_world_object)

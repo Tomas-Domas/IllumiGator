@@ -138,8 +138,6 @@ class Arc(Geometry):
         )
         self._start_angle += rotate_angle
         self._end_angle += rotate_angle
-        self._start_angle += rotate_angle
-        self._end_angle += rotate_angle
         self._constrain_angles()
 
     def draw(self, *, color=arcade.color.MAGENTA, thickness=3):

@@ -1,1 +1,8 @@
-{"current_level": 1, "volume": {"master": 0.5, "music": 0.5, "effects": 0.5}}
+{
+  "current_level": 1,
+  "volume": {
+    "master": 0.22999999999999976,
+    "music": 0.5,
+    "effects": 0.5
+  }
+}

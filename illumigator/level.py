@@ -414,7 +414,6 @@ class LevelCreator:
 
 
     def update(self, mouse_position):
-        print(self.selected_world_object, self.selected_entity)
         cursor_position = self.get_position(mouse_position)
 
         # MOVE OBJECT TO MOUSE
@@ -486,3 +485,21 @@ class LevelCreator:
         self.level.add_world_object(self.selected_world_object)
         self.selected_entity = None
         self.queued_type_selection = -1
+
+    def export_level_as_file(self):
+        level_obj = {
+            "level_name": "My Level",
+            "planet": "moon",
+            "level_data": {
+                "mirror_coordinate_list": [[*wo.position, wo.rotation_angle] for wo in self.level.mirror_list],
+                "wall_coordinate_list": [[*wo.position, *wo.dimensions, wo.rotation_angle] for wo in self.level.wall_list],
+                "light_receiver_coordinate_list": [[*wo.position, wo.rotation_angle] for wo in self.level.light_receiver_list],
+                "light_source_coordinate_list": [[*wo.position, wo.rotation_angle] for wo in self.level.light_source_list],
+                "animated_wall_coordinate_list": [],
+                "lens_coordinate_list": [[*wo.position, wo.rotation_angle] for wo in self.level.lens_list],
+                "gator_coordinates": [self.level.gator.sprite.center_x, self.level.gator.sprite.center_y],
+                "enemy_coordinates":
+                    [self.level.enemy.sprite.center_x, self.level.enemy.sprite.center_y] if self.level.enemy is not None else []
+            }
+        }
+        util.write_data("levels/community/my_level.json", level_obj)

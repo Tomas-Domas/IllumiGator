@@ -254,6 +254,12 @@ class GameObject(arcade.Window):
             if key == arcade.key.E:
                 level_creator.queued_rotation = -1
 
+            if key == arcade.key.ENTER or key == arcade.key.SPACE:
+                level_creator.export_level_as_file()
+                print("SAVED LEVEL")
+                self.set_mouse_visible(False)
+                self.game_state = "menu"
+
 
 
 

@@ -69,7 +69,7 @@ def get_arc_raycast_results(ray_ori_x, ray_ori_y, ray_dir_x, ray_dir_y, arc_x, a
     point1_dst_y = (point1_rel_y + arc_y).T - ray_ori_y
     point1_rel_angle = numpy.arctan2(point1_rel_y, point1_rel_x)
     intersection_distance1 = numpy.where(
-        ((nabla >= 0) & (point1_dst_x * ray_dir_x >= 0) & (point1_dst_y * ray_dir_y >= 0)).T &
+        ((nabla >= 0) & (point1_dst_x*ray_dir_x + point1_dst_y*ray_dir_y >= 0)).T &
         (
             ((arc_angle1 < point1_rel_angle) & (point1_rel_angle < arc_angle2)) | (
                 (arc_angle2 < arc_angle1) & (
@@ -90,7 +90,7 @@ def get_arc_raycast_results(ray_ori_x, ray_ori_y, ray_dir_x, ray_dir_y, arc_x, a
     point2_dst_y = (point2_rel_y + arc_y).T - ray_ori_y
     point2_rel_angle = numpy.arctan2(point2_rel_y, point2_rel_x)
     intersection_distance2 = numpy.where(
-        ((nabla >= 0) & (point2_dst_x * ray_dir_x >= 0) & (point2_dst_y * ray_dir_y >= 0)).T &
+        ((nabla >= 0) & (point2_dst_x*ray_dir_x + point2_dst_y*ray_dir_y >= 0)).T &
         (
             ((arc_angle1 < point2_rel_angle) & (point2_rel_angle < arc_angle2)) | (
                 (arc_angle2 < arc_angle1) & (

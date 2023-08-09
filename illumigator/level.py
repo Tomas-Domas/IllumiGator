@@ -132,20 +132,26 @@ class Level:
         self.entity_world_object_list.append(self.gator.world_object)
         self.line_segments.extend(self.gator.world_object.geometry_segments)
 
-    def update(self, walking_volume, ignore_all_checks=False):
-        if not ignore_all_checks and self.gator.update(self, walking_volume, self.enemy) is False:
-            return False
-        if not ignore_all_checks and self.enemy is not None:
-            self.enemy.update(self, self.gator)
+    def update(self, walking_volume, ignore_checks=False):
+        if not ignore_checks:
+            if self.enemy is not None:
+                self.enemy.update(self, self.gator)
 
-        for wall in self.wall_list:
-            if wall.obj_animation is not None:
-                wall.apply_object_animation(self.gator, self.enemy)
+            self.gator.update(self, walking_volume, self.enemy)
+            if self.gator.status == "dying":
+                # Show dead animations
+                self.gator.left_character_loader.dead = True
+                self.gator.right_character_loader.dead = True
 
-        if not ignore_all_checks:
+            for wall in self.wall_list:
+                if wall.obj_animation is not None:
+                    wall.apply_object_animation(self.gator, self.enemy)
             for light_receiver in self.light_receiver_list:
                 light_receiver.charge *= util.CHARGE_DECAY
 
+        self.raycast(ignore_checks)
+
+    def raycast(self, ignore_checks: bool):
         #  ==================== Raycasting and update rays ====================
         line_p1 = numpy.ndarray((len(self.line_segments), 2))
         line_p2 = numpy.ndarray((len(self.line_segments), 2))
@@ -185,10 +191,10 @@ class Level:
                                 ray.direction - (2 * nearest_line._normal * (nearest_line._normal @ ray.direction))
                             )
                             ray_queue.append(ray.child_ray)
-                        elif not ignore_all_checks and nearest_line.is_receiver:  # Charge receiver when a light ray hits it
+                        elif not ignore_checks and nearest_line.is_receiver:  # Charge receiver when a light ray hits it
                             nearest_line.parent_object.charge += util.LIGHT_INCREMENT
                             ray.child_ray = None
-                        elif not ignore_all_checks and nearest_line.is_enemy and self.enemy.status != "aggro":
+                        elif not ignore_checks and nearest_line.is_enemy and self.enemy.status != "aggro":
                             self.enemy.status = "aggro"
                             self.enemy.update_geometry_shape()
                             ray.child_ray = None
@@ -208,13 +214,6 @@ class Level:
 
                 ray_queue = ray_queue[queue_length:]
                 queue_length = len(ray_queue)
-
-        if self.gator.status == "dead":
-            # Show dead animations
-            self.gator.left_character_loader.dead = True
-            self.gator.right_character_loader.dead = True
-            self.enemy.status = "player_dead"
-            # self.game_state = "game_over"
 
     def draw(self):
         self.background_sprite.draw(pixelated=True)
@@ -432,7 +431,7 @@ class LevelCreator:
                     None, None,
                     cursor_position - self.selected_world_object.position,
                     self.queued_rotation * numpy.pi / 12,
-                    ignore_collisions=True
+                    ignore_checks=True
                 )
 
         # MOVE ENTITY TO MOUSE

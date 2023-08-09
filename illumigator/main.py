@@ -78,7 +78,8 @@ class GameObject(arcade.Window):
     def on_update(self, delta_time):
         # STATE MACHINE FOR UPDATING LEVEL
         if self.game_state == "game":
-            if self.current_level.update(self.effects_volume*self.master_volume) is False:
+            self.current_level.update(self.effects_volume*self.master_volume)
+            if self.current_level.gator.status == "dead":
                 self.game_state = "game_over"
 
             if any(light_receiver.charge >= util.RECEIVER_THRESHOLD for light_receiver in self.current_level.light_receiver_list):
@@ -103,7 +104,7 @@ class GameObject(arcade.Window):
 
         elif self.game_state == "level_creator":
             self.current_level_creator.update(self.mouse_position)
-            self.current_level_creator.level.update(self.effects_volume * self.master_volume, ignore_all_checks=True)
+            self.current_level_creator.level.update(self.effects_volume * self.master_volume, ignore_checks=True)
 
         elif self.game_state == "audio":
             self.audio_menu.update()

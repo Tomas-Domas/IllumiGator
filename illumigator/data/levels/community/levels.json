@@ -5,13 +5,8 @@
       "level_name": "Custom Test Level",
       "planet_name": "earth"
     },
-    "test.json": {
-      "date_modified": 1691423056.503398,
-      "level_name": "Test",
-      "planet_name": "moon"
-    },
     "my_level.json": {
-      "date_modified": 1691531050.2402203,
+      "date_modified": 1691593306.1927269,
       "level_name": "My Level",
       "planet_name": "moon"
     }

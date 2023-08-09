@@ -195,8 +195,8 @@ class Gator:
         self.world_object.draw()
 
     def update(self, level, walking_volume, enemy):
-        # Play death animation if dead
-        if self.status == "dead":
+        # Play death animation while dying, then set status to "dead" when done
+        if self.status == "dying":
             if "_right" in self.sprite.texture.name:  # Facing right
                 next_sprite = next(self.right_character_loader)
             else:
@@ -204,9 +204,9 @@ class Gator:
 
             if next_sprite is not None:
                 self.sprite.texture = next_sprite
-                return
             else:
-                return False  # Return False when animation is finished playing
+                self.status = "dead"
+            return
 
         self.walking_volume = walking_volume
         self.walk(level, enemy)
@@ -307,7 +307,7 @@ class Gator:
         self.world_object.move_if_safe(
             None, None,
             position - self.world_object.position,
-            ignore_collisions=True
+            ignore_checks=True
         )
 
 
@@ -343,21 +343,24 @@ class Enemy:
             is_enemy=True
         )
 
-    def update(self, level, player):
+    def update(self, level, gator):
         if self.status == "asleep":
             self.sprite.texture = next(self.sleep_texture_iter)
 
         elif self.status == "aggro":
-            # Determine movement direction
-            direction_to_player = player.world_object.position - self.world_object.position
+            direction_to_player = gator.world_object.position - self.world_object.position
 
-            direction_from_obstacle = self.world_object.position - worldobjects.find_nearest_world_object(
-                self.world_object.position,
-                level.wall_list + level.mirror_list + level.lens_list + level.light_receiver_list + level.light_source_list
-            )[0].position
+            # Determine movement
+            if gator.status == "dying":
+                direction = 0.1 * direction_to_player
+            else:
+                direction_from_obstacle = self.world_object.position - worldobjects.find_nearest_world_object(
+                    self.world_object.position,
+                    level.wall_list + level.mirror_list + level.lens_list + level.light_receiver_list + level.light_source_list
+                )[0].position
 
-            direction = (0.7/numpy.linalg.norm(direction_to_player)) * direction_to_player + (0.3/numpy.linalg.norm(direction_from_obstacle)) * direction_from_obstacle
-            direction = util.ENEMY_MOVEMENT_SPEED * direction / numpy.linalg.norm(direction)
+                direction = (0.7/numpy.linalg.norm(direction_to_player)) * direction_to_player + (0.3/numpy.linalg.norm(direction_from_obstacle)) * direction_from_obstacle
+                direction = (util.ENEMY_MOVEMENT_SPEED / numpy.linalg.norm(direction)) * direction
 
             # Update Sprite
             if direction[0] > 0:
@@ -381,8 +384,8 @@ class Enemy:
             else:
                 self.world_object.move_geometry(numpy.array([0, direction[1]]), 0)
 
-            if self.sprite.collides_with_sprite(player.sprite):
-                player.status = "dead"
+            if self.sprite.collides_with_sprite(gator.sprite):
+                gator.status = "dying"
 
     def update_geometry_shape(self):
         wo = self.world_object
@@ -406,5 +409,5 @@ class Enemy:
         self.world_object.move_if_safe(
             None, None,
             numpy.array([position[0] - 2 * util.ENEMY_SPRITE_INFO[1], position[1] - 6 * util.ENEMY_SPRITE_INFO[1]]) - self.world_object.position,
-            ignore_collisions=True
+            ignore_checks=True
         )

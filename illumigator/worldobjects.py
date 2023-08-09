@@ -129,7 +129,7 @@ class WorldObject:
         enemy,
         move_distance: numpy.ndarray = numpy.zeros(2),
         rotate_angle: float = 0,
-        ignore_collisions: bool = False
+        ignore_checks: bool = False
     ) -> bool:
         for sprite in self._sprite_list:
             new_position = (
@@ -142,7 +142,7 @@ class WorldObject:
             )
             sprite.radians += rotate_angle
             sprite.center_x, sprite.center_y = new_position[0], new_position[1]
-        if not ignore_collisions and (
+        if not ignore_checks and (
                 self.check_collision_with_sprite(character.sprite) or (enemy is not None and self.check_collision_with_sprite(enemy.sprite))
         ):
             for sprite in self._sprite_list:

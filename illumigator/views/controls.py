@@ -1,23 +1,18 @@
 import arcade
 
-from illumigator import menus, util
+from illumigator import menus
 
 
 class ControlsView(arcade.View):
-    def __init__(self):
+    def __init__(self, options_view):
         super().__init__()
-
-    def setup(self):
-        pass
-
-    def on_update(self, delta_time: float):
-        pass
+        self.options_view = options_view
+        self.menu = menus.ControlsMenu()
 
     def on_draw(self):
-        pass
+        self.window.clear()
+        self.menu.draw()
 
     def on_key_press(self, symbol: int, modifiers: int):
-        pass
-
-    def update_audio(self):
-        pass
+        if symbol == arcade.key.ESCAPE:
+            self.window.show_view(self.options_view)

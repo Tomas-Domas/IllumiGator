@@ -4,8 +4,6 @@ import time
 from illumigator.views.paused import PausedView
 from illumigator.views.lose import LoseView
 from illumigator.views.win import WinView
-from illumigator.views.community_win import CommunityWinView
-from illumigator.views.final_win import FinalWinView
 from illumigator import entity, level, util
 
 
@@ -37,7 +35,7 @@ class GameView(arcade.View):
 
     def on_update(self, delta_time: float):
         if self.character.update(self.current_level, util.EFFECTS_VOLUME * util.MASTER_VOLUME, self.enemy) is False:
-            lose_view = LoseView()
+            lose_view = LoseView(self)
             self.window.show_view(lose_view)
 
         self.enemy.update(self.current_level, self.character)
@@ -48,18 +46,18 @@ class GameView(arcade.View):
             time.sleep(0.5)
             if not util.OFFICIAL_LEVEL_STATUS:
                 util.OFFICIAL_LEVEL_STATUS = False
-                community_win_view = CommunityWinView()
-                self.window.show_view(community_win_view)
+                final_win_view = WinView(True, self, self.main_menu_view)
+                self.window.show_view(final_win_view)
             elif util.CURRENT_LEVEL == self.official_level_count:
                 util.OFFICIAL_LEVEL_STATUS = True
                 util.CURRENT_LEVEL_PATH = "level_" + str(util.CURRENT_LEVEL) + ".json"
-                final_win_view = FinalWinView()
+                final_win_view = WinView(True, self, self.main_menu_view)
                 self.window.show_view(final_win_view)
             else:
                 util.CURRENT_LEVEL += 1
                 util.OFFICIAL_LEVEL_STATUS = True
                 util.CURRENT_LEVEL_PATH = "level_" + str(util.CURRENT_LEVEL) + ".json"
-                win_view = WinView(self, self.main_menu_view)
+                win_view = WinView(False, self, self.main_menu_view)
                 self.window.show_view(win_view)
 
             self.current_level = level.load_level(
@@ -85,7 +83,6 @@ class GameView(arcade.View):
         if symbol == arcade.key.E:
             self.character.rotation_dir -= 1
         if symbol == arcade.key.ESCAPE:
-            self.bgm_player = arcade.stop_sound(self.bgm_player)
             self.character.left = False
             self.character.right = False
             self.character.update(self.current_level, util.EFFECTS_VOLUME * util.MASTER_VOLUME, self.enemy)
@@ -127,6 +124,12 @@ class GameView(arcade.View):
             util.CURRENT_LEVEL_PATH, True, util.OFFICIAL_LEVEL_STATUS), self.character, self.enemy)
 
     def on_show_view(self):
+        self.start_audio()
+
+    def on_hide_view(self):
+        self.stop_audio()
+
+    def start_audio(self):
         scaled_music_volume = util.MUSIC_VOLUME * util.MASTER_VOLUME
 
         if self.bgm_player is None:
@@ -135,5 +138,5 @@ class GameView(arcade.View):
         if self.main_menu_view.menu_player is not None:
             self.main_menu_view.menu_player = arcade.stop_sound(self.main_menu_view.menu_player)
 
-    def on_hide_view(self):
-        self.bgm_player = None
+    def stop_audio(self):
+        self.bgm_player = arcade.stop_sound(self.bgm_player)

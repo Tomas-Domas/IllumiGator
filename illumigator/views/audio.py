@@ -33,21 +33,21 @@ class AudioView(arcade.View):
 
         if symbol == arcade.key.ESCAPE:
             self.window.show_view(self.options_view)
-        if symbol == arcade.key.LEFT:
+        if symbol == arcade.key.LEFT or symbol == arcade.key.A:
             self.menu.slider_list[self.menu.selection].left = True
-        if symbol == arcade.key.RIGHT:
+        if symbol == arcade.key.RIGHT or symbol == arcade.key.D:
             self.menu.slider_list[self.menu.selection].right = True
-        if symbol == arcade.key.UP:
+        if symbol == arcade.key.UP or symbol == arcade.key.W:
             self.menu.slider_list[self.menu.selection].left = False
             self.menu.slider_list[self.menu.selection].right = False
             self.menu.decrement_selection()
-        if symbol == arcade.key.DOWN:
+        if symbol == arcade.key.DOWN or symbol == arcade.key.S:
             self.menu.slider_list[self.menu.selection].left = False
             self.menu.slider_list[self.menu.selection].right = False
             self.menu.increment_selection()
 
     def on_key_release(self, _symbol: int, _modifiers: int):
-        if _symbol == arcade.key.LEFT:
+        if _symbol == arcade.key.LEFT or _symbol == arcade.key.A:
             self.menu.slider_list[self.menu.selection].left = False
-        if _symbol == arcade.key.RIGHT:
+        if _symbol == arcade.key.RIGHT or _symbol == arcade.key.D:
             self.menu.slider_list[self.menu.selection].right = False

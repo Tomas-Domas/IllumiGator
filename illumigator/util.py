@@ -83,13 +83,6 @@ OBJECT_ROTATION_AMOUNT: float = 0.01 * UNIVERSAL_SPEED_MULTIPLIER
 # Enemy Constants
 ENEMY_MOVEMENT_SPEED = 4 * UNIVERSAL_SPEED_MULTIPLIER
 
-MASTER_VOLUME = 1
-MUSIC_VOLUME = 1
-EFFECTS_VOLUME = 1
-CURRENT_LEVEL = 1
-CURRENT_LEVEL_PATH = "level_" + str(CURRENT_LEVEL) + ".json"
-OFFICIAL_LEVEL_STATUS = True
-
 
 # ========================= Physics Functions =========================
 def distance_squared(point1: numpy.ndarray, point2: numpy.ndarray) -> float:
@@ -308,3 +301,14 @@ def opendir(filename):
         raise FileNotFoundError
     except:
         subprocess.Popen(['xdg-open', filename])
+
+
+settings = load_data("config.json")
+MASTER_VOLUME = settings["volume"]["master"]
+MUSIC_VOLUME = settings["volume"]["music"]
+EFFECTS_VOLUME = settings["volume"]["effects"]
+
+OFFICIAL_LEVEL_COUNT = load_data("levels.json", True, True)["level_count"]
+CURRENT_LEVEL = settings["current_level"]
+CURRENT_LEVEL_PATH = "level_" + str(CURRENT_LEVEL) + ".json"
+OFFICIAL_LEVEL_STATUS = True

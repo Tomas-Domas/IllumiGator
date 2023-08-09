@@ -301,6 +301,15 @@ class Gator:
         self.left_character_loader.idle = False
         self.right_character_loader.idle = False
 
+    def move_to(self, position):
+        self.sprite.center_x = position[0]
+        self.sprite.center_y = position[1]
+        self.world_object.move_if_safe(
+            None, None,
+            position - self.world_object.position,
+            ignore_collisions=True
+        )
+
 
 class Enemy:
     def __init__(
@@ -390,3 +399,12 @@ class Enemy:
     def draw(self):
         self.sprite.draw(pixelated=True)
         self.world_object.draw()
+
+    def move_to(self, position):
+        self.sprite.center_x = position[0]
+        self.sprite.center_y = position[1]
+        self.world_object.move_if_safe(
+            None, None,
+            numpy.array([position[0] - 2 * util.ENEMY_SPRITE_INFO[1], position[1] - 6 * util.ENEMY_SPRITE_INFO[1]]) - self.world_object.position,
+            ignore_collisions=True
+        )

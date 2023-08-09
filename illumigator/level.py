@@ -1,37 +1,19 @@
+import math
 import numpy
 
 from illumigator import worldobjects, entity, util, light
 
-BORDER_WALLS = [
-    worldobjects.Wall(
-        numpy.array([util.WALL_SIZE / 2, 720 / 2]),
-        numpy.array([1, 720 / util.WALL_SIZE]),
-        0),
-    worldobjects.Wall(
-        numpy.array([1280 - util.WALL_SIZE / 2, 720 / 2]),
-        numpy.array([1, 720 / util.WALL_SIZE]),
-        0),
-    worldobjects.Wall(
-        numpy.array([1280 / 2, util.WALL_SIZE / 2]),
-        numpy.array([1280 / util.WALL_SIZE - 2, 1]),
-        0),
-    worldobjects.Wall(
-        numpy.array([1280 / 2, 720 - util.WALL_SIZE / 2]),
-        numpy.array([1280 / util.WALL_SIZE - 2, 1]),
-        0)
-]
-
 class Level:
     def __init__(
             self,
-            wall_coordinate_list: list[list] = None,
-            mirror_coordinate_list: list[list] = None,
-            light_receiver_coordinate_list: list[list] = None,
-            light_source_coordinate_list: list[list] = None,
-            animated_wall_coordinate_list: list[list] = None,
-            lens_coordinate_list: list[list] = None,
-            gator_coordinates: list = None,
-            enemy_coordinates: list = None,
+            wall_coordinate_list = (),
+            mirror_coordinate_list = (),
+            light_receiver_coordinate_list = (),
+            light_source_coordinate_list = (),
+            animated_wall_coordinate_list = (),
+            lens_coordinate_list = (),
+            gator_coordinates = (640, 360),
+            enemy_coordinates = (),
             name="default",
             background="space",
             planet="moon",
@@ -60,7 +42,7 @@ class Level:
                 wall_coordinates[4],
             ) for wall_coordinates in wall_coordinate_list
         ]
-        self.wall_list.extend(BORDER_WALLS)
+        self.create_border_walls()
 
         self.mirror_list = [
             worldobjects.Mirror(
@@ -132,37 +114,37 @@ class Level:
                 numpy.array([animated_wall_coordinates[5], animated_wall_coordinates[6]]),
                 animated_wall_coordinates[7], animated_wall_coordinates[8])
 
-        self.entity_world_object_list: list[worldobjects.WorldObject] = []
-        if len(enemy_coordinates) == 0:
-            self.enemy = None
-        else:
-            self.enemy = entity.Enemy(enemy_coordinates)
-            self.entity_world_object_list.append(self.enemy.world_object)
-        self.gator = entity.Gator(gator_coordinates, walking_volume)
-        self.entity_world_object_list.append(self.gator.world_object)
-
-
-        #  Append line segments and arcs to geometry lists
+        # Append line segments and arcs to geometry lists
         self.line_segments = []
         self.arcs = []
-        for world_object in (self.entity_world_object_list + self.wall_list + self.mirror_list + self.light_receiver_list):
+        for world_object in self.wall_list + self.mirror_list + self.light_receiver_list:
             self.line_segments.extend(world_object.geometry_segments)
         for world_object in self.lens_list:
             self.arcs.extend(world_object.geometry_segments)
 
+        # Create entities
+        self.entity_world_object_list: list[worldobjects.WorldObject] = []
+        if len(enemy_coordinates) == 0:
+            self.enemy = None
+        else:
+            self.create_enemy(enemy_coordinates)
+        self.gator = entity.Gator(gator_coordinates, walking_volume)
+        self.entity_world_object_list.append(self.gator.world_object)
+        self.line_segments.extend(self.gator.world_object.geometry_segments)
 
-    def update(self, walking_volume):
-        if self.gator.update(self, walking_volume, self.enemy) is False:
+    def update(self, walking_volume, ignore_all_checks=False):
+        if not ignore_all_checks and self.gator.update(self, walking_volume, self.enemy) is False:
             return False
-        if self.enemy is not None:
+        if not ignore_all_checks and self.enemy is not None:
             self.enemy.update(self, self.gator)
 
         for wall in self.wall_list:
             if wall.obj_animation is not None:
                 wall.apply_object_animation(self.gator, self.enemy)
 
-        for light_receiver in self.light_receiver_list:
-            light_receiver.charge *= util.CHARGE_DECAY
+        if not ignore_all_checks:
+            for light_receiver in self.light_receiver_list:
+                light_receiver.charge *= util.CHARGE_DECAY
 
         #  ==================== Raycasting and update rays ====================
         line_p1 = numpy.ndarray((len(self.line_segments), 2))
@@ -203,9 +185,10 @@ class Level:
                                 ray.direction - (2 * nearest_line._normal * (nearest_line._normal @ ray.direction))
                             )
                             ray_queue.append(ray.child_ray)
-                        elif nearest_line.is_receiver:  # Charge receiver when a light ray hits it
+                        elif not ignore_all_checks and nearest_line.is_receiver:  # Charge receiver when a light ray hits it
                             nearest_line.parent_object.charge += util.LIGHT_INCREMENT
-                        elif nearest_line.is_enemy and self.enemy.status != "aggro":
+                            ray.child_ray = None
+                        elif not ignore_all_checks and nearest_line.is_enemy and self.enemy.status != "aggro":
                             self.enemy.status = "aggro"
                             self.enemy.update_geometry_shape()
                             ray.child_ray = None
@@ -250,11 +233,77 @@ class Level:
             self.enemy.draw()
 
     def check_collisions(self, character: entity.Gator):
-        for wo in (self.wall_list + self.mirror_list + self.lens_list + self.light_receiver_list + self.light_source_list):
-            if wo.check_collision(character.sprite):
+        for wo in self.wall_list + self.mirror_list + self.lens_list + self.light_receiver_list + self.light_source_list:
+            if wo.check_collision_with_sprite(character.sprite):
                 return True
         else:
             return False
+
+    def add_world_object(self, world_object):
+        match world_object:
+            case worldobjects.Lens():  # Lens
+                self.lens_list.append(world_object)
+                self.arcs.extend(world_object.geometry_segments)
+                return
+            case worldobjects.Wall():  # Wall
+                self.wall_list.append(world_object)
+            case worldobjects.Mirror():  # Mirror
+                self.mirror_list.append(world_object)
+            case worldobjects.ParallelLightSource():  # Source
+                self.light_source_list.append(world_object)
+            case worldobjects.LightReceiver():  # Receiver
+                self.light_receiver_list.append(world_object)
+        self.line_segments.extend(world_object.geometry_segments)
+
+    def remove_world_object(self, world_object):
+        match world_object:
+            case worldobjects.Lens():  # Lens
+                self.lens_list.remove(world_object)
+                for geometry_segment in world_object.geometry_segments:
+                    self.arcs.remove(geometry_segment)
+                return
+            case worldobjects.Wall():  # Wall
+                self.wall_list.remove(world_object)
+            case worldobjects.Mirror():  # Mirror
+                self.mirror_list.remove(world_object)
+            case worldobjects.ParallelLightSource():  # Source
+                self.light_source_list.remove(world_object)
+            case worldobjects.LightReceiver():  # Receiver
+                self.light_receiver_list.remove(world_object)
+        for geometry_segment in world_object.geometry_segments:
+            self.line_segments.remove(geometry_segment)
+
+    def create_enemy(self, position):
+        self.enemy = entity.Enemy(position)
+        self.entity_world_object_list.append(self.enemy.world_object)
+        self.line_segments.extend(self.enemy.world_object.geometry_segments)
+
+    def delete_enemy(self):
+        for geometry_segment in self.enemy.world_object.geometry_segments:
+            self.line_segments.remove(geometry_segment)
+        self.enemy = None
+
+    def create_border_walls(self):
+        self.wall_list.append(worldobjects.Wall(
+            numpy.array([util.WALL_SIZE / 2, 720 / 2]),
+            numpy.array([1, 720 / util.WALL_SIZE]),
+            0
+        ))
+        self.wall_list.append(worldobjects.Wall(
+            numpy.array([1280 - util.WALL_SIZE / 2, 720 / 2]),
+            numpy.array([1, 720 / util.WALL_SIZE]),
+            0
+        ))
+        self.wall_list.append(worldobjects.Wall(
+            numpy.array([1280 / 2, util.WALL_SIZE / 2]),
+            numpy.array([1280 / util.WALL_SIZE - 2, 1]),
+            0
+        ))
+        self.wall_list.append(worldobjects.Wall(
+            numpy.array([1280 / 2, 720 - util.WALL_SIZE / 2]),
+            numpy.array([1280 / util.WALL_SIZE - 2, 1]),
+            0
+        ))
 
 
 def load_level(level: dict, walking_volume) -> Level:
@@ -272,3 +321,189 @@ def load_level(level: dict, walking_volume) -> Level:
         planet=level["planet"],
         walking_volume=walking_volume
     )
+
+
+
+class LevelCreator:
+    def __init__(self, level):
+        self.level: Level = level
+        self.selected_world_object: worldobjects.WorldObject | None = None
+
+        self.wall_dimensions = numpy.ones(2)
+        self.enemy_exists = False
+        self.selected_entity: entity.Gator | entity.Enemy | None = None
+
+        self.snap_to_grid: bool = True
+        self.nearest_grid_position = None
+
+        self.queued_type_selection = -1
+        self.queued_rotation = 0
+
+    def get_position(self, mouse_position: numpy.ndarray):
+        if self.snap_to_grid:
+            grid_pos = numpy.array([
+                mouse_position[0] // util.WALL_SIZE + 1,
+                mouse_position[1] // util.WALL_SIZE + 1
+            ])
+            if self.wall_dimensions[0] % 2 == 1:
+                grid_pos[0] -= 0.5
+            if self.wall_dimensions[1] % 2 == 1:
+                grid_pos[1] -= 0.5
+            return util.WALL_SIZE * grid_pos
+
+        else:
+            return mouse_position
+
+    def resize_wall(self, mouse_position, dx, dy):
+        if 1 <= self.wall_dimensions[0]+dx <= 34:
+            self.wall_dimensions[0] += dx
+        else:
+            return
+        if 1 <= self.wall_dimensions[1]+dy <= 20:
+            self.wall_dimensions[1] += dy
+        else:
+            return
+        self.level.wall_list.remove(self.selected_world_object)
+        for geometry_segment in self.selected_world_object.geometry_segments:
+            self.level.line_segments.remove(geometry_segment)
+        self.selected_world_object = worldobjects.Wall(self.get_position(mouse_position), self.wall_dimensions, self.selected_world_object.rotation_angle)
+        self.level.wall_list.append(self.selected_world_object)
+        self.level.line_segments.extend(self.selected_world_object.geometry_segments)
+
+    def on_click(self, mouse_position: numpy.ndarray, button):
+        if button == 1:
+            if self.selected_entity is None and self.selected_world_object is None:
+                # Check for click on entities
+                if self.level.gator.sprite.collides_with_point(mouse_position):
+                    self.selected_entity = self.level.gator
+                    return
+                if self.level.enemy is not None and self.level.enemy.sprite.collides_with_point(mouse_position):
+                    self.selected_entity = self.level.enemy
+                    return
+
+                # Check for click on world objects
+                for wo in self.level.wall_list + self.level.mirror_list + self.level.lens_list + self.level.light_receiver_list + self.level.light_source_list:
+                    if wo.check_collision_with_point(mouse_position):
+                        self.selected_world_object = wo
+                        match self.selected_world_object:
+                            case worldobjects.Wall():  # Wall
+                                self.selected_world_object_list = self.level.wall_list
+                                self.selected_geometry_list = self.level.line_segments
+                            case worldobjects.Mirror():  # Mirror
+                                self.selected_world_object_list = self.level.mirror_list
+                                self.selected_geometry_list = self.level.line_segments
+                            case worldobjects.Lens():  # Lens
+                                self.selected_world_object_list = self.level.lens_list
+                                self.selected_geometry_list = self.level.line_segments
+                            case worldobjects.ParallelLightSource():  # Source
+                                self.selected_world_object_list = self.level.light_source_list
+                                self.selected_geometry_list = self.level.line_segments
+                            case worldobjects.LightReceiver():  # Receiver
+                                self.selected_world_object_list = self.level.light_receiver_list
+                                self.selected_geometry_list = self.level.line_segments
+                        self.wall_dimensions = wo.dimensions if type(wo) == worldobjects.Wall else numpy.ones(2)
+                        return
+            else:
+                self.selected_world_object = None
+                self.selected_entity = None
+
+        if button == 4:
+            if self.selected_world_object is not None:
+                self.level.remove_world_object(self.selected_world_object)
+                self.selected_world_object = None
+            elif self.selected_entity is not None:
+                if self.selected_entity is self.level.enemy:
+                    self.level.delete_enemy()
+                self.selected_entity = None
+
+
+    def update(self, mouse_position):
+        cursor_position = self.get_position(mouse_position)
+
+        # MOVE OBJECT TO MOUSE
+        if self.selected_world_object is not None:
+            if type(self.selected_world_object) == worldobjects.ParallelLightSource or type(self.selected_world_object) == worldobjects.RadialLightSource:
+                self.selected_world_object.move(
+                    cursor_position - self.selected_world_object.position,
+                    self.queued_rotation * numpy.pi/12
+                )
+            else:
+                self.selected_world_object.move_if_safe(
+                    None, None,
+                    cursor_position - self.selected_world_object.position,
+                    self.queued_rotation * numpy.pi / 12,
+                    ignore_collisions=True
+                )
+
+        # MOVE ENTITY TO MOUSE
+        elif self.selected_entity is not None:
+            self.selected_entity.move_to(cursor_position)
+
+        self.queued_rotation = 0
+        # GENERATE OBJECT
+        match self.queued_type_selection:
+            case 6:  # Enemy
+                if self.selected_world_object is not None:
+                    self.level.remove_world_object(self.selected_world_object)
+                    self.selected_world_object = None
+                if not self.enemy_exists:
+                    self.enemy_exists = True
+                    self.level.create_enemy(cursor_position)
+                self.selected_entity = self.level.enemy
+                self.selected_world_object = None
+                self.queued_type_selection = -1
+                return
+            case 1:  # Wall
+                if self.selected_world_object is not None:
+                    self.level.remove_world_object(self.selected_world_object)
+                elif self.selected_entity is not None and self.selected_entity is self.level.enemy:
+                    self.level.delete_enemy()
+                self.wall_dimensions = numpy.ones(2)
+                self.selected_world_object = worldobjects.Wall(cursor_position, self.wall_dimensions, 0)
+            case 2:  # Mirror
+                if self.selected_world_object is not None:
+                    self.level.remove_world_object(self.selected_world_object)
+                elif self.selected_entity is not None and self.selected_entity is self.level.enemy:
+                    self.level.delete_enemy()
+                self.selected_world_object = worldobjects.Mirror(cursor_position, 0)
+            case 3:  # Lens
+                if self.selected_world_object is not None:
+                    self.level.remove_world_object(self.selected_world_object)
+                elif self.selected_entity is not None and self.selected_entity is self.level.enemy:
+                    self.level.delete_enemy()
+                self.selected_world_object = worldobjects.Lens(cursor_position, 0)
+            case 4:  # Source
+                if self.selected_world_object is not None:
+                    self.level.remove_world_object(self.selected_world_object)
+                elif self.selected_entity is not None and self.selected_entity is self.level.enemy:
+                    self.level.delete_enemy()
+                self.selected_world_object = worldobjects.ParallelLightSource(cursor_position, 0)
+            case 5:  # Receiver
+                if self.selected_world_object is not None:
+                    self.level.remove_world_object(self.selected_world_object)
+                elif self.selected_entity is not None and self.selected_entity is self.level.enemy:
+                    self.level.delete_enemy()
+                self.selected_world_object = worldobjects.LightReceiver(cursor_position, 0)
+            case _:  # No Selection
+                return
+        self.level.add_world_object(self.selected_world_object)
+        self.selected_entity = None
+        self.queued_type_selection = -1
+
+    def export_level_as_file(self, level_name: str = "My Level", file_name: str = "my_level.json"):
+        level_obj = {
+            "level_name": level_name,
+            "planet": "moon",
+            "level_data": {
+                "mirror_coordinate_list": [[*wo.position, wo.rotation_angle] for wo in self.level.mirror_list],
+                "wall_coordinate_list": [[*wo.position, *wo.dimensions, wo.rotation_angle] for wo in self.level.wall_list],
+                "light_receiver_coordinate_list": [[*wo.position, wo.rotation_angle] for wo in self.level.light_receiver_list],
+                "light_source_coordinate_list": [[*wo.position, wo.rotation_angle] for wo in self.level.light_source_list],
+                "animated_wall_coordinate_list": [],
+                "lens_coordinate_list": [[*wo.position, wo.rotation_angle] for wo in self.level.lens_list],
+                "gator_coordinates": [self.level.gator.sprite.center_x, self.level.gator.sprite.center_y],
+                "enemy_coordinates":
+                    [self.level.enemy.sprite.center_x, self.level.enemy.sprite.center_y] if self.level.enemy is not None else []
+            }
+        }
+        util.write_data(f'levels/community/{file_name}', level_obj)

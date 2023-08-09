@@ -194,14 +194,13 @@ def load_data(filename: str, is_level=False, is_system_level=True) -> dict:
 
 
 def write_data(filename: str, obj: dict) -> None:
-    json_obj = json.dumps(obj)
 
     if os.path.exists(ENVIRON_DATA_PATH):
         with open(ENVIRON_DATA_PATH + filename, "w") as outfile:
-            outfile.write(json_obj)
+            json.dump(obj, outfile, ensure_ascii=False, indent=2)
     else:
         with open(VENV_DATA_PATH + filename, "w") as outfile:
-            outfile.write(json_obj)
+            json.dump(obj, outfile, ensure_ascii=False, indent=2)
 
 
 def update_community_metadata() -> None:

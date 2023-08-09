@@ -1,1 +1,19 @@
-{"levels": {"custom_level_test.json": {"date_modified": 1691323968.1042707, "level_name": "Custom Test Level", "planet_name": "earth"}}}
+{
+  "levels": {
+    "custom_level_test.json": {
+      "date_modified": 1691345343.8049111,
+      "level_name": "Custom Test Level",
+      "planet_name": "earth"
+    },
+    "test.json": {
+      "date_modified": 1691423056.503398,
+      "level_name": "Test",
+      "planet_name": "moon"
+    },
+    "my_level.json": {
+      "date_modified": 1691531050.2402203,
+      "level_name": "My Level",
+      "planet_name": "moon"
+    }
+  }
+}

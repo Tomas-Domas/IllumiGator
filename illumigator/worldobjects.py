@@ -107,7 +107,14 @@ class WorldObject:
     def distance_squared_to_center(self, point_x, point_y):
         return util.distance_squared(self.position, numpy.array([point_x, point_y]))
 
-    def check_collision(self, sprite: arcade.Sprite):
+    def check_collision_with_point(self, point: numpy.ndarray):
+        for sprite in self._sprite_list:
+            if sprite.collides_with_point(point):
+                return True
+        else:
+            return False
+
+    def check_collision_with_sprite(self, sprite: arcade.Sprite):
         return sprite.collides_with_list(self._sprite_list)
 
     def move_geometry(self, move_distance: numpy.ndarray = numpy.zeros(2), rotate_angle: float = 0):
@@ -122,6 +129,7 @@ class WorldObject:
         enemy,
         move_distance: numpy.ndarray = numpy.zeros(2),
         rotate_angle: float = 0,
+        ignore_collisions: bool = False
     ) -> bool:
         for sprite in self._sprite_list:
             new_position = (
@@ -134,7 +142,9 @@ class WorldObject:
             )
             sprite.radians += rotate_angle
             sprite.center_x, sprite.center_y = new_position[0], new_position[1]
-        if self.check_collision(character.sprite) or (enemy is not None and self.check_collision(enemy.sprite)):
+        if not ignore_collisions and (
+                self.check_collision_with_sprite(character.sprite) or (enemy is not None and self.check_collision_with_sprite(enemy.sprite))
+        ):
             for sprite in self._sprite_list:
                 new_position = util.rotate_around_point(
                     self.position,
@@ -170,6 +180,7 @@ class WorldObject:
 class Wall(WorldObject):
     def __init__(self, position: numpy.ndarray, dimensions: numpy.ndarray, rotation_angle: float):
         super().__init__(position, rotation_angle, is_interactable=False)
+        self.dimensions = dimensions
         self.initialize_geometry(util.WALL_SPRITE_INFO, dimensions=dimensions)
         self.initialize_sprites(util.WALL_SPRITE_INFO, dimensions=dimensions)
 
@@ -292,12 +303,15 @@ class LightReceiver(WorldObject):
         super().__init__(position, rotation_angle)
         self.initialize_geometry(util.RECEIVER_SPRITE_INFO, spokes=4, is_receiver=True)
         self.initialize_sprites((planet+".png",) + util.RECEIVER_SPRITE_INFO[1:])
-        self.exploded_sprite = util.load_sprite(planet +"_exploded.png",
-                                                util.RECEIVER_SPRITE_INFO[1],
-                                                image_width=util.RECEIVER_SPRITE_INFO[2],
-                                                image_height=util.RECEIVER_SPRITE_INFO[3],
-                                                center_x=self.position[0],
-                                                center_y=self.position[1])
+        self._sprite_list.append(
+            util.load_sprite(planet +"_exploded.png",
+                util.RECEIVER_SPRITE_INFO[1],
+                image_width=util.RECEIVER_SPRITE_INFO[2],
+                image_height=util.RECEIVER_SPRITE_INFO[3],
+                center_x=self.position[0],
+                center_y=self.position[1])
+        )
+        self._sprite_list[1].visible = False
         self.planet = planet
         self.charge = 0
 
@@ -306,7 +320,8 @@ class LightReceiver(WorldObject):
         color = max(255 * (1.0 - self.charge / util.RECEIVER_THRESHOLD), 0)
 
         if self.charge >= util.RECEIVER_THRESHOLD - 0.01:
-            self._sprite_list[0] = self.exploded_sprite
+            self._sprite_list[0].visible = False
+            self._sprite_list[1].visible = True
 
         for sprite in self._sprite_list:
             sprite.color = (255, color, color)

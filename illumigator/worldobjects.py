@@ -13,13 +13,11 @@ class WorldObject:
     def __init__(
         self,
         position: numpy.ndarray,
-        rotation_angle: float, *,
-        is_interactable=False,
+        rotation_angle: float
     ):
         self.position: numpy.ndarray = position
         self.rotation_angle: float = rotation_angle
-        self.is_interactable: bool = is_interactable
-        self.geometry_segments: list[geometry.Geometry] = []
+        self.geometry_segments: list[geometry.Line] = []
         self.obj_animation: object_animation.ObjectAnimation | None = None
 
         self._sprite_list: arcade.SpriteList = arcade.SpriteList()
@@ -88,9 +86,9 @@ class WorldObject:
             self.geometry_segments = []
             for _ in range(spokes):
                 self.geometry_segments.append(
-                    geometry.Line(self, self.position + axis1, self.position - axis1, is_reflective, is_refractive, is_receiver, is_enemy)
+                    geometry.Line(self, self.position + axis2, self.position - axis2, is_reflective, is_refractive, is_receiver, is_enemy)
                 )
-                axis1 = util.rotate(axis1, numpy.pi / spokes)
+                axis2 = util.rotate(axis2, numpy.pi / spokes)
         else:  # Only do the diagonals
             self.geometry_segments = [
                 geometry.Line(self, self.position - axis1 - axis2, self.position + axis1 + axis2, is_reflective, is_refractive, is_receiver, is_enemy),
@@ -179,7 +177,7 @@ class WorldObject:
 
 class Wall(WorldObject):
     def __init__(self, position: numpy.ndarray, dimensions: numpy.ndarray, rotation_angle: float):
-        super().__init__(position, rotation_angle, is_interactable=False)
+        super().__init__(position, rotation_angle)
         self.dimensions = dimensions
         self.initialize_geometry(util.WALL_SPRITE_INFO, dimensions=dimensions)
         self.initialize_sprites(util.WALL_SPRITE_INFO, dimensions=dimensions)
@@ -187,7 +185,7 @@ class Wall(WorldObject):
 
 class Mirror(WorldObject):
     def __init__(self, position: numpy.ndarray, rotation_angle: float):
-        super().__init__(position, rotation_angle, is_interactable=True)
+        super().__init__(position, rotation_angle)
         self.initialize_geometry(util.MIRROR_SPRITE_INFO, all_borders=True)
         self.initialize_sprites(util.MIRROR_SPRITE_INFO)
         self.geometry_segments[0].is_reflective = True
@@ -204,30 +202,9 @@ class Mirror(WorldObject):
 class Lens(WorldObject):
     def __init__(self, position: numpy.ndarray, rotation_angle: float):
         super().__init__(position, rotation_angle)
-        radius_of_curvature = 110
-        coverage_angle = numpy.pi / 5
-        short_axis = (
-            numpy.array([math.cos(rotation_angle), math.sin(rotation_angle)])
-            * math.cos(coverage_angle / 2)
-            * radius_of_curvature
-        )
-        self.geometry_segments = [
-            geometry.Arc(
-                self,
-                position - short_axis,
-                radius_of_curvature,
-                rotation_angle,
-                coverage_angle,
-            ),
-            geometry.Arc(
-                self,
-                position + short_axis,
-                radius_of_curvature,
-                numpy.pi + rotation_angle,
-                coverage_angle,
-            ),
-        ]
+        self.initialize_geometry(util.LENS_SPRITE_INFO, spokes=1, is_refractive=True)
         self.initialize_sprites(util.LENS_SPRITE_INFO)
+        self.geometry_segments[0].calculate_normal()
 
 
 class LightSource(WorldObject):
@@ -327,7 +304,6 @@ class LightReceiver(WorldObject):
             sprite.color = (255, color, color)
 
         super().draw()
-
 
 
 def find_nearest_world_object(point: numpy.ndarray, world_objects: list) -> tuple:

@@ -1,19 +1,18 @@
-import math
 import numpy
 
-from illumigator import worldobjects, entity, util, light
+from illumigator import worldobjects, entity, util, light, geometry
 
 class Level:
     def __init__(
             self,
-            wall_coordinate_list = (),
-            mirror_coordinate_list = (),
-            light_receiver_coordinate_list = (),
-            light_source_coordinate_list = (),
-            animated_wall_coordinate_list = (),
-            lens_coordinate_list = (),
-            gator_coordinates = (640, 360),
-            enemy_coordinates = (),
+            wall_coordinate_list=(),
+            mirror_coordinate_list=(),
+            light_receiver_coordinate_list=(),
+            light_source_coordinate_list=(),
+            animated_wall_coordinate_list=(),
+            lens_coordinate_list=(),
+            gator_coordinates=(640, 360),
+            enemy_coordinates=(),
             name="default",
             background="space",
             planet="moon",
@@ -25,58 +24,66 @@ class Level:
 
         self.background = background + ".png"
         self.background_sprite = util.load_sprite(self.background, scale=2/3, center_x=util.WORLD_WIDTH // 2, center_y=util.WORLD_HEIGHT // 2)
-        self.background_sprite.alpha = 100
+        self.background_sprite.alpha = 100  # out of 255
         self.planet = planet
         self.name = name
 
-        self.wall_list = [
-            worldobjects.Wall(
-                numpy.array([
-                    wall_coordinates[0],
-                    wall_coordinates[1]
-                ]),
-                numpy.array([
-                    wall_coordinates[2],
-                    wall_coordinates[3]
-                ]),
-                wall_coordinates[4],
-            ) for wall_coordinates in wall_coordinate_list
-        ]
+        self.line_segments = []
+
+        self.wall_list = []
+        self.mirror_list = []
+        self.lens_list = []
+        self.light_receiver_list = []
+        self.light_source_list = []
         self.create_border_walls()
 
-        self.mirror_list = [
-            worldobjects.Mirror(
-                numpy.array([
-                    mirror_coordinates[0], mirror_coordinates[1]
-                ]),
-                mirror_coordinates[2],
-            ) for mirror_coordinates in mirror_coordinate_list
-        ]
 
-        self.lens_list = [
-            worldobjects.Lens(
-                numpy.array([
-                    lens_coordinates[0],
-                    lens_coordinates[1]
-                ]),
-                lens_coordinates[2]
-            ) for lens_coordinates in lens_coordinate_list
-        ]
-
-        self.light_receiver_list = [
-            worldobjects.LightReceiver(
-                numpy.array([
-                    light_receiver_coordinates[0], light_receiver_coordinates[1]
-                ]),
-                light_receiver_coordinates[2],
-                planet=self.planet
-            ) for light_receiver_coordinates in light_receiver_coordinate_list
-        ]
-
-        self.light_source_list = []
+        for wall_coordinates in wall_coordinate_list:
+            self.add_world_object(
+                worldobjects.Wall(
+                    numpy.array([
+                        wall_coordinates[0],
+                        wall_coordinates[1]
+                    ]),
+                    numpy.array([
+                        wall_coordinates[2],
+                        wall_coordinates[3]
+                    ]),
+                    wall_coordinates[4],
+                )
+            )
+        for mirror_coordinates in mirror_coordinate_list:
+            self.add_world_object(
+                worldobjects.Mirror(
+                    numpy.array([
+                        mirror_coordinates[0], mirror_coordinates[1]
+                    ]),
+                    mirror_coordinates[2],
+                )
+            )
+        for lens_coordinates in lens_coordinate_list:
+            self.add_world_object(
+                worldobjects.Lens(
+                    numpy.array([
+                        lens_coordinates[0],
+                        lens_coordinates[1]
+                    ]),
+                    lens_coordinates[2]
+                )
+            )
+        for light_receiver_coordinates in light_receiver_coordinate_list:
+            self.add_world_object(
+                worldobjects.LightReceiver(
+                    numpy.array([
+                        light_receiver_coordinates[0], light_receiver_coordinates[1]
+                    ]),
+                    light_receiver_coordinates[2],
+                    planet=self.planet
+                )
+            )
         for light_source_coordinates in light_source_coordinate_list:
             if len(light_source_coordinates) == 4:  # Has an angular spread argument
-                self.light_source_list.append(
+                self.add_world_object(
                     worldobjects.RadialLightSource(
                         numpy.array(
                             [light_source_coordinates[0], light_source_coordinates[1]]
@@ -86,7 +93,7 @@ class Level:
                     )
                 )
             else:
-                self.light_source_list.append(
+                self.add_world_object(
                     worldobjects.ParallelLightSource(
                         numpy.array(
                             [light_source_coordinates[0], light_source_coordinates[1]]
@@ -94,10 +101,8 @@ class Level:
                         light_source_coordinates[2],
                     )
                 )
-
-        self.animated_wall_list = []
         for animated_wall_coordinates in animated_wall_coordinate_list:
-            self.wall_list.append(
+            self.add_world_object(
                 worldobjects.Wall(
                     numpy.array([
                         animated_wall_coordinates[0],
@@ -114,14 +119,6 @@ class Level:
                 numpy.array([animated_wall_coordinates[5], animated_wall_coordinates[6]]),
                 animated_wall_coordinates[7], animated_wall_coordinates[8])
 
-        # Append line segments and arcs to geometry lists
-        self.line_segments = []
-        self.arcs = []
-        for world_object in self.wall_list + self.mirror_list + self.light_receiver_list:
-            self.line_segments.extend(world_object.geometry_segments)
-        for world_object in self.lens_list:
-            self.arcs.extend(world_object.geometry_segments)
-
         # Create entities
         self.entity_world_object_list: list[worldobjects.WorldObject] = []
         if len(enemy_coordinates) == 0:
@@ -131,6 +128,7 @@ class Level:
         self.gator = entity.Gator(gator_coordinates, walking_volume)
         self.entity_world_object_list.append(self.gator.world_object)
         self.line_segments.extend(self.gator.world_object.geometry_segments)
+
 
     def update(self, walking_volume, ignore_checks=False):
         if not ignore_checks:
@@ -152,65 +150,56 @@ class Level:
         self.raycast(ignore_checks)
 
     def raycast(self, ignore_checks: bool):
-        #  ==================== Raycasting and update rays ====================
+        # Prep coordinates for intersection calculations
         line_p1 = numpy.ndarray((len(self.line_segments), 2))
         line_p2 = numpy.ndarray((len(self.line_segments), 2))
         for line_i in range(len(self.line_segments)):
             line_p1[line_i], line_p2[line_i] = self.line_segments[line_i]._point1, self.line_segments[line_i]._point2
-        arc_center = numpy.ndarray((len(self.arcs), 2))
-        arc_radius = numpy.ndarray((len(self.arcs),))
-        arc_angles = numpy.ndarray((len(self.arcs), 2))
-        for arc_i in range(len(self.arcs)):
-            arc_center[arc_i], arc_radius[arc_i], arc_angles[arc_i][0], arc_angles[arc_i][1] = self.arcs[arc_i].center, self.arcs[arc_i].radius, self.arcs[arc_i]._start_angle, self.arcs[arc_i]._end_angle
 
         for light_source in self.light_source_list:
+            # Add Rays to a queue
             ray_queue = light_source.light_rays[:]
             queue_length = len(ray_queue)
             while queue_length > 0:
+                # Prep coordinates for intersection calculations
                 ray_origin = numpy.ndarray((queue_length, 2))
                 ray_dir = numpy.ndarray((queue_length, 2))
                 for ray_i in range(queue_length):
                     ray_origin[ray_i], ray_dir[ray_i] = ray_queue[ray_i].origin, ray_queue[ray_i].direction
 
-                nearest_line_distances, nearest_line_indices = light.get_line_raycast_results(ray_origin, ray_dir, line_p1, line_p2)
-
-                if len(self.arcs) > 0:
-                    nearest_arc_distance, nearest_arc_indices = light.get_arc_raycast_results(
-                        ray_origin[:, 0], ray_origin[:, 1], ray_dir[:, 0], ray_dir[:, 1], arc_center[:, 0], arc_center[:, 1],
-                        arc_radius, arc_angles[:, 0], arc_angles[:, 1])
-                else:
-                    nearest_arc_distance, nearest_arc_indices = numpy.full_like(nearest_line_distances, float('inf')), numpy.full_like(nearest_line_distances, -1)
+                # Calculate intersections (lists of distance and intersection object for each light ray)
+                nearest_distances, nearest_indices = light.calculate_intersections(ray_origin, ray_dir, line_p1, line_p2)
 
                 for i in range(queue_length):
-                    ray = ray_queue[i]
-                    if nearest_line_distances[i] <= nearest_arc_distance[i]:
-                        ray._end = ray.origin + ray.direction * nearest_line_distances[i]
-                        nearest_line = self.line_segments[int(nearest_line_indices[i])]
-                        if nearest_line.is_reflective and ray.generation < util.MAX_GENERATIONS:  # if the ray hit a mirror, create child and cast it
-                            ray._generate_child_ray(
-                                ray.direction - (2 * nearest_line._normal * (nearest_line._normal @ ray.direction))
-                            )
-                            ray_queue.append(ray.child_ray)
-                        elif not ignore_checks and nearest_line.is_receiver:  # Charge receiver when a light ray hits it
-                            nearest_line.parent_object.charge += util.LIGHT_INCREMENT
-                            ray.child_ray = None
-                        elif not ignore_checks and nearest_line.is_enemy and self.enemy.status != "aggro":
-                            self.enemy.status = "aggro"
-                            self.enemy.update_geometry_shape()
-                            ray.child_ray = None
-                        else:
-                            ray.child_ray = None
-                    else:
-                        ray._end = ray.origin + ray.direction * nearest_arc_distance[i]
-                        nearest_arc = self.arcs[int(nearest_arc_indices[i])]
-                        if nearest_arc.is_refractive and ray.generation < util.MAX_GENERATIONS:  # if the ray hit a lens, create child and cast it
-                            try:
-                                ray._generate_child_ray(nearest_arc.get_refracted_direction(ray))
-                                ray_queue.append(ray.child_ray)
-                            except:
-                                ray.child_ray = None
-                        else:
-                            ray.child_ray = None
+                    ray: light.LightRay = ray_queue[i]
+                    nearest_line: geometry.Line = self.line_segments[int(nearest_indices[i])]
+                    # Update ray endpoint
+                    ray._end = ray.origin + ray.direction * nearest_distances[i]
+
+                    # Decide light ray behavior based on intersection object
+                    if ray.generation >= util.MAX_GENERATIONS:
+                        ray.child_ray = None
+                        continue
+                    if nearest_line.is_reflective:  # if the ray hit a mirror, create child and cast it
+                        ray.generate_child_ray(ray.get_reflected_direction(nearest_line))
+                        ray_queue.append(ray.child_ray)
+                        continue
+                    elif nearest_line.is_refractive:
+                        print("LENS!")
+                        ray.child_ray = None
+                        continue
+                    ray.child_ray = None
+
+                    # Update level based on intersection object
+                    if ignore_checks:
+                        continue
+
+                    elif nearest_line.is_receiver:  # Charge receiver when a light ray hits it
+                        nearest_line.parent_object.charge += util.LIGHT_INCREMENT
+                    elif nearest_line.is_enemy and self.enemy.status != "aggro":
+                        self.enemy.status = "aggro"
+                        self.enemy.update_geometry_shape()
+
 
                 ray_queue = ray_queue[queue_length:]
                 queue_length = len(ray_queue)
@@ -242,8 +231,6 @@ class Level:
         match world_object:
             case worldobjects.Lens():  # Lens
                 self.lens_list.append(world_object)
-                self.arcs.extend(world_object.geometry_segments)
-                return
             case worldobjects.Wall():  # Wall
                 self.wall_list.append(world_object)
             case worldobjects.Mirror():  # Mirror
@@ -258,9 +245,6 @@ class Level:
         match world_object:
             case worldobjects.Lens():  # Lens
                 self.lens_list.remove(world_object)
-                for geometry_segment in world_object.geometry_segments:
-                    self.arcs.remove(geometry_segment)
-                return
             case worldobjects.Wall():  # Wall
                 self.wall_list.remove(world_object)
             case worldobjects.Mirror():  # Mirror
@@ -283,22 +267,22 @@ class Level:
         self.enemy = None
 
     def create_border_walls(self):
-        self.wall_list.append(worldobjects.Wall(
+        self.add_world_object(worldobjects.Wall(
             numpy.array([util.WALL_SIZE / 2, 720 / 2]),
             numpy.array([1, 720 / util.WALL_SIZE]),
             0
         ))
-        self.wall_list.append(worldobjects.Wall(
+        self.add_world_object(worldobjects.Wall(
             numpy.array([1280 - util.WALL_SIZE / 2, 720 / 2]),
             numpy.array([1, 720 / util.WALL_SIZE]),
             0
         ))
-        self.wall_list.append(worldobjects.Wall(
+        self.add_world_object(worldobjects.Wall(
             numpy.array([1280 / 2, util.WALL_SIZE / 2]),
             numpy.array([1280 / util.WALL_SIZE - 2, 1]),
             0
         ))
-        self.wall_list.append(worldobjects.Wall(
+        self.add_world_object(worldobjects.Wall(
             numpy.array([1280 / 2, 720 - util.WALL_SIZE / 2]),
             numpy.array([1280 / util.WALL_SIZE - 2, 1]),
             0

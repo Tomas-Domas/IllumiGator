@@ -185,8 +185,8 @@ class Level:
                         ray_queue.append(ray.child_ray)
                         continue
                     elif nearest_line.is_refractive:
-                        print("LENS!")
-                        ray.child_ray = None
+                        ray.generate_child_ray(ray.get_refracted_direction(nearest_line))
+                        ray_queue.append(ray.child_ray)
                         continue
                     ray.child_ray = None
 

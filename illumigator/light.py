@@ -1,7 +1,9 @@
+import math
+
 import arcade
 import numpy
 
-from illumigator import geometry
+from illumigator import util
 
 class LightRay:
     def __init__(self, origin, direction, generation=0):
@@ -14,7 +16,7 @@ class LightRay:
     def generate_child_ray(self, direction):
         if self.child_ray is None:
             self.child_ray = LightRay(
-                self._end + direction * 0.001,
+                self._end + direction * 0.01,
                 direction,
                 generation=self.generation + 1,
             )
@@ -32,6 +34,22 @@ class LightRay:
 
     def get_reflected_direction(self, line):
         return self.direction - (2 * line._normal * (line._normal @ self.direction))
+
+    def get_refracted_direction(self, line):
+        # recalculate t parameter
+        f = 3.5
+        line_minus_ray = line._point1 - self.origin
+        line_diff = line._point1 - line._point2
+        ray_normal_dot = self.direction @ line._normal
+        t  = (line_minus_ray[0] * self.direction[1] - line_minus_ray[1] * self.direction[0]) / (line_diff[0] * self.direction[1] - line_diff[1] * self.direction[0])
+        y = 2*t - 1  # ranges from (-1, 1) where the ray hit the lens (0 is the middle)
+        angle = math.acos(min(1, max(-1, ray_normal_dot)))  # clamp between [-1, 1] to avoid domain errors
+        new_angle = math.atan2(f*math.tan(angle) - y, f)
+
+        if ray_normal_dot > 0:
+            return util.rotate(self.direction, angle-new_angle)
+        else:
+            return -util.rotate(self.direction, new_angle-angle)
 
 
 def calculate_intersections(ray_origin, ray_dir, line_p1, line_p2) -> tuple[numpy.ndarray, numpy.ndarray]:  # distances, line indices

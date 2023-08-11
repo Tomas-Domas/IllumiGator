@@ -212,7 +212,6 @@ class GameObject(arcade.Window):
                 self.game_state = "community_level_select"
             if key == arcade.key.L:
                 if self.current_level_creator is None:
-                    print("GENERATE LEVEL CREATOR")
                     self.current_level_creator = level.LevelCreator(level.Level())
                 self.game_state = "level_creator"
                 self.set_mouse_visible(True)

@@ -2,11 +2,9 @@
 2D Light-Based Puzzle Game
 
 ## Source Code and Other Resources
-https://github.com/EltonLi2000/IllumiGator
+[GitHub](https://github.com/BigDomas/IllumiGator)
 
-https://drive.google.com/drive/folders/1HQ1lIxgZJNANgWnts3bsWUUTnnfJrKXW?usp=sharing
-
-(contains timesheet and project ideas)
+[Miscellaneous](https://drive.google.com/drive/folders/1HQ1lIxgZJNANgWnts3bsWUUTnnfJrKXW?usp=sharing)
 
 ## Dependencies
 arcade
